@@ -29,6 +29,8 @@
 		E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */; };
 		FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */; };
 		DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E366BA19FB884F43926B5E7B /* ExportService.swift */; };
+		ABA07C6B8FDB2A8E718FE4C1 /* BackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B373C3D4EC855E13FBBC0D /* BackupService.swift */; };
+		E5595773ED24E0FEF64845E6 /* Institution+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8702523FBFC6E22949A4646D /* Institution+Cash.swift */; };
 		B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EA6AA8835A46F9861D6378 /* CurrencyService.swift */; };
 		0CC6A3785A284F1C8628046C /* MarketDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6023B481F046438FB9D5AB1A /* MarketDataService.swift */; };
 		02ABC2CEEA914C959E61E028 /* CloudKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D7062BFBF413DA8BA003C /* CloudKitService.swift */; };
@@ -60,6 +62,8 @@
 		395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Identifier.swift"; sourceTree = "<group>"; };
 		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };
 		5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
+		68B373C3D4EC855E13FBBC0D /* BackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupService.swift; sourceTree = "<group>"; };
+		8702523FBFC6E22949A4646D /* Institution+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Institution+Cash.swift"; sourceTree = "<group>"; };
 		E366BA19FB884F43926B5E7B /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		14EA6AA8835A46F9861D6378 /* CurrencyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
 		6023B481F046438FB9D5AB1A /* MarketDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataService.swift; sourceTree = "<group>"; };
@@ -154,6 +158,8 @@
 		EFB827FA5960498B8EB9C209 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				68B373C3D4EC855E13FBBC0D /* BackupService.swift */,
+				8702523FBFC6E22949A4646D /* Institution+Cash.swift */,
 				E366BA19FB884F43926B5E7B /* ExportService.swift */,
 				14EA6AA8835A46F9861D6378 /* CurrencyService.swift */,
 				6023B481F046438FB9D5AB1A /* MarketDataService.swift */,
@@ -267,6 +273,8 @@
 				58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */,
 				E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */,
 				FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */,
+				ABA07C6B8FDB2A8E718FE4C1 /* BackupService.swift in Sources */,
+				E5595773ED24E0FEF64845E6 /* Institution+Cash.swift in Sources */,
 				DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */,
 				B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */,
 				0CC6A3785A284F1C8628046C /* MarketDataService.swift in Sources */,

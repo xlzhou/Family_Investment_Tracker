@@ -11,5 +11,9 @@ extension Portfolio {
     func addToCash(_ delta: Double) {
         cashBalanceSafe = cashBalanceSafe + delta
     }
-}
 
+    var enforcesCashDisciplineEnabled: Bool {
+        get { (self.value(forKey: "enforcesCashDiscipline") as? Bool) ?? true }
+        set { self.setValue(newValue, forKey: "enforcesCashDiscipline") }
+    }
+}

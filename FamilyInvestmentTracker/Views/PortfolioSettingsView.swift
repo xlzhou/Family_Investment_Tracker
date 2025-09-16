@@ -11,18 +11,27 @@ struct PortfolioSettingsView: View {
     @State private var newInstitutionName: String = ""
     @State private var editingInstitution: Institution?
     @State private var editingInstitutionName: String = ""
-    @State private var showingDeleteConfirmation = false
-    @State private var institutionToDelete: Institution?
+    @State private var activeAlert: ActiveAlert?
+    @State private var institutionPendingDeletion: Institution?
+    @State private var enforceCashDiscipline: Bool
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Institution.name, ascending: true)],
         animation: .default
     ) private var institutions: FetchedResults<Institution>
 
+    private enum ActiveAlert: String, Identifiable {
+        case deleteInstitution
+        case resetPortfolio
+
+        var id: String { rawValue }
+    }
+
     init(portfolio: Portfolio) {
         self.portfolio = portfolio
         _portfolioName = State(initialValue: portfolio.name ?? "")
         _selectedMainCurrency = State(initialValue: Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd)
+        _enforceCashDiscipline = State(initialValue: portfolio.enforcesCashDisciplineEnabled)
 
     }
     
@@ -32,6 +41,11 @@ struct PortfolioSettingsView: View {
                 Section(header: Text("Portfolio Information")) {
                     TextField("Portfolio Name", text: $portfolioName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                    Toggle("Enforce Cash Discipline", isOn: $enforceCashDiscipline)
+                        .tint(.blue)
+                    Text("When enabled, security purchases must have sufficient cash in the selected institution.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
                 
                 Section(header: Text("Currency Settings"), 
@@ -83,8 +97,8 @@ struct PortfolioSettingsView: View {
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button("Delete", role: .destructive) {
-                                    institutionToDelete = institution
-                                    showingDeleteConfirmation = true
+                                    institutionPendingDeletion = institution
+                                    activeAlert = .deleteInstitution
                                 }
                                 .tint(.red)
                             }
@@ -99,6 +113,15 @@ struct PortfolioSettingsView: View {
                         }
                         .disabled(newInstitutionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
+                }
+
+                Section(header: Text("Danger Zone"), footer: Text("Resetting clears this portfolio's holdings, transactions, cash balance, and analytics calculations. Institutions stay available for other portfolios.")) {
+                    Button(role: .destructive) {
+                        activeAlert = .resetPortfolio
+                    } label: {
+                        Text("Reset Portfolio Data")
+                    }
+                    .disabled(isResetDisabled)
                 }
 
                 Section(header: Text("Statistics")) {
@@ -143,27 +166,41 @@ struct PortfolioSettingsView: View {
                 }
             }
         }
-        .alert("Delete Institution", isPresented: $showingDeleteConfirmation) {
-            Button("Cancel", role: .cancel) {
-                institutionToDelete = nil
-            }
-            Button("Delete", role: .destructive) {
-                if let institution = institutionToDelete {
-                    deleteInstitution(institution)
-                }
-                institutionToDelete = nil
-            }
-        } message: {
-            if let institution = institutionToDelete {
-                Text("Are you sure you want to delete \"\(institution.name ?? "this institution")\"? This action cannot be undone.")
+        .alert(item: $activeAlert) { alert in
+            switch alert {
+            case .deleteInstitution:
+                let name = institutionPendingDeletion?.name ?? "this institution"
+                return Alert(
+                    title: Text("Delete Institution"),
+                    message: Text("Are you sure you want to delete \"\(name)\"? This action cannot be undone."),
+                    primaryButton: .destructive(Text("Delete")) {
+                        if let institution = institutionPendingDeletion {
+                            deleteInstitution(institution)
+                        }
+                        institutionPendingDeletion = nil
+                    },
+                    secondaryButton: .cancel {
+                        institutionPendingDeletion = nil
+                    }
+                )
+            case .resetPortfolio:
+                return Alert(
+                    title: Text("Reset Portfolio Data"),
+                    message: Text("This removes all holdings, transactions, cash, and analytics data for this portfolio. Institutions remain untouched. This cannot be undone."),
+                    primaryButton: .destructive(Text("Reset")) {
+                        resetPortfolioData()
+                    },
+                    secondaryButton: .cancel()
+                )
             }
         }
     }
-    
+
     private func saveSettings() {
         portfolio.name = portfolioName.trimmingCharacters(in: .whitespacesAndNewlines)
         portfolio.mainCurrency = selectedMainCurrency.rawValue
         portfolio.updatedAt = Date()
+        portfolio.enforcesCashDisciplineEnabled = enforceCashDiscipline
 
         do {
             try viewContext.save()
@@ -171,6 +208,14 @@ struct PortfolioSettingsView: View {
         } catch {
             print("Error saving portfolio settings: \(error)")
         }
+    }
+
+    private var isResetDisabled: Bool {
+        let hasHoldings = (portfolio.holdings?.count ?? 0) > 0
+        let hasTransactions = (portfolio.transactions?.count ?? 0) > 0
+        let hasBalance = portfolio.cashBalanceSafe != 0
+        let hasTotals = portfolio.totalValue != 0
+        return !(hasHoldings || hasTransactions || hasBalance || hasTotals)
     }
 
     private func addInstitution() {
@@ -234,6 +279,24 @@ struct PortfolioSettingsView: View {
             try viewContext.save()
         } catch {
             print("Error deleting institution: \(error)")
+        }
+    }
+
+    private func resetPortfolioData() {
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+
+        transactions.forEach(viewContext.delete)
+        holdings.forEach(viewContext.delete)
+
+        portfolio.cashBalanceSafe = 0
+        portfolio.totalValue = 0
+        portfolio.updatedAt = Date()
+
+        do {
+            try viewContext.save()
+        } catch {
+            print("Error resetting portfolio data: \(error)")
         }
     }
 }

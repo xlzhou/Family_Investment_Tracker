@@ -10,15 +10,28 @@ class CloudKitService: ObservableObject {
     @Published var lastSyncDate: Date?
     @Published var syncError: String?
     
-    private let container = CKContainer.default()
-    private let database: CKDatabase
+    private let container: CKContainer?
+    private let database: CKDatabase?
     
     private init() {
-        self.database = container.privateCloudDatabase
-        checkAccountStatus()
+        if CloudKitService.isCloudKitAvailable {
+            let container = CKContainer.default()
+            self.container = container
+            self.database = container.privateCloudDatabase
+            checkAccountStatus()
+        } else {
+            self.container = nil
+            self.database = nil
+            isEnabled = false
+            syncError = "CloudKit is not configured or iCloud is unavailable on this device."
+        }
     }
-    
+
     func checkAccountStatus() {
+        guard let container = container else {
+            isEnabled = false
+            return
+        }
         container.accountStatus { [weak self] status, error in
             DispatchQueue.main.async {
                 switch status {
@@ -70,7 +83,7 @@ class CloudKitService: ObservableObject {
     }
     
     func performManualSync() {
-        guard isEnabled else { return }
+        guard isEnabled, container != nil else { return }
         
         isSyncing = true
         syncError = nil
@@ -123,7 +136,7 @@ extension CloudKitService {
         // CloudKit migration is handled automatically by Core Data
         // when NSPersistentCloudKitContainer is configured
         
-        guard isCloudSyncEnabled else { return }
+        guard isCloudSyncEnabled, container != nil else { return }
         
         isSyncing = true
         
@@ -136,5 +149,17 @@ extension CloudKitService {
                 isSyncing = false
             }
         }
+    }
+}
+
+// MARK: - Availability Helpers
+extension CloudKitService {
+    private static var isCloudKitAvailable: Bool {
+        #if targetEnvironment(macCatalyst)
+        // CloudKit is not supported in this build configuration without additional setup
+        return false
+        #else
+        return FileManager.default.ubiquityIdentityToken != nil
+        #endif
     }
 }

@@ -12,6 +12,7 @@ struct PortfolioListView: View {
     private var portfolios: FetchedResults<Portfolio>
     
     @State private var showingAddPortfolio = false
+    @State private var showingSettings = false
     
     var body: some View {
         NavigationView {
@@ -28,8 +29,16 @@ struct PortfolioListView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    Spacer()
-                    
+                Spacer()
+                
+                HStack(spacing: 16) {
+                    Button(action: {
+                        showingSettings = true
+                    }) {
+                        Image(systemName: "gearshape.fill")
+                            .font(.title2)
+                    }
+
                     Button(action: {
                         authManager.logout()
                     }) {
@@ -37,7 +46,8 @@ struct PortfolioListView: View {
                             .font(.title2)
                     }
                 }
-                .padding()
+            }
+            .padding()
                 
                 // Portfolio Cards
                 ScrollView {
@@ -83,6 +93,11 @@ struct PortfolioListView: View {
         .sheet(isPresented: $showingAddPortfolio) {
             AddPortfolioView()
         }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
+                .environment(\.managedObjectContext, viewContext)
+                .environmentObject(authManager)
+        }
         .onAppear {
             createDefaultPortfoliosIfNeeded()
         }
@@ -110,6 +125,7 @@ struct PortfolioListView: View {
                 portfolio.createdAt = Date()
                 portfolio.updatedAt = Date()
                 portfolio.totalValue = 0.0
+                portfolio.enforcesCashDisciplineEnabled = true
             }
             
             do {

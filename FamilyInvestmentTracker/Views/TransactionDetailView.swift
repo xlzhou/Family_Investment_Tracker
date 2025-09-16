@@ -37,6 +37,14 @@ struct TransactionDetailView: View {
                         Text(transaction.transactionDate ?? Date(), style: .date)
                             .foregroundColor(.secondary)
                     }
+                    if let maturity = transaction.maturityDate {
+                        HStack {
+                            Text("Maturity Date")
+                            Spacer()
+                            Text(maturity, style: .date)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                     HStack {
                         Text("Gross Amount")
                         Spacer()

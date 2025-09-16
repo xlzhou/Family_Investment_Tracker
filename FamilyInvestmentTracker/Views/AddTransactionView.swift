@@ -26,10 +26,19 @@ struct AddTransactionView: View {
     @State private var showingCustomInstitution = false
     @State private var tax: Double = 0
     @State private var selectedCurrency = Currency.usd
+    @State private var hasMaturityDate = false
+    @State private var maturityDate = Date()
     // Dividend-specific: source security
     @State private var selectedDividendAssetID: NSManagedObjectID?
     // Sell-specific: security to sell
     @State private var selectedSellAssetID: NSManagedObjectID?
+    
+    private let currencyService = CurrencyService.shared
+    @State private var cashDisciplineError: String?
+    
+    private var portfolioCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
     
     private var isAmountOnly: Bool {
         selectedTransactionType == .dividend || selectedTransactionType == .interest || selectedTransactionType == .deposit || selectedTransactionType == .withdrawal
@@ -149,6 +158,10 @@ struct AddTransactionView: View {
                 // Transaction Details
                 Section(header: Text("Transaction Details")) {
                     DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
+                    Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
+                    if hasMaturityDate {
+                        DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
+                    }
                     
                     if isAmountOnly {
                         HStack {
@@ -249,6 +262,15 @@ struct AddTransactionView: View {
                 selectedSellAssetID = nil
             }
         }
+        .alert("Cash Requirement", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
+            Button("OK", role: .cancel) {
+                cashDisciplineError = nil
+            }
+        } message: {
+            if let message = cashDisciplineError {
+                Text(message)
+            }
+        }
     }
     
     private var isFormValid: Bool {
@@ -267,6 +289,58 @@ struct AddTransactionView: View {
     }
     
     private func saveTransaction() {
+        let trimmedInstitutionName = tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines)
+        var createdInstitution: Institution?
+        var institutionForTransaction: Institution? = selectedInstitution
+        if institutionForTransaction == nil, !trimmedInstitutionName.isEmpty {
+            let (institution, wasCreated) = findOrCreateInstitution(name: trimmedInstitutionName)
+            institutionForTransaction = institution
+            if wasCreated { createdInstitution = institution }
+        }
+
+        let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
+
+        func failWithMessage(_ message: String) {
+            if let createdInstitution = createdInstitution {
+                viewContext.delete(createdInstitution)
+            }
+            cashDisciplineError = message
+        }
+
+        if cashDisciplineEnabled {
+            switch selectedTransactionType {
+            case .buy:
+                guard let institution = institutionForTransaction else {
+                    failWithMessage("Select a trading institution before purchasing securities.")
+                    return
+                }
+                let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
+                let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
+                if institution.cashBalanceSafe + 1e-6 < requiredFunds {
+                    failWithMessage("Not enough cash in \(institution.name ?? "this institution") to complete this purchase.")
+                    return
+                }
+            case .withdrawal:
+                guard let institution = institutionForTransaction else {
+                    failWithMessage("Select a trading institution before withdrawing cash.")
+                    return
+                }
+                let netCash = amount - fees - tax
+                let requiredCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
+                if institution.cashBalanceSafe + 1e-6 < requiredCash {
+                    failWithMessage("Not enough cash in \(institution.name ?? "this institution") to withdraw this amount.")
+                    return
+                }
+            case .deposit, .sell:
+                guard institutionForTransaction != nil else {
+                    failWithMessage("Select a trading institution for this transaction.")
+                    return
+                }
+            default:
+                break
+            }
+        }
+
         let transaction = Transaction(context: viewContext)
         transaction.id = UUID()
         transaction.type = selectedTransactionType.rawValue
@@ -277,22 +351,22 @@ struct AddTransactionView: View {
         transaction.ensureIdentifiers()
 
         // Handle institution
-        if let selectedInstitution = selectedInstitution {
-            transaction.institution = selectedInstitution
-            transaction.tradingInstitution = selectedInstitution.name
-        } else {
-            let institutionName = tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines)
-            transaction.tradingInstitution = institutionName
-
-            // Create new institution if needed
-            if !institutionName.isEmpty {
-                let newInstitution = findOrCreateInstitution(name: institutionName)
-                transaction.institution = newInstitution
+        if let institution = institutionForTransaction {
+            transaction.institution = institution
+            if let name = institution.name, !name.isEmpty {
+                transaction.tradingInstitution = name
+            } else if !trimmedInstitutionName.isEmpty {
+                transaction.tradingInstitution = trimmedInstitutionName
+            } else {
+                transaction.tradingInstitution = nil
             }
+        } else {
+            transaction.tradingInstitution = trimmedInstitutionName.isEmpty ? nil : trimmedInstitutionName
         }
         transaction.notes = notes.isEmpty ? nil : notes
         transaction.createdAt = Date()
         transaction.portfolio = portfolio
+        transaction.maturityDate = hasMaturityDate ? maturityDate : nil
         
         if isAmountOnly {
             transaction.amount = amount
@@ -301,13 +375,20 @@ struct AddTransactionView: View {
 
             // Increase portfolio cash by net amount
             let netCash = amount - fees - tax
+            let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
             switch selectedTransactionType {
             case .deposit:
-                portfolio.addToCash(netCash)
+                portfolio.addToCash(convertedNetCash)
+                if cashDisciplineEnabled, let institution = institutionForTransaction {
+                    institution.cashBalanceSafe += convertedNetCash
+                }
             case .withdrawal:
-                portfolio.addToCash(-netCash)
+                portfolio.addToCash(-convertedNetCash)
+                if cashDisciplineEnabled, let institution = institutionForTransaction {
+                    institution.cashBalanceSafe -= convertedNetCash
+                }
             case .dividend, .interest:
-                portfolio.addToCash(netCash)
+                portfolio.addToCash(convertedNetCash)
             default:
                 break
             }
@@ -340,8 +421,17 @@ struct AddTransactionView: View {
             if selectedTransactionType == .sell {
                 let netProceeds = (quantity * price) - fees - tax
                 if netProceeds != 0 {
-                    portfolio.addToCash(netProceeds)
+                    let convertedProceeds = convertToPortfolioCurrency(netProceeds, from: selectedCurrency)
+                    portfolio.addToCash(convertedProceeds)
+                    if cashDisciplineEnabled, let institution = institutionForTransaction {
+                        institution.cashBalanceSafe += convertedProceeds
+                    }
                 }
+            } else if selectedTransactionType == .buy, cashDisciplineEnabled, let institution = institutionForTransaction {
+                let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
+                let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
+                institution.cashBalanceSafe -= requiredFunds
+                portfolio.addToCash(-requiredFunds)
             }
         }
         
@@ -388,18 +478,23 @@ struct AddTransactionView: View {
         portfolio.updatedAt = Date()
     }
     
-    private func findOrCreateInstitution(name: String) -> Institution {
+    private func convertToPortfolioCurrency(_ amount: Double, from currency: Currency) -> Double {
+        currencyService.convertAmount(amount, from: currency, to: portfolioCurrency)
+    }
+
+    private func findOrCreateInstitution(name: String) -> (Institution, Bool) {
         let request: NSFetchRequest<Institution> = Institution.fetchRequest()
         request.predicate = NSPredicate(format: "name ==[c] %@", name)
 
         if let existingInstitution = try? viewContext.fetch(request).first {
-            return existingInstitution
+            return (existingInstitution, false)
         } else {
             let newInstitution = Institution(context: viewContext)
             newInstitution.id = UUID()
             newInstitution.name = name
             newInstitution.createdAt = Date()
-            return newInstitution
+            newInstitution.cashBalanceSafe = 0
+            return (newInstitution, true)
         }
     }
 
@@ -416,7 +511,8 @@ struct AddTransactionView: View {
             newAsset.name = assetName.isEmpty ? assetSymbol.uppercased() : assetName
             newAsset.assetType = selectedAssetType.rawValue
             newAsset.createdAt = Date()
-            newAsset.currentPrice = price
+            let convertedPrice = convertToPortfolioCurrency(price, from: selectedCurrency)
+            newAsset.currentPrice = convertedPrice
             newAsset.lastPriceUpdate = Date()
             return newAsset
         }
@@ -440,20 +536,38 @@ struct AddTransactionView: View {
             holding.totalDividends = 0
         }
         
-        switch selectedTransactionType {
+        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+        let quantity = transaction.quantity
+        let priceInPortfolioCurrency = currencyService.convertAmount(transaction.price, from: transactionCurrency, to: portfolioCurrency)
+        let amountInPortfolioCurrency = currencyService.convertAmount(transaction.amount, from: transactionCurrency, to: portfolioCurrency)
+
+        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
+
+        switch transactionType {
         case .buy:
-            let newTotalCost = (holding.quantity * holding.averageCostBasis) + (quantity * price)
+            let currentCost = holding.quantity * holding.averageCostBasis
+            let newTotalCost = currentCost + (quantity * priceInPortfolioCurrency)
             let newTotalQuantity = holding.quantity + quantity
             holding.averageCostBasis = newTotalQuantity > 0 ? newTotalCost / newTotalQuantity : 0
             holding.quantity = newTotalQuantity
+            asset.currentPrice = priceInPortfolioCurrency
+            asset.lastPriceUpdate = Date()
             
         case .sell:
-            let realizedGain = quantity * (price - holding.averageCostBasis)
+            let realizedGain = quantity * (priceInPortfolioCurrency - holding.averageCostBasis)
             holding.realizedGainLoss += realizedGain
             holding.quantity -= quantity
+            asset.currentPrice = priceInPortfolioCurrency
+            asset.lastPriceUpdate = Date()
+            if holding.quantity < 0 {
+                holding.quantity = 0
+            }
+            if holding.quantity == 0 {
+                holding.averageCostBasis = 0
+            }
             
         case .dividend, .interest:
-            holding.totalDividends += amount
+            holding.totalDividends += amountInPortfolioCurrency
         case .deposit, .withdrawal:
             // No holding changes for cash movements
             break

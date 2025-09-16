@@ -1,12 +1,22 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var cloudKitService = CloudKitService.shared
     @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.managedObjectContext) private var viewContext
     
     @State private var showingExportSheet = false
     @State private var selectedExportFormat = ExportFormat.csv
+    @State private var isCreatingBackup = false
+    @State private var backupURL: URL?
+    @State private var showingBackupShareSheet = false
+    @State private var showingRestoreImporter = false
+    @State private var restoreMessage: String?
+    @State private var isRestoring = false
+    @State private var showRestoreAlert = false
+    @State private var restoreError: String?
     
     var body: some View {
         NavigationView {
@@ -109,7 +119,61 @@ struct SettingsView: View {
                         }
                     }
                 }
-                
+
+                // Backup & Restore Section
+                Section(header: Text("Backup & Restore"), footer: Text("Create a full JSON backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.")) {
+                    Button(action: createBackup) {
+                        HStack {
+                            if isCreatingBackup {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "externaldrive.badge.icloud")
+                                    .foregroundColor(.blue)
+                            }
+                            Text(isCreatingBackup ? "Creating Backup..." : "Create Full Backup")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .disabled(isCreatingBackup || isRestoring)
+
+                    Button(action: {
+                        showingRestoreImporter = true
+                    }) {
+                        HStack {
+                            if isRestoring {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "arrow.clockwise.circle")
+                                    .foregroundColor(.orange)
+                            }
+                            Text(isRestoring ? "Restoring Backup..." : "Restore From Backup")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .disabled(isCreatingBackup || isRestoring)
+
+                    if let message = restoreMessage {
+                        Text(message)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    if let errorMessage = restoreError {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+
                 // App Information Section
                 Section(header: Text("App Information")) {
                     HStack {
@@ -155,8 +219,80 @@ struct SettingsView: View {
         .sheet(isPresented: $showingExportSheet) {
             ExportDataView(selectedFormat: $selectedExportFormat)
         }
+        .sheet(isPresented: $showingBackupShareSheet) {
+            if let backupURL = backupURL {
+                ShareSheet(activityItems: [backupURL])
+            }
+        }
+        .fileImporter(isPresented: $showingRestoreImporter, allowedContentTypes: [.json]) { result in
+            switch result {
+            case .success(let url):
+                restoreBackup(from: url)
+            case .failure(let error):
+                restoreError = "Failed to access backup: \(error.localizedDescription)"
+                restoreMessage = nil
+            }
+        }
+        .alert("Restore Complete", isPresented: $showRestoreAlert, actions: {
+            Button("OK", role: .cancel) { }
+        }, message: {
+            Text("Your data has been restored successfully.")
+        })
         .onAppear {
             cloudKitService.checkAccountStatus()
+        }
+    }
+
+    private func createBackup() {
+        guard !isCreatingBackup else { return }
+        restoreMessage = nil
+        restoreError = nil
+        isCreatingBackup = true
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let url = try BackupService.shared.createBackup(context: viewContext)
+                DispatchQueue.main.async {
+                    backupURL = url
+                    showingBackupShareSheet = true
+                    isCreatingBackup = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    restoreError = "Backup failed: \(error.localizedDescription)"
+                    isCreatingBackup = false
+                }
+            }
+        }
+    }
+
+    private func restoreBackup(from url: URL) {
+        guard !isRestoring else { return }
+        restoreError = nil
+        restoreMessage = nil
+        isRestoring = true
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let shouldStopAccess = url.startAccessingSecurityScopedResource()
+            defer {
+                if shouldStopAccess {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+
+            do {
+                try BackupService.shared.restoreBackup(from: url, context: viewContext)
+                DispatchQueue.main.async {
+                    restoreMessage = "Restore completed on \(DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short))."
+                    showRestoreAlert = true
+                    isRestoring = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    restoreError = "Restore failed: \(error.localizedDescription)"
+                    isRestoring = false
+                }
+            }
         }
     }
 }

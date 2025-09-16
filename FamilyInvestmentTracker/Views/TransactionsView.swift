@@ -5,11 +5,16 @@ import Foundation
 struct TransactionsView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
+    private let currencyService = CurrencyService.shared
     
     @State private var selectedFilter = TransactionFilter.all
     @State private var selectedTransaction: Transaction?
     @State private var showingDeleteConfirmation = false
     @State private var transactionToDelete: Transaction?
+    
+    private var portfolioCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
     
     private var filteredTransactions: [Transaction] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
@@ -179,21 +184,32 @@ struct TransactionsView: View {
         guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
 
         let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .withdrawal
+        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+        let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
+        let institution = transaction.institution
 
         if isAmountOnly {
             // Reverse cash movements
-            let netCash = transaction.amount - transaction.fees - transaction.tax
+            let originalNetCash = transaction.amount - transaction.fees - transaction.tax
+            let netCash = currencyService.convertAmount(originalNetCash, from: transactionCurrency, to: portfolioCurrency)
             switch transactionType {
             case .deposit:
                 portfolio.addToCash(-netCash) // Reverse the deposit
+                if cashDisciplineEnabled, let institution = institution {
+                    institution.cashBalanceSafe -= netCash
+                }
             case .withdrawal:
                 portfolio.addToCash(netCash) // Reverse the withdrawal
+                if cashDisciplineEnabled, let institution = institution {
+                    institution.cashBalanceSafe += netCash
+                }
             case .dividend, .interest:
                 portfolio.addToCash(-netCash) // Reverse the dividend/interest
                 // Also reverse dividend tracking on holding if there's an associated asset
                 if let asset = transaction.asset,
                    let holding = findHolding(for: asset) {
-                    holding.totalDividends = max(0, holding.totalDividends - transaction.amount)
+                    let dividendValue = currencyService.convertAmount(transaction.amount, from: transactionCurrency, to: portfolioCurrency)
+                    holding.totalDividends = max(0, holding.totalDividends - dividendValue)
                     holding.updatedAt = Date()
                 }
             default:
@@ -206,9 +222,22 @@ struct TransactionsView: View {
 
                 // Reverse cash movement for sells
                 if transactionType == .sell {
-                    let netProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
+                    let originalProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
+                    let netProceeds = currencyService.convertAmount(originalProceeds, from: transactionCurrency, to: portfolioCurrency)
                     if netProceeds != 0 {
                         portfolio.addToCash(-netProceeds) // Reverse the cash from sale
+                        if cashDisciplineEnabled, let institution = institution {
+                            institution.cashBalanceSafe -= netProceeds
+                        }
+                    }
+                } else if transactionType == .buy {
+                    let originalCost = (transaction.quantity * transaction.price) + transaction.fees + transaction.tax
+                    let cost = currencyService.convertAmount(originalCost, from: transactionCurrency, to: portfolioCurrency)
+                    if cashDisciplineEnabled {
+                        portfolio.addToCash(cost)
+                        if let institution = institution {
+                            institution.cashBalanceSafe += cost
+                        }
                     }
                 }
             }
@@ -226,11 +255,13 @@ struct TransactionsView: View {
 
     private func reverseHoldingImpact(for asset: Asset, transaction: Transaction, transactionType: TransactionType) {
         guard let holding = findHolding(for: asset) else { return }
+        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+        let priceInPortfolio = currencyService.convertAmount(transaction.price, from: transactionCurrency, to: portfolioCurrency)
 
         switch transactionType {
         case .buy:
             // Reverse buy: subtract quantity and recalculate cost basis
-            let transactionCost = transaction.quantity * transaction.price
+            let transactionCost = transaction.quantity * priceInPortfolio
             let currentTotalCost = holding.quantity * holding.averageCostBasis
             let newQuantity = holding.quantity - transaction.quantity
 
@@ -247,7 +278,7 @@ struct TransactionsView: View {
         case .sell:
             // Reverse sell: add quantity back and reverse realized gains
             holding.quantity += transaction.quantity
-            let realizedGain = transaction.quantity * (transaction.price - holding.averageCostBasis)
+            let realizedGain = transaction.quantity * (priceInPortfolio - holding.averageCostBasis)
             holding.realizedGainLoss -= realizedGain
 
         default:
@@ -265,7 +296,7 @@ struct TransactionsView: View {
         }
 
         // Use the safe cash balance accessor
-        let cashBalance = portfolio.cashBalance
+        let cashBalance = portfolio.cashBalanceSafe
         portfolio.totalValue = totalHoldings + cashBalance
         portfolio.updatedAt = Date()
     }
@@ -276,6 +307,10 @@ struct TransactionRowView: View {
     
     private var transactionType: TransactionType? {
         TransactionType(rawValue: transaction.type ?? "")
+    }
+    
+    private var transactionCurrency: Currency {
+        Currency(rawValue: transaction.currency ?? "USD") ?? .usd
     }
     
     private var typeColor: Color {
@@ -344,14 +379,14 @@ struct TransactionRowView: View {
                 
                 HStack {
                     if transaction.quantity > 1 {
-                        Text("\(Formatters.decimal(transaction.quantity)) @ \(Formatters.currency(transaction.price))")
+                        Text("\(Formatters.decimal(transaction.quantity)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.symbol))")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     
                     Spacer()
                     
-                    Text(Formatters.currency(netValue))
+                    Text(Formatters.currency(netValue, symbol: transactionCurrency.symbol))
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundColor(typeColor)

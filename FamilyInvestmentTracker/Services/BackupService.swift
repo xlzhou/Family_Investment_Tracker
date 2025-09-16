@@ -1,0 +1,340 @@
+import Foundation
+import CoreData
+
+struct BackupPackage: Codable {
+    let version: Int
+    let generatedAt: Date
+    let portfolios: [BackupPortfolio]
+    let holdings: [BackupHolding]
+    let assets: [BackupAsset]
+    let transactions: [BackupTransaction]
+    let institutions: [BackupInstitution]
+}
+
+struct BackupPortfolio: Codable {
+    let id: UUID
+    let name: String?
+    let createdAt: Date?
+    let updatedAt: Date?
+    let mainCurrency: String?
+    let cashBalance: Double
+    let totalValue: Double
+    let enforcesCashDiscipline: Bool?
+}
+
+struct BackupHolding: Codable {
+    let id: UUID
+    let portfolioID: UUID?
+    let assetID: UUID?
+    let quantity: Double
+    let averageCostBasis: Double
+    let totalDividends: Double
+    let realizedGainLoss: Double
+    let updatedAt: Date?
+}
+
+struct BackupAsset: Codable {
+    let id: UUID
+    let symbol: String?
+    let name: String?
+    let assetType: String?
+    let createdAt: Date?
+    let currentPrice: Double
+    let lastPriceUpdate: Date?
+}
+
+struct BackupTransaction: Codable {
+    let id: UUID
+    let portfolioID: UUID?
+    let assetID: UUID?
+    let institutionID: UUID?
+    let type: String?
+    let transactionDate: Date?
+    let amount: Double
+    let quantity: Double
+    let price: Double
+    let fees: Double
+    let tax: Double
+    let currency: String?
+    let tradingInstitution: String?
+    let transactionCode: String?
+    let notes: String?
+    let createdAt: Date?
+    let maturityDate: Date?
+}
+
+struct BackupInstitution: Codable {
+    let id: UUID
+    let name: String?
+    let createdAt: Date?
+    let cashBalance: Double?
+}
+
+final class BackupService {
+    static let shared = BackupService()
+    private init() {}
+    
+    private let backupVersion = 1
+    
+    func createBackup(context: NSManagedObjectContext) throws -> URL {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        
+        var payload: BackupPackage?
+        var updatedObjects = false
+        
+        try context.performAndWait {
+            let portfolioFetch: NSFetchRequest<Portfolio> = Portfolio.fetchRequest()
+            let holdingFetch: NSFetchRequest<Holding> = Holding.fetchRequest()
+            let assetFetch: NSFetchRequest<Asset> = Asset.fetchRequest()
+            let transactionFetch: NSFetchRequest<Transaction> = Transaction.fetchRequest()
+            let institutionFetch: NSFetchRequest<Institution> = Institution.fetchRequest()
+            
+            let portfolios = try context.fetch(portfolioFetch)
+            let holdings = try context.fetch(holdingFetch)
+            let assets = try context.fetch(assetFetch)
+            let transactions = try context.fetch(transactionFetch)
+            let institutions = try context.fetch(institutionFetch)
+            
+            portfolios.forEach { updatedObjects = ensureIdentifier(for: $0) || updatedObjects }
+            holdings.forEach { updatedObjects = ensureIdentifier(for: $0) || updatedObjects }
+            assets.forEach { updatedObjects = ensureIdentifier(for: $0) || updatedObjects }
+            institutions.forEach { updatedObjects = ensureIdentifier(for: $0) || updatedObjects }
+            transactions.forEach {
+                updatedObjects = ensureIdentifier(for: $0) || updatedObjects
+                $0.ensureIdentifiers()
+            }
+            
+            if updatedObjects && context.hasChanges {
+                try context.save()
+            }
+            
+            payload = BackupPackage(
+                version: backupVersion,
+                generatedAt: Date(),
+                portfolios: portfolios.map { portfolio in
+                    BackupPortfolio(
+                        id: portfolio.id ?? UUID(),
+                        name: portfolio.name,
+                        createdAt: portfolio.createdAt,
+                        updatedAt: portfolio.updatedAt,
+                        mainCurrency: portfolio.mainCurrency,
+                        cashBalance: portfolio.cashBalance,
+                        totalValue: portfolio.totalValue,
+                        enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled
+                    )
+                },
+                holdings: holdings.map { holding in
+                    BackupHolding(
+                        id: holding.id ?? UUID(),
+                        portfolioID: holding.portfolio?.id,
+                        assetID: holding.asset?.id,
+                        quantity: holding.quantity,
+                        averageCostBasis: holding.averageCostBasis,
+                        totalDividends: holding.totalDividends,
+                        realizedGainLoss: holding.realizedGainLoss,
+                        updatedAt: holding.updatedAt
+                    )
+                },
+                assets: assets.map { asset in
+                    BackupAsset(
+                        id: asset.id ?? UUID(),
+                        symbol: asset.symbol,
+                        name: asset.name,
+                        assetType: asset.assetType,
+                        createdAt: asset.createdAt,
+                        currentPrice: asset.currentPrice,
+                        lastPriceUpdate: asset.lastPriceUpdate
+                    )
+                },
+                transactions: transactions.map { transaction in
+                    BackupTransaction(
+                        id: transaction.id ?? UUID(),
+                        portfolioID: transaction.portfolio?.id,
+                        assetID: transaction.asset?.id,
+                        institutionID: transaction.institution?.id,
+                        type: transaction.type,
+                        transactionDate: transaction.transactionDate,
+                        amount: transaction.amount,
+                        quantity: transaction.quantity,
+                        price: transaction.price,
+                        fees: transaction.fees,
+                        tax: transaction.tax,
+                        currency: transaction.currency,
+                        tradingInstitution: transaction.tradingInstitution,
+                        transactionCode: transaction.transactionCode,
+                        notes: transaction.notes,
+                        createdAt: transaction.createdAt,
+                        maturityDate: transaction.maturityDate
+                    )
+                },
+                institutions: institutions.map { institution in
+                    BackupInstitution(
+                        id: institution.id ?? UUID(),
+                        name: institution.name,
+                        createdAt: institution.createdAt,
+                        cashBalance: institution.cashBalanceSafe
+                    )
+                }
+            )
+        }
+        
+        guard let package = payload else {
+            throw NSError(domain: "BackupService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Unable to generate backup payload."])
+        }
+        
+        let data = try encoder.encode(package)
+        let timestamp = Self.fileTimestampFormatter.string(from: Date())
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("FamilyInvestmentBackup-\(timestamp).json")
+        try data.write(to: fileURL, options: [.atomic])
+        return fileURL
+    }
+    
+    func restoreBackup(from url: URL, context: NSManagedObjectContext) throws {
+        let data = try Data(contentsOf: url)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        let package = try decoder.decode(BackupPackage.self, from: data)
+        
+        try context.performAndWait {
+            try clearExistingData(in: context)
+            
+            var assetsDict: [UUID: Asset] = [:]
+            var portfoliosDict: [UUID: Portfolio] = [:]
+            var institutionsDict: [UUID: Institution] = [:]
+            
+            for assetData in package.assets {
+                let asset = Asset(context: context)
+                asset.id = assetData.id
+                asset.symbol = assetData.symbol
+                asset.name = assetData.name
+                asset.assetType = assetData.assetType
+                asset.createdAt = assetData.createdAt
+                asset.currentPrice = assetData.currentPrice
+                asset.lastPriceUpdate = assetData.lastPriceUpdate
+                assetsDict[assetData.id] = asset
+            }
+            
+            for institutionData in package.institutions {
+                let institution = Institution(context: context)
+                institution.id = institutionData.id
+                institution.name = institutionData.name
+                institution.createdAt = institutionData.createdAt
+                institution.cashBalanceSafe = institutionData.cashBalance ?? 0
+                institutionsDict[institutionData.id] = institution
+            }
+            
+            for portfolioData in package.portfolios {
+                let portfolio = Portfolio(context: context)
+                portfolio.id = portfolioData.id
+                portfolio.name = portfolioData.name
+                portfolio.createdAt = portfolioData.createdAt
+                portfolio.updatedAt = portfolioData.updatedAt
+                portfolio.mainCurrency = portfolioData.mainCurrency
+                portfolio.cashBalance = portfolioData.cashBalance
+                portfolio.totalValue = portfolioData.totalValue
+                portfolio.enforcesCashDisciplineEnabled = portfolioData.enforcesCashDiscipline ?? true
+                portfoliosDict[portfolioData.id] = portfolio
+            }
+            
+            for holdingData in package.holdings {
+                let holding = Holding(context: context)
+                holding.id = holdingData.id
+                holding.quantity = holdingData.quantity
+                holding.averageCostBasis = holdingData.averageCostBasis
+                holding.totalDividends = holdingData.totalDividends
+                holding.realizedGainLoss = holdingData.realizedGainLoss
+                holding.updatedAt = holdingData.updatedAt
+                if let portfolioID = holdingData.portfolioID {
+                    holding.portfolio = portfoliosDict[portfolioID]
+                }
+                if let assetID = holdingData.assetID {
+                    holding.asset = assetsDict[assetID]
+                }
+            }
+            
+            for transactionData in package.transactions {
+                let transaction = Transaction(context: context)
+                transaction.id = transactionData.id
+                transaction.type = transactionData.type
+                transaction.transactionDate = transactionData.transactionDate
+                transaction.amount = transactionData.amount
+                transaction.quantity = transactionData.quantity
+                transaction.price = transactionData.price
+                transaction.fees = transactionData.fees
+                transaction.tax = transactionData.tax
+                transaction.currency = transactionData.currency
+                transaction.tradingInstitution = transactionData.tradingInstitution
+                transaction.transactionCode = transactionData.transactionCode
+                transaction.notes = transactionData.notes
+                transaction.createdAt = transactionData.createdAt
+                transaction.maturityDate = transactionData.maturityDate
+                if let portfolioID = transactionData.portfolioID {
+                    transaction.portfolio = portfoliosDict[portfolioID]
+                }
+                if let assetID = transactionData.assetID {
+                    transaction.asset = assetsDict[assetID]
+                }
+                if let institutionID = transactionData.institutionID {
+                    transaction.institution = institutionsDict[institutionID]
+                }
+            }
+            
+            try context.save()
+        }
+    }
+    
+    private func clearExistingData(in context: NSManagedObjectContext) throws {
+        let entityNames = ["Transaction", "Holding", "Portfolio", "Asset", "Institution"]
+        for name in entityNames {
+            let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+            let objects = try context.fetch(fetch)
+            for case let object as NSManagedObject in objects {
+                context.delete(object)
+            }
+        }
+    }
+    
+    private func ensureIdentifier(for object: NSManagedObject) -> Bool {
+        switch object {
+        case let portfolio as Portfolio:
+            if portfolio.id == nil {
+                portfolio.id = UUID()
+                return true
+            }
+        case let holding as Holding:
+            if holding.id == nil {
+                holding.id = UUID()
+                return true
+            }
+        case let asset as Asset:
+            if asset.id == nil {
+                asset.id = UUID()
+                return true
+            }
+        case let institution as Institution:
+            if institution.id == nil {
+                institution.id = UUID()
+                return true
+            }
+        case let transaction as Transaction:
+            if transaction.id == nil {
+                transaction.id = UUID()
+                return true
+            }
+        default:
+            break
+        }
+        return false
+    }
+    
+    private static let fileTimestampFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(secondsFromGMT: 0)
+        return formatter
+    }()
+}
