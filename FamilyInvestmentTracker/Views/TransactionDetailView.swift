@@ -9,6 +9,10 @@ struct TransactionDetailView: View {
     private var currency: Currency {
         Currency(rawValue: transaction.currency ?? "USD") ?? .usd
     }
+
+    private var netValue: Double {
+        return transaction.amount - transaction.fees - transaction.tax
+    }
     
     var body: some View {
         NavigationView {
@@ -27,9 +31,15 @@ struct TransactionDetailView: View {
                             .foregroundColor(.secondary)
                     }
                     HStack {
-                        Text("Amount")
+                        Text("Gross Amount")
                         Spacer()
                         Text(Formatters.currency(transaction.amount, symbol: currency.symbol))
+                            .foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("Net Amount")
+                        Spacer()
+                        Text(Formatters.currency(netValue, symbol: currency.symbol))
                             .foregroundColor(.primary)
                             .fontWeight(.semibold)
                     }

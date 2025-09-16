@@ -8,6 +8,8 @@ struct TransactionsView: View {
     
     @State private var selectedFilter = TransactionFilter.all
     @State private var selectedTransaction: Transaction?
+    @State private var showingDeleteConfirmation = false
+    @State private var transactionToDelete: Transaction?
     
     private var filteredTransactions: [Transaction] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
@@ -81,6 +83,13 @@ struct TransactionsView: View {
                             .onTapGesture {
                                 selectedTransaction = transaction
                             }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button("Delete", role: .destructive) {
+                                    transactionToDelete = transaction
+                                    showingDeleteConfirmation = true
+                                }
+                                .tint(.red)
+                            }
                     }
                     .onDelete(perform: deleteTransactions)
                 }
@@ -92,18 +101,150 @@ struct TransactionsView: View {
                 TransactionDetailView(transaction: txn)
             }
         }
+        .alert("Delete Transaction", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {
+                transactionToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let transaction = transactionToDelete {
+                    deleteTransaction(transaction)
+                }
+                transactionToDelete = nil
+            }
+        } message: {
+            if let transaction = transactionToDelete {
+                Text("Are you sure you want to delete this \(transaction.type?.lowercased() ?? "transaction")? This action cannot be undone.")
+            }
+        }
     }
     
+    private func deleteTransaction(_ transaction: Transaction) {
+        withAnimation {
+            // Reverse the transaction's impact on portfolio before deleting
+            reverseTransactionImpact(transaction)
+
+            viewContext.delete(transaction)
+
+            do {
+                try viewContext.save()
+            } catch {
+                print("Error deleting transaction: \(error)")
+            }
+        }
+    }
+
     private func deleteTransactions(offsets: IndexSet) {
         withAnimation {
-            offsets.map { filteredTransactions[$0] }.forEach(viewContext.delete)
-            
+            let transactionsToDelete = offsets.map { filteredTransactions[$0] }
+
+            // Reverse each transaction's impact on portfolio before deleting
+            transactionsToDelete.forEach { transaction in
+                reverseTransactionImpact(transaction)
+            }
+
+            transactionsToDelete.forEach(viewContext.delete)
+
             do {
                 try viewContext.save()
             } catch {
                 print("Error deleting transactions: \(error)")
             }
         }
+    }
+
+    private func reverseTransactionImpact(_ transaction: Transaction) {
+        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
+
+        let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .withdrawal
+
+        if isAmountOnly {
+            // Reverse cash movements
+            let netCash = transaction.amount - transaction.fees - transaction.tax
+            switch transactionType {
+            case .deposit:
+                portfolio.addToCash(-netCash) // Reverse the deposit
+            case .withdrawal:
+                portfolio.addToCash(netCash) // Reverse the withdrawal
+            case .dividend, .interest:
+                portfolio.addToCash(-netCash) // Reverse the dividend/interest
+                // Also reverse dividend tracking on holding if there's an associated asset
+                if let asset = transaction.asset,
+                   let holding = findHolding(for: asset) {
+                    holding.totalDividends = max(0, holding.totalDividends - transaction.amount)
+                    holding.updatedAt = Date()
+                }
+            default:
+                break
+            }
+        } else {
+            // Reverse asset transactions (buy/sell)
+            if let asset = transaction.asset {
+                reverseHoldingImpact(for: asset, transaction: transaction, transactionType: transactionType)
+
+                // Reverse cash movement for sells
+                if transactionType == .sell {
+                    let netProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
+                    if netProceeds != 0 {
+                        portfolio.addToCash(-netProceeds) // Reverse the cash from sale
+                    }
+                }
+            }
+        }
+
+        // Recompute portfolio totals
+        recomputePortfolioTotals()
+    }
+
+    private func findHolding(for asset: Asset) -> Holding? {
+        let request: NSFetchRequest<Holding> = Holding.fetchRequest()
+        request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
+        return try? viewContext.fetch(request).first
+    }
+
+    private func reverseHoldingImpact(for asset: Asset, transaction: Transaction, transactionType: TransactionType) {
+        guard let holding = findHolding(for: asset) else { return }
+
+        switch transactionType {
+        case .buy:
+            // Reverse buy: subtract quantity and recalculate cost basis
+            let transactionCost = transaction.quantity * transaction.price
+            let currentTotalCost = holding.quantity * holding.averageCostBasis
+            let newQuantity = holding.quantity - transaction.quantity
+
+            if newQuantity > 0 {
+                let newTotalCost = currentTotalCost - transactionCost
+                holding.averageCostBasis = newTotalCost / newQuantity
+                holding.quantity = newQuantity
+            } else {
+                // If quantity goes to zero or below, reset the holding
+                holding.quantity = 0
+                holding.averageCostBasis = 0
+            }
+
+        case .sell:
+            // Reverse sell: add quantity back and reverse realized gains
+            holding.quantity += transaction.quantity
+            let realizedGain = transaction.quantity * (transaction.price - holding.averageCostBasis)
+            holding.realizedGainLoss -= realizedGain
+
+        default:
+            break
+        }
+
+        holding.updatedAt = Date()
+    }
+
+    private func recomputePortfolioTotals() {
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        let totalHoldings = holdings.reduce(0.0) { partial, holding in
+            guard let asset = holding.asset else { return partial }
+            return partial + (holding.quantity * asset.currentPrice)
+        }
+
+        // Use the safe cash balance accessor
+        let cashBalance = portfolio.cashBalance
+        portfolio.totalValue = totalHoldings + cashBalance
+        portfolio.updatedAt = Date()
     }
 }
 
@@ -138,6 +279,10 @@ struct TransactionRowView: View {
         default:
             return "circle.fill"
         }
+    }
+
+    private var netValue: Double {
+        return transaction.amount - transaction.fees - transaction.tax
     }
     
     var body: some View {
@@ -177,7 +322,7 @@ struct TransactionRowView: View {
                     
                     Spacer()
                     
-                    Text(Formatters.currency(transaction.amount))
+                    Text(Formatters.currency(netValue))
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundColor(typeColor)

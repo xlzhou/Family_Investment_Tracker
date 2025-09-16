@@ -6,6 +6,10 @@ struct AddTransactionView: View {
     let portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Institution.name, ascending: true)],
+        animation: .default
+    ) private var institutions: FetchedResults<Institution>
     
     @State private var selectedTransactionType = TransactionType.buy
     @State private var selectedAssetType = AssetType.stock
@@ -18,6 +22,8 @@ struct AddTransactionView: View {
     @State private var notes = ""
     @State private var amount: Double = 0
     @State private var tradingInstitution = ""
+    @State private var selectedInstitution: Institution? = nil
+    @State private var showingCustomInstitution = false
     @State private var tax: Double = 0
     @State private var selectedCurrency = Currency.usd
     // Dividend-specific: source security
@@ -31,6 +37,15 @@ struct AddTransactionView: View {
     
     private var requiresTax: Bool {
         selectedTransactionType == .sell || selectedTransactionType == .dividend || selectedTransactionType == .interest
+    }
+
+    private var availableInstitutions: [Institution] {
+        institutions.compactMap { institution in
+            guard let name = institution.name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                return nil
+            }
+            return institution
+        }
     }
     
     var body: some View {
@@ -58,8 +73,35 @@ struct AddTransactionView: View {
                 
                 // Trading Institution
                 Section(header: Text("Trading Institution")) {
-                    TextField("Institution (e.g., Interactive Brokers)", text: $tradingInstitution)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    if availableInstitutions.isEmpty || showingCustomInstitution {
+                        HStack {
+                            TextField("Institution (e.g., Interactive Brokers)", text: $tradingInstitution)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            if !availableInstitutions.isEmpty {
+                                Button("Select") {
+                                    showingCustomInstitution = false
+                                }
+                                .font(.caption)
+                            }
+                        }
+                    } else {
+                        VStack(spacing: 8) {
+                            Picker("Institution", selection: $selectedInstitution) {
+                                Text("Select Institution").tag(Optional<Institution>.none)
+                                ForEach(availableInstitutions, id: \.objectID) { institution in
+                                    Text(institution.name ?? "Unknown").tag(Optional(institution))
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+
+                            Button("Type new institution") {
+                                selectedInstitution = nil
+                                showingCustomInstitution = true
+                            }
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                        }
+                    }
                 }
                 
                 // Asset Information (Buy) or Sell Source selection
@@ -210,7 +252,7 @@ struct AddTransactionView: View {
     }
     
     private var isFormValid: Bool {
-        let hasValidInstitution = !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasValidInstitution = selectedInstitution != nil || !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         switch selectedTransactionType {
         case .dividend, .interest:
             return amount > 0 && hasValidInstitution
@@ -231,8 +273,22 @@ struct AddTransactionView: View {
         transaction.transactionDate = transactionDate
         transaction.fees = fees
         transaction.tax = tax
-        transaction.tradingInstitution = tradingInstitution
         transaction.currency = selectedCurrency.rawValue
+
+        // Handle institution
+        if let selectedInstitution = selectedInstitution {
+            transaction.institution = selectedInstitution
+            transaction.tradingInstitution = selectedInstitution.name
+        } else {
+            let institutionName = tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines)
+            transaction.tradingInstitution = institutionName
+
+            // Create new institution if needed
+            if !institutionName.isEmpty {
+                let newInstitution = findOrCreateInstitution(name: institutionName)
+                transaction.institution = newInstitution
+            }
+        }
         transaction.notes = notes.isEmpty ? nil : notes
         transaction.createdAt = Date()
         transaction.portfolio = portfolio
@@ -331,6 +387,21 @@ struct AddTransactionView: View {
         portfolio.updatedAt = Date()
     }
     
+    private func findOrCreateInstitution(name: String) -> Institution {
+        let request: NSFetchRequest<Institution> = Institution.fetchRequest()
+        request.predicate = NSPredicate(format: "name ==[c] %@", name)
+
+        if let existingInstitution = try? viewContext.fetch(request).first {
+            return existingInstitution
+        } else {
+            let newInstitution = Institution(context: viewContext)
+            newInstitution.id = UUID()
+            newInstitution.name = name
+            newInstitution.createdAt = Date()
+            return newInstitution
+        }
+    }
+
     private func findOrCreateAsset() -> Asset {
         let request: NSFetchRequest<Asset> = Asset.fetchRequest()
         request.predicate = NSPredicate(format: "symbol == %@", assetSymbol.uppercased())
