@@ -26,6 +26,7 @@
 		560258E959B6429D904DAB71 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C99186756F54D068D8536E8 /* TransactionDetailView.swift */; };
 		54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A597C86D50F2403B90A1C9D7 /* TransactionType.swift */; };
 		58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */; };
+		E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */; };
 		FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */; };
 		DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E366BA19FB884F43926B5E7B /* ExportService.swift */; };
 		B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EA6AA8835A46F9861D6378 /* CurrencyService.swift */; };
@@ -56,6 +57,7 @@
 		7A3E21BE5A3A416AA00B47A0 /* AddTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionView.swift; sourceTree = "<group>"; };
 		0C99186756F54D068D8536E8 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
 		A597C86D50F2403B90A1C9D7 /* TransactionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionType.swift; sourceTree = "<group>"; };
+		395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Identifier.swift"; sourceTree = "<group>"; };
 		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };
 		5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
 		E366BA19FB884F43926B5E7B /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 			isa = PBXGroup;
 			children = (
 				A597C86D50F2403B90A1C9D7 /* TransactionType.swift */,
+				395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */,
 				EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */,
 			);
 			path = Models;
@@ -262,6 +265,7 @@
 				560258E959B6429D904DAB71 /* TransactionDetailView.swift in Sources */,
 				54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */,
 				58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */,
+				E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */,
 				FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */,
 				DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */,
 				B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */,

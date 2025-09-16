@@ -19,6 +19,13 @@ struct TransactionDetailView: View {
             Form {
                 Section(header: Text("Overview")) {
                     HStack {
+                        Text("Transaction ID")
+                        Spacer()
+                        Text(transaction.transactionCode ?? "-")
+                            .font(.system(.callout, design: .monospaced))
+                            .foregroundColor(.secondary)
+                    }
+                    HStack {
                         Text("Type")
                         Spacer()
                         Text(transaction.type ?? "-")

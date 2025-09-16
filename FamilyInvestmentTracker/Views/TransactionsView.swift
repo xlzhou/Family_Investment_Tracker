@@ -13,6 +13,7 @@ struct TransactionsView: View {
     
     private var filteredTransactions: [Transaction] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        ensureTransactionIdentifiersIfNeeded(for: transactions)
         print("📊 Found \(transactions.count) total transactions for portfolio \(portfolio.name ?? "Unknown")")
         let sorted = transactions.sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
         
@@ -129,6 +130,28 @@ struct TransactionsView: View {
                 try viewContext.save()
             } catch {
                 print("Error deleting transaction: \(error)")
+            }
+        }
+    }
+
+    private func ensureTransactionIdentifiersIfNeeded(for transactions: [Transaction]) {
+        var updated = false
+
+        for transaction in transactions {
+            let previousCode = transaction.transactionCode
+            let previousId = transaction.id
+            transaction.ensureIdentifiers()
+
+            if transaction.transactionCode != previousCode || transaction.id != previousId {
+                updated = true
+            }
+        }
+
+        if updated && viewContext.hasChanges {
+            do {
+                try viewContext.save()
+            } catch {
+                print("Error ensuring transaction identifiers: \(error)")
             }
         }
     }
@@ -310,6 +333,12 @@ struct TransactionRowView: View {
                 if let asset = transaction.asset {
                     Text(asset.symbol ?? "N/A")
                         .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+
+                if let code = transaction.transactionCode {
+                    Text(code)
+                        .font(.system(.caption2, design: .monospaced))
                         .foregroundColor(.secondary)
                 }
                 

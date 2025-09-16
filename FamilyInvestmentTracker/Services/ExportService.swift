@@ -19,16 +19,18 @@ class ExportService: ObservableObject {
     
     // MARK: - CSV Export
     private func exportToCSV(portfolios: [Portfolio]) -> URL? {
-        var csvContent = "Portfolio,Symbol,Asset Name,Asset Type,Transaction Type,Quantity,Price,Amount,Fees,Date,Notes\n"
+        var csvContent = "Portfolio,Transaction ID,Symbol,Asset Name,Asset Type,Transaction Type,Quantity,Price,Amount,Fees,Date,Notes\n"
         
         for portfolio in portfolios {
             let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+            ensureTransactionIdentifiers(in: transactions, context: portfolio.managedObjectContext)
             let sortedTransactions = transactions.sorted { 
                 ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast)
             }
             
             for transaction in sortedTransactions {
                 let portfolioName = portfolio.name ?? "Unknown"
+                let identifier = transaction.transactionCode ?? ""
                 let symbol = transaction.asset?.symbol ?? ""
                 let assetName = transaction.asset?.name ?? ""
                 let assetType = transaction.asset?.assetType ?? ""
@@ -40,7 +42,7 @@ class ExportService: ObservableObject {
                 let date = formatDate(transaction.transactionDate ?? Date())
                 let notes = transaction.notes ?? ""
                 
-                let row = "\(csvEscape(portfolioName)),\(csvEscape(symbol)),\(csvEscape(assetName)),\(csvEscape(assetType)),\(csvEscape(transactionType)),\(quantity),\(price),\(amount),\(fees),\(date),\(csvEscape(notes))\n"
+                let row = "\(csvEscape(portfolioName)),\(csvEscape(identifier)),\(csvEscape(symbol)),\(csvEscape(assetName)),\(csvEscape(assetType)),\(csvEscape(transactionType)),\(quantity),\(price),\(amount),\(fees),\(date),\(csvEscape(notes))\n"
                 csvContent += row
             }
         }
@@ -192,10 +194,11 @@ class ExportService: ObservableObject {
         yPosition += 10
         
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        ensureTransactionIdentifiers(in: transactions, context: portfolio.managedObjectContext)
         let sortedTransactions = transactions.sorted { 
             ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast)
         }.prefix(10) // Last 10 transactions
-        
+
         if sortedTransactions.isEmpty {
             yPosition = drawText(
                 text: "No transactions",
@@ -206,7 +209,7 @@ class ExportService: ObservableObject {
             )
         } else {
             for transaction in sortedTransactions {
-                let transactionText = "\(formatDate(transaction.transactionDate ?? Date())): \(transaction.type ?? "Unknown") \(transaction.asset?.symbol ?? "N/A") - \(Formatters.currency(transaction.amount))"
+                let transactionText = "\(transaction.transactionCode ?? "N/A") | \(formatDate(transaction.transactionDate ?? Date())): \(transaction.type ?? "Unknown") \(transaction.asset?.symbol ?? "N/A") - \(Formatters.currency(transaction.amount))"
                 yPosition = drawText(
                     text: transactionText,
                     at: CGPoint(x: margin, y: yPosition),
@@ -258,6 +261,28 @@ class ExportService: ObservableObject {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         return formatter.string(from: date)
+    }
+
+    private func ensureTransactionIdentifiers(in transactions: [Transaction], context: NSManagedObjectContext?) {
+        var updated = false
+
+        for transaction in transactions {
+            let previousCode = transaction.transactionCode
+            let previousId = transaction.id
+            transaction.ensureIdentifiers()
+
+            if transaction.transactionCode != previousCode || transaction.id != previousId {
+                updated = true
+            }
+        }
+
+        if updated, let context = context, context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                print("Error ensuring transaction identifiers during export: \(error)")
+            }
+        }
     }
     
     private func saveToTemporaryFile(content: String, fileName: String) -> URL? {

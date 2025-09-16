@@ -274,6 +274,7 @@ struct AddTransactionView: View {
         transaction.fees = fees
         transaction.tax = tax
         transaction.currency = selectedCurrency.rawValue
+        transaction.ensureIdentifiers()
 
         // Handle institution
         if let selectedInstitution = selectedInstitution {
