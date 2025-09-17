@@ -10,6 +10,7 @@ struct PortfolioDashboardView: View {
     @State private var showingAddTransaction = false
     @State private var showingPortfolioSettings = false
     @State private var selectedTab = 0
+    @StateObject private var viewModel = PortfolioViewModel()
     
     var body: some View {
         VStack(spacing: 20) {
@@ -66,6 +67,14 @@ struct PortfolioDashboardView: View {
         }
         .sheet(isPresented: $showingPortfolioSettings) {
             PortfolioSettingsView(portfolio: portfolio)
+        }
+        .task {
+            viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
+        }
+        .onChange(of: selectedTab) { newValue in
+            if newValue == 0 || newValue == 2 {
+                viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
+            }
         }
     }
 }

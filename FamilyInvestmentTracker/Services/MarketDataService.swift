@@ -17,10 +17,10 @@ class MarketDataService: ObservableObject {
     }
     
     func updateMarketPrices(for assets: [Asset], in context: NSManagedObjectContext) async {
-        let symbols = assets.compactMap { $0.symbol }.filter { !$0.isEmpty }
+        let symbols = assets.compactMap { $0.symbol?.uppercased() }.filter { !$0.isEmpty }
         let assetData = assets.compactMap { asset -> (objectID: NSManagedObjectID, symbol: String)? in
             guard let symbol = asset.symbol, !symbol.isEmpty else { return nil }
-            return (objectID: asset.objectID, symbol: symbol)
+            return (objectID: asset.objectID, symbol: symbol.uppercased())
         }
 
         guard !symbols.isEmpty else { return }
@@ -49,18 +49,16 @@ class MarketDataService: ObservableObject {
     }
     
     private func fetchPrices(for symbols: [String]) async throws -> [String: Double] {
-        var prices: [String: Double] = [:]
-        
-        // For demo purposes, we'll use a simulated API response
-        // In production, you would use Yahoo Finance API or Alpha Vantage
-        for symbol in symbols {
-            let simulatedPrice = generateSimulatedPrice(for: symbol)
-            prices[symbol] = simulatedPrice
+        guard !symbols.isEmpty else { return [:] }
+
+        let realPrices = try await fetchRealPrices(for: symbols)
+        var prices = realPrices
+
+        // Fallback to simulated prices for any symbols we could not fetch from Yahoo Finance
+        for symbol in symbols where prices[symbol.uppercased()] == nil {
+            prices[symbol.uppercased()] = generateSimulatedPrice(for: symbol)
         }
-        
-        // Simulate network delay
-        try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
-        
+
         return prices
     }
     
@@ -108,18 +106,40 @@ class MarketDataService: ObservableObject {
 // Alternative implementation using Yahoo Finance API (for production use)
 extension MarketDataService {
     private func fetchRealPrices(for symbols: [String]) async throws -> [String: Double] {
+        let uniqueSymbols = Array(Set(symbols.map { $0.uppercased() }))
+        guard !uniqueSymbols.isEmpty else { return [:] }
+
         var prices: [String: Double] = [:]
-        
-        for symbol in symbols {
-            if let url = yahooFinanceURL(for: [symbol]) {
-                let (data, _) = try await session.data(from: url)
-                
-                if let quote = parseYahooFinanceResponse(data) {
-                    prices[symbol] = quote
+
+        let session = session
+        let service = self
+        try await withThrowingTaskGroup(of: (String, Double?).self) { group in
+            for symbol in uniqueSymbols {
+                group.addTask {
+                    guard let url = service.yahooFinanceURL(for: [symbol]) else {
+                        return (symbol, nil)
+                    }
+                    do {
+                        let (data, response) = try await session.data(from: url)
+                        guard let httpResponse = response as? HTTPURLResponse,
+                              200..<300 ~= httpResponse.statusCode else {
+                            return (symbol, nil)
+                        }
+                        let quote = service.parseYahooFinanceResponse(data)
+                        return (symbol, quote)
+                    } catch {
+                        return (symbol, nil)
+                    }
+                }
+            }
+
+            for try await (symbol, price) in group {
+                if let price = price, price > 0 {
+                    prices[symbol] = price
                 }
             }
         }
-        
+
         return prices
     }
     

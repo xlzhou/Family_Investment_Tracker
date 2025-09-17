@@ -5,20 +5,22 @@ import Foundation
 struct HoldingsView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
-    
-    private var holdings: [Holding] {
-        let allHoldings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-        let filteredHoldings = allHoldings.filter { $0.quantity > 0 }
-        print("📈 Holdings Debug: Total=\(allHoldings.count), Filtered=\(filteredHoldings.count)")
-        for holding in allHoldings {
-            print("   - \(holding.asset?.symbol ?? "Unknown"): qty=\(holding.quantity), cost=\(holding.averageCostBasis)")
-        }
-        return filteredHoldings
+    @FetchRequest private var holdingsFetch: FetchedResults<Holding>
+
+    init(portfolio: Portfolio) {
+        self.portfolio = portfolio
+        _holdingsFetch = FetchRequest<Holding>(
+            sortDescriptors: [NSSortDescriptor(key: "asset.name", ascending: true)],
+            predicate: NSPredicate(format: "portfolio == %@", portfolio),
+            animation: .default
+        )
     }
-    
+
     var body: some View {
         VStack {
-            if holdings.isEmpty {
+            let filteredHoldings = holdingsFetch.filter { $0.quantity > 0 || ($0.asset?.assetType == AssetType.insurance.rawValue) }
+
+            if filteredHoldings.isEmpty {
                 VStack(spacing: 20) {
                     Image(systemName: "chart.pie")
                         .font(.system(size: 50))
@@ -37,8 +39,10 @@ struct HoldingsView: View {
                 .padding()
             } else {
                 List {
-                    ForEach(holdings, id: \.objectID) { holding in
-                        HoldingRowView(holding: holding)
+                    ForEach(filteredHoldings, id: \.objectID) { holding in
+                        if let asset = holding.asset {
+                            HoldingRowView(holding: holding, asset: asset)
+                        }
                     }
                 }
                 .listStyle(PlainListStyle())
@@ -48,13 +52,13 @@ struct HoldingsView: View {
 }
 
 struct HoldingRowView: View {
-    let holding: Holding
+    @ObservedObject var holding: Holding
+    @ObservedObject var asset: Asset
     @Environment(\.managedObjectContext) private var viewContext
     @State private var showingCashValueEditor = false
     @State private var editingCashValue: Double = 0
 
     private var currentValue: Double {
-        guard let asset = holding.asset else { return 0 }
         // For insurance, use cash value; for others, use market value
         if asset.assetType == "Insurance" {
             return holding.value(forKey: "cashValue") as? Double ?? 0
@@ -63,7 +67,7 @@ struct HoldingRowView: View {
     }
 
     private var isInsurance: Bool {
-        holding.asset?.assetType == "Insurance"
+        asset.assetType == "Insurance"
     }
     
     private var costBasis: Double {
@@ -83,11 +87,11 @@ struct HoldingRowView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(holding.asset?.symbol ?? "N/A")
+                    Text(asset.symbol ?? "N/A")
                         .font(.headline)
                         .fontWeight(.semibold)
                     
-                    Text(holding.asset?.name ?? "Unknown Asset")
+                    Text(asset.name ?? "Unknown Asset")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -190,7 +194,7 @@ struct HoldingRowView: View {
                         Text("Current Price")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(Formatters.currency(holding.asset?.currentPrice ?? 0))
+                        Text(Formatters.currency(asset.currentPrice))
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }

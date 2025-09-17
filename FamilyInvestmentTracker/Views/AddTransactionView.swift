@@ -929,15 +929,11 @@ struct AddTransactionView: View {
             let newTotalQuantity = holding.quantity + quantity
             holding.averageCostBasis = newTotalQuantity > 0 ? newTotalCost / newTotalQuantity : 0
             holding.quantity = newTotalQuantity
-            asset.currentPrice = priceInPortfolioCurrency
-            asset.lastPriceUpdate = Date()
             
         case .sell:
             let realizedGain = quantity * (priceInPortfolioCurrency - holding.averageCostBasis)
             holding.realizedGainLoss += realizedGain
             holding.quantity -= quantity
-            asset.currentPrice = priceInPortfolioCurrency
-            asset.lastPriceUpdate = Date()
             if holding.quantity < 0 {
                 holding.quantity = 0
             }
