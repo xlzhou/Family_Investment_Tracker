@@ -249,7 +249,7 @@ struct AddTransactionView: View {
                 }
             }
         }
-        .onChange(of: selectedTransactionType) { _ in
+        .onChange(of: selectedTransactionType) { oldValue, newValue in
             switch selectedTransactionType {
             case .dividend:
                 if selectedDividendAssetID == nil { selectedDividendAssetID = dividendSourceAssets.first?.objectID }

@@ -9,16 +9,21 @@ class PortfolioViewModel: ObservableObject {
     
     func updatePortfolioPrices(portfolio: Portfolio, context: NSManagedObjectContext) {
         guard !isUpdatingPrices else { return }
-        
+
         isUpdatingPrices = true
-        
-        Task {
-            let assets = getAllAssetsInPortfolio(portfolio)
-            await marketDataService.updateMarketPrices(for: assets, in: context)
-            
-            await MainActor.run {
-                updatePortfolioTotalValue(portfolio: portfolio, context: context)
-                isUpdatingPrices = false
+        let portfolioObjectID = portfolio.objectID
+
+        Task { [weak self] in
+            guard let self = self else { return }
+            let assets = self.getAllAssetsInPortfolio(portfolio)
+            await self.marketDataService.updateMarketPrices(for: assets, in: context)
+
+            await MainActor.run { [weak self] in
+                guard let self = self else { return }
+                if let portfolioInContext = try? context.existingObject(with: portfolioObjectID) as? Portfolio {
+                    self.updatePortfolioTotalValue(portfolio: portfolioInContext, context: context)
+                }
+                self.isUpdatingPrices = false
             }
         }
     }

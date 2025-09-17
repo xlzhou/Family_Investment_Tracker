@@ -7,69 +7,69 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2022E4B164974B0DB2BBCD5E /* FamilyInvestmentTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FFAA3D58B9478DAE939C28 /* FamilyInvestmentTrackerApp.swift */; };
-		03A1237FC77E43D2B6698A64 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F73691411C641EE9E5E0180 /* ContentView.swift */; };
-		672CA89D46D34C8AA97BE10F /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3A9F2F8FDE4A6C8B9E0E09 /* Persistence.swift */; };
-		F70A2E2BE7324FD9938E12DB /* FamilyInvestmentTracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */; };
-		0C269737CF02497A996C6DD8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1CCD403B2EA641EB8CD92769 /* Assets.xcassets */; };
-		A7BE011BD6D04F25A1938907 /* PortfolioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A136EB05B9154DEDA208FC05 /* PortfolioSettingsView.swift */; };
-		8249C25014704EEDA0D21F55 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05B1E5F2D334E2190922280 /* SettingsView.swift */; };
-		B8A3BF339CA44DBF8A3D0047 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */; };
-		83A5D1E5DC394A9EB73324A7 /* AddPortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */; };
-		5FAF03082FDC46558F9413C4 /* PortfolioDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */; };
-		D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CA597ABF61463EBB88272F /* PortfolioListView.swift */; };
-		DC9D5EF6AE3B47378F352FEC /* HoldingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */; };
-		ABDE230C8B0048F780ACCAB0 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF52C0EA3CEE4AE2ADBCD676 /* AuthenticationView.swift */; };
-		347C0A05FBD64A32B512CA58 /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92FBCCFBC834245B55F0285 /* AnalyticsView.swift */; };
-		8F98ABE15450474E80A397BB /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6585115FE4F40BFBC1525C4 /* TransactionsView.swift */; };
-		7E3696D6D0B044F798ED84F2 /* AddTransactionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3E21BE5A3A416AA00B47A0 /* AddTransactionView.swift */; };
-		560258E959B6429D904DAB71 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C99186756F54D068D8536E8 /* TransactionDetailView.swift */; };
-		54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A597C86D50F2403B90A1C9D7 /* TransactionType.swift */; };
-		58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */; };
-		E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */; };
-		FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */; };
-		DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E366BA19FB884F43926B5E7B /* ExportService.swift */; };
-		ABA07C6B8FDB2A8E718FE4C1 /* BackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B373C3D4EC855E13FBBC0D /* BackupService.swift */; };
-		E5595773ED24E0FEF64845E6 /* Institution+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8702523FBFC6E22949A4646D /* Institution+Cash.swift */; };
-		B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EA6AA8835A46F9861D6378 /* CurrencyService.swift */; };
-		0CC6A3785A284F1C8628046C /* MarketDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6023B481F046438FB9D5AB1A /* MarketDataService.swift */; };
 		02ABC2CEEA914C959E61E028 /* CloudKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D7062BFBF413DA8BA003C /* CloudKitService.swift */; };
+		03A1237FC77E43D2B6698A64 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F73691411C641EE9E5E0180 /* ContentView.swift */; };
+		0C269737CF02497A996C6DD8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1CCD403B2EA641EB8CD92769 /* Assets.xcassets */; };
+		0CC6A3785A284F1C8628046C /* MarketDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6023B481F046438FB9D5AB1A /* MarketDataService.swift */; };
+		2022E4B164974B0DB2BBCD5E /* FamilyInvestmentTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FFAA3D58B9478DAE939C28 /* FamilyInvestmentTrackerApp.swift */; };
+		347C0A05FBD64A32B512CA58 /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C92FBCCFBC834245B55F0285 /* AnalyticsView.swift */; };
+		54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A597C86D50F2403B90A1C9D7 /* TransactionType.swift */; };
+		560258E959B6429D904DAB71 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C99186756F54D068D8536E8 /* TransactionDetailView.swift */; };
+		58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */; };
+		5FAF03082FDC46558F9413C4 /* PortfolioDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */; };
+		672CA89D46D34C8AA97BE10F /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3A9F2F8FDE4A6C8B9E0E09 /* Persistence.swift */; };
+		7E3696D6D0B044F798ED84F2 /* AddTransactionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3E21BE5A3A416AA00B47A0 /* AddTransactionView.swift */; };
+		8249C25014704EEDA0D21F55 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05B1E5F2D334E2190922280 /* SettingsView.swift */; };
+		83A5D1E5DC394A9EB73324A7 /* AddPortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */; };
+		8F98ABE15450474E80A397BB /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6585115FE4F40BFBC1525C4 /* TransactionsView.swift */; };
 		96B7992AEA38485CB1E59864 /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */; };
+		A7BE011BD6D04F25A1938907 /* PortfolioSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A136EB05B9154DEDA208FC05 /* PortfolioSettingsView.swift */; };
+		ABA07C6B8FDB2A8E718FE4C1 /* BackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68B373C3D4EC855E13FBBC0D /* BackupService.swift */; };
+		ABDE230C8B0048F780ACCAB0 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF52C0EA3CEE4AE2ADBCD676 /* AuthenticationView.swift */; };
+		B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EA6AA8835A46F9861D6378 /* CurrencyService.swift */; };
 		B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3FD956593F495A808BA082 /* Formatters.swift */; };
+		B8A3BF339CA44DBF8A3D0047 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */; };
+		D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CA597ABF61463EBB88272F /* PortfolioListView.swift */; };
+		DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E366BA19FB884F43926B5E7B /* ExportService.swift */; };
+		DC9D5EF6AE3B47378F352FEC /* HoldingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */; };
+		E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */; };
+		E5595773ED24E0FEF64845E6 /* Institution+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8702523FBFC6E22949A4646D /* Institution+Cash.swift */; };
+		F70A2E2BE7324FD9938E12DB /* FamilyInvestmentTracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */; };
+		FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		F630DE14897845C18BB21F5D /* FamilyInvestmentTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FamilyInvestmentTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		85FFAA3D58B9478DAE939C28 /* FamilyInvestmentTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyInvestmentTrackerApp.swift; sourceTree = "<group>"; };
-		4F73691411C641EE9E5E0180 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		7B3A9F2F8FDE4A6C8B9E0E09 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
-		34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FamilyInvestmentTracker.xcdatamodeld; sourceTree = "<group>"; };
-		1CCD403B2EA641EB8CD92769 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		15E592AC0E3F4869838779D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A136EB05B9154DEDA208FC05 /* PortfolioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioSettingsView.swift; sourceTree = "<group>"; };
-		E05B1E5F2D334E2190922280 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataView.swift; sourceTree = "<group>"; };
-		56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPortfolioView.swift; sourceTree = "<group>"; };
-		98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioDashboardView.swift; sourceTree = "<group>"; };
-		46CA597ABF61463EBB88272F /* PortfolioListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioListView.swift; sourceTree = "<group>"; };
-		1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsView.swift; sourceTree = "<group>"; };
-		CF52C0EA3CEE4AE2ADBCD676 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
-		C92FBCCFBC834245B55F0285 /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
-		A6585115FE4F40BFBC1525C4 /* TransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
-		7A3E21BE5A3A416AA00B47A0 /* AddTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionView.swift; sourceTree = "<group>"; };
 		0C99186756F54D068D8536E8 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
-		A597C86D50F2403B90A1C9D7 /* TransactionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionType.swift; sourceTree = "<group>"; };
-		395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Identifier.swift"; sourceTree = "<group>"; };
-		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };
-		5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
-		68B373C3D4EC855E13FBBC0D /* BackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupService.swift; sourceTree = "<group>"; };
-		8702523FBFC6E22949A4646D /* Institution+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Institution+Cash.swift"; sourceTree = "<group>"; };
-		E366BA19FB884F43926B5E7B /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
 		14EA6AA8835A46F9861D6378 /* CurrencyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
-		6023B481F046438FB9D5AB1A /* MarketDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataService.swift; sourceTree = "<group>"; };
-		595D7062BFBF413DA8BA003C /* CloudKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitService.swift; sourceTree = "<group>"; };
-		D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
+		15E592AC0E3F4869838779D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1CCD403B2EA641EB8CD92769 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsView.swift; sourceTree = "<group>"; };
+		34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FamilyInvestmentTracker.xcdatamodeld; sourceTree = "<group>"; };
+		395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Identifier.swift"; sourceTree = "<group>"; };
+		46CA597ABF61463EBB88272F /* PortfolioListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioListView.swift; sourceTree = "<group>"; };
 		4E3FD956593F495A808BA082 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		4F73691411C641EE9E5E0180 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPortfolioView.swift; sourceTree = "<group>"; };
+		595D7062BFBF413DA8BA003C /* CloudKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitService.swift; sourceTree = "<group>"; };
+		5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataView.swift; sourceTree = "<group>"; };
+		5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioViewModel.swift; sourceTree = "<group>"; };
+		6023B481F046438FB9D5AB1A /* MarketDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarketDataService.swift; sourceTree = "<group>"; };
+		68B373C3D4EC855E13FBBC0D /* BackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupService.swift; sourceTree = "<group>"; };
+		7A3E21BE5A3A416AA00B47A0 /* AddTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionView.swift; sourceTree = "<group>"; };
+		7B3A9F2F8FDE4A6C8B9E0E09 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		85FFAA3D58B9478DAE939C28 /* FamilyInvestmentTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FamilyInvestmentTrackerApp.swift; sourceTree = "<group>"; };
+		8702523FBFC6E22949A4646D /* Institution+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Institution+Cash.swift"; sourceTree = "<group>"; };
+		98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioDashboardView.swift; sourceTree = "<group>"; };
+		A136EB05B9154DEDA208FC05 /* PortfolioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioSettingsView.swift; sourceTree = "<group>"; };
+		A597C86D50F2403B90A1C9D7 /* TransactionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionType.swift; sourceTree = "<group>"; };
+		A6585115FE4F40BFBC1525C4 /* TransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
+		C92FBCCFBC834245B55F0285 /* AnalyticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsView.swift; sourceTree = "<group>"; };
+		CF52C0EA3CEE4AE2ADBCD676 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
+		D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
+		E05B1E5F2D334E2190922280 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		E366BA19FB884F43926B5E7B /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };
+		F630DE14897845C18BB21F5D /* FamilyInvestmentTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FamilyInvestmentTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,12 +91,12 @@
 			);
 			sourceTree = "<group>";
 		};
-		FFECC19CF06946BC891F4785 /* Products */ = {
+		0720CC5B532342D6BAC2640D /* Authentication */ = {
 			isa = PBXGroup;
 			children = (
-				F630DE14897845C18BB21F5D /* FamilyInvestmentTracker.app */,
+				D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */,
 			);
-			name = Products;
+			path = Authentication;
 			sourceTree = "<group>";
 		};
 		71681110CF994FF2BB88DCA3 /* FamilyInvestmentTracker */ = {
@@ -155,6 +155,14 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
+		EB5ECC97A7F24D478D120806 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				4E3FD956593F495A808BA082 /* Formatters.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		EFB827FA5960498B8EB9C209 /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -168,20 +176,12 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
-		0720CC5B532342D6BAC2640D /* Authentication */ = {
+		FFECC19CF06946BC891F4785 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */,
+				F630DE14897845C18BB21F5D /* FamilyInvestmentTracker.app */,
 			);
-			path = Authentication;
-			sourceTree = "<group>";
-		};
-		EB5ECC97A7F24D478D120806 /* Utils */ = {
-			isa = PBXGroup;
-			children = (
-				4E3FD956593F495A808BA082 /* Formatters.swift */,
-			);
-			path = Utils;
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -212,7 +212,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					B2466F676C2C47A9AF4F4CBD = {
 						CreatedOnToolsVersion = 15.0;
@@ -287,69 +287,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		6CA9131B60524058A7D11F33 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = iphoneos;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-			};
-			name = Debug;
-		};
 		3E9754C9A00A4F90AF522270 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -385,6 +322,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = VR5N3M7G56;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -401,39 +339,11 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
-		};
-		D0A2307A702243B4945FFF02 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = FamilyInvestmentTracker/Info.plist;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.FamilyInvestmentTracker;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
 		};
 		4CDAC1C8693946F7A82A2E1F /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -442,10 +352,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FamilyInvestmentTracker/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -456,7 +366,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.FamilyInvestmentTracker;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kongkong.FamilyInvestmentTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -464,23 +374,117 @@
 			};
 			name = Release;
 		};
+		6CA9131B60524058A7D11F33 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = VR5N3M7G56;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		D0A2307A702243B4945FFF02 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = FamilyInvestmentTracker/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kongkong.FamilyInvestmentTracker;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5FBCF12CFCB04CC8BF8674A0 /* Build configuration list for PBXProject "FamilyInvestmentTracker" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				6CA9131B60524058A7D11F33 /* Debug */,
-				3E9754C9A00A4F90AF522270 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		2D0016A50ACB4033986E7A41 /* Build configuration list for PBXNativeTarget "FamilyInvestmentTracker" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				D0A2307A702243B4945FFF02 /* Debug */,
 				4CDAC1C8693946F7A82A2E1F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5FBCF12CFCB04CC8BF8674A0 /* Build configuration list for PBXProject "FamilyInvestmentTracker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6CA9131B60524058A7D11F33 /* Debug */,
+				3E9754C9A00A4F90AF522270 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

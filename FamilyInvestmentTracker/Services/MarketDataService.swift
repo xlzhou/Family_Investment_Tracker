@@ -18,21 +18,25 @@ class MarketDataService: ObservableObject {
     
     func updateMarketPrices(for assets: [Asset], in context: NSManagedObjectContext) async {
         let symbols = assets.compactMap { $0.symbol }.filter { !$0.isEmpty }
-        
+        let assetData = assets.compactMap { asset -> (objectID: NSManagedObjectID, symbol: String)? in
+            guard let symbol = asset.symbol, !symbol.isEmpty else { return nil }
+            return (objectID: asset.objectID, symbol: symbol)
+        }
+
         guard !symbols.isEmpty else { return }
-        
+
         do {
             let prices = try await fetchPrices(for: symbols)
-            
+
             await MainActor.run {
-                for asset in assets {
-                    if let symbol = asset.symbol,
-                       let price = prices[symbol] {
+                for data in assetData {
+                    if let asset = try? context.existingObject(with: data.objectID) as? Asset,
+                       let price = prices[data.symbol] {
                         asset.currentPrice = price
                         asset.lastPriceUpdate = Date()
                     }
                 }
-                
+
                 do {
                     try context.save()
                 } catch {
