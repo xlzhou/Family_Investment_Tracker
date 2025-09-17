@@ -24,6 +24,7 @@ struct AddTransactionView: View {
     @State private var tradingInstitution = ""
     @State private var selectedInstitution: Institution? = nil
     @State private var showingCustomInstitution = false
+    @State private var selectedPaymentInstitution: Institution? = nil
     @State private var tax: Double = 0
     @State private var selectedCurrency = Currency.usd
     @State private var hasMaturityDate = false
@@ -32,7 +33,31 @@ struct AddTransactionView: View {
     @State private var selectedDividendAssetID: NSManagedObjectID?
     // Sell-specific: security to sell
     @State private var selectedSellAssetID: NSManagedObjectID?
-    
+
+    // Insurance-specific fields
+    @State private var insuranceType = "Life Insurance"
+    @State private var insuranceSymbol = ""
+    @State private var policyholder = ""
+    @State private var insuredPerson = ""
+    @State private var basicInsuredAmount: Double = 0
+    @State private var additionalPaymentAmount: Double = 0
+    @State private var deathBenefit: Double = 0
+    @State private var isParticipating = false
+    @State private var hasSupplementaryInsurance = false
+    @State private var premiumPaymentTerm: Int32 = 0
+    @State private var premiumPaymentStatus = "Paid"
+    @State private var premiumPaymentType = "Lump Sum"
+    @State private var singlePremium: Double = 0
+    @State private var totalPremium: Double = 0
+    @State private var coverageExpirationDate = Date()
+    @State private var maturityBenefitRedemptionDate = Date()
+    @State private var estimatedMaturityBenefit: Double = 0
+    @State private var canWithdrawPremiums = false
+    @State private var maxWithdrawalPercentage: Double = 0
+    @State private var cashValue: Double = 0
+    @State private var contactNumber = ""
+    @State private var beneficiaries: [BeneficiaryData] = []
+
     private let currencyService = CurrencyService.shared
     @State private var cashDisciplineError: String?
     
@@ -41,7 +66,7 @@ struct AddTransactionView: View {
     }
     
     private var isAmountOnly: Bool {
-        selectedTransactionType == .dividend || selectedTransactionType == .interest || selectedTransactionType == .deposit || selectedTransactionType == .withdrawal
+        selectedTransactionType == .dividend || selectedTransactionType == .interest || selectedTransactionType == .deposit || selectedTransactionType == .insurance
     }
     
     private var requiresTax: Bool {
@@ -111,6 +136,22 @@ struct AddTransactionView: View {
                             .foregroundColor(.blue)
                         }
                     }
+
+                    if selectedTransactionType == .insurance {
+                        if availableInstitutions.isEmpty {
+                            Text("Add an institution to enable payment selection.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Picker("Payment Institution", selection: $selectedPaymentInstitution) {
+                                Text("Select Payment Institution").tag(Optional<Institution>.none)
+                                ForEach(availableInstitutions, id: \.objectID) { institution in
+                                    Text(institution.name ?? "Unknown").tag(Optional(institution))
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                        }
+                    }
                 }
                 
                 // Asset Information (Buy) or Sell Source selection
@@ -158,21 +199,40 @@ struct AddTransactionView: View {
                 // Transaction Details
                 Section(header: Text("Transaction Details")) {
                     DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
-                    Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
-                    if hasMaturityDate {
-                        DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
+
+                    // Maturity date only for non-insurance transactions
+                    if selectedTransactionType != .insurance {
+                        Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
+                        if hasMaturityDate {
+                            DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
+                        }
                     }
                     
                     if isAmountOnly {
-                        HStack {
-                            Text("Amount")
-                            Spacer()
-                            TextField("0.00", value: $amount, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                            Text(selectedCurrency.symbol)
-                                .foregroundColor(.secondary)
+                        if selectedTransactionType == .insurance {
+                            // Cash Value for insurance transactions
+                            HStack {
+                                Text("Cash Value")
+                                Spacer()
+                                TextField("0.00", value: $cashValue, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(width: 120)
+                                Text(selectedCurrency.symbol)
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            // Amount for other transaction types
+                            HStack {
+                                Text("Amount")
+                                Spacer()
+                                TextField("0.00", value: $amount, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(width: 120)
+                                Text(selectedCurrency.symbol)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     } else {
                         HStack {
@@ -203,15 +263,18 @@ struct AddTransactionView: View {
                         }
                     }
                     
-                    HStack {
-                        Text("Fees")
-                        Spacer()
-                        TextField("0.00", value: $fees, format: .number)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 120)
-                        Text(selectedCurrency.symbol)
-                            .foregroundColor(.secondary)
+                    // Fees only for non-insurance transactions
+                    if selectedTransactionType != .insurance {
+                        HStack {
+                            Text("Fees")
+                            Spacer()
+                            TextField("0.00", value: $fees, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
                     if requiresTax {
@@ -231,6 +294,194 @@ struct AddTransactionView: View {
                         .lineLimit(3...6)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
+
+                // Insurance-specific sections
+                if selectedTransactionType == .insurance {
+                    Section(header: Text("Insurance Details")) {
+                        TextField("Policy Symbol", text: $insuranceSymbol)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+
+                        Picker("Insurance Type", selection: $insuranceType) {
+                            Text("Life Insurance").tag("Life Insurance")
+                            Text("Critical Illness Insurance").tag("Critical Illness Insurance")
+                            Text("Accident Insurance").tag("Accident Insurance")
+                        }
+                        .pickerStyle(MenuPickerStyle())
+
+                        TextField("Policyholder", text: $policyholder)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                        TextField("Insured Person", text: $insuredPerson)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                        TextField("Contact Number", text: $contactNumber)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.phonePad)
+                    }
+
+                    Section(header: Text("Financial Details")) {
+                        HStack {
+                            Text("Basic Insured Amount")
+                            Spacer()
+                            TextField("0.00", value: $basicInsuredAmount, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Additional Payment")
+                            Spacer()
+                            TextField("0.00", value: $additionalPaymentAmount, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Death Benefit")
+                            Spacer()
+                            TextField("0.00", value: $deathBenefit, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                    }
+
+                    Section(header: Text("Premium Details")) {
+                        HStack {
+                            Text("Single Premium")
+                            Spacer()
+                            TextField("0.00", value: $singlePremium, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Total Premium")
+                            Spacer()
+                            TextField("0.00", value: $totalPremium, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Payment Term (Years)")
+                            Spacer()
+                            TextField("0", value: $premiumPaymentTerm, format: .number)
+                                .keyboardType(.numberPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 80)
+                        }
+
+                        Picker("Payment Status", selection: $premiumPaymentStatus) {
+                            Text("Paid").tag("Paid")
+                            Text("Paying").tag("Paying")
+                        }
+                        .pickerStyle(MenuPickerStyle())
+
+                        Picker("Payment Type", selection: $premiumPaymentType) {
+                            Text("Lump Sum").tag("Lump Sum")
+                            Text("Installment").tag("Installment")
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+
+                    Section(header: Text("Policy Features")) {
+                        Toggle("Participating Policy", isOn: $isParticipating)
+                        Toggle("Has Supplementary Insurance", isOn: $hasSupplementaryInsurance)
+                        Toggle("Can Withdraw Premiums", isOn: $canWithdrawPremiums)
+
+                        if canWithdrawPremiums {
+                            HStack {
+                                Text("Max Withdrawal %")
+                                Spacer()
+                                TextField("0", value: $maxWithdrawalPercentage, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(width: 80)
+                                Text("%")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+
+                    Section(header: Text("Important Dates")) {
+                        DatePicker("Coverage Expiration", selection: $coverageExpirationDate, displayedComponents: .date)
+                        DatePicker("Maturity Benefit Redemption", selection: $maturityBenefitRedemptionDate, displayedComponents: .date)
+
+                        HStack {
+                            Text("Estimated Maturity Benefit")
+                            Spacer()
+                            TextField("0.00", value: $estimatedMaturityBenefit, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Section(header: Text("Beneficiaries")) {
+                        ForEach(beneficiaries.indices, id: \.self) { index in
+                            HStack {
+                                TextField("Beneficiary Name", text: $beneficiaries[index].name)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                                TextField("0", value: $beneficiaries[index].percentage, format: .number)
+                                    .keyboardType(.decimalPad)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .frame(width: 60)
+
+                                Text("%")
+                                    .foregroundColor(.secondary)
+
+                                Button(action: {
+                                    beneficiaries.remove(at: index)
+                                }) {
+                                    Image(systemName: "minus.circle.fill")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                        }
+
+                        Button(action: {
+                            beneficiaries.append(BeneficiaryData(name: "", percentage: 0))
+                        }) {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Add Beneficiary")
+                            }
+                        }
+
+                        if !beneficiaries.isEmpty {
+                            let totalPercentage = beneficiaries.reduce(0) { $0 + $1.percentage }
+                            HStack {
+                                Text("Total Percentage:")
+                                Spacer()
+                                Text("\(totalPercentage, specifier: "%.1f")%")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(totalPercentage == 100 ? .green : .red)
+                            }
+                        }
+                    }
+                }
             }
             .navigationTitle("Add Transaction")
             .navigationBarTitleDisplayMode(.inline)
@@ -249,17 +500,38 @@ struct AddTransactionView: View {
                 }
             }
         }
-        .onChange(of: selectedTransactionType) { oldValue, newValue in
-            switch selectedTransactionType {
+        .onChange(of: selectedTransactionType) { _, newValue in
+            switch newValue {
             case .dividend:
                 if selectedDividendAssetID == nil { selectedDividendAssetID = dividendSourceAssets.first?.objectID }
                 selectedSellAssetID = nil
             case .sell:
                 if selectedSellAssetID == nil { selectedSellAssetID = sellSourceAssets.first?.objectID }
                 selectedDividendAssetID = nil
+            case .insurance:
+                // Initialize with one beneficiary if empty
+                if beneficiaries.isEmpty {
+                    beneficiaries = [BeneficiaryData(name: "", percentage: 100)]
+                }
+                if selectedPaymentInstitution == nil {
+                    selectedPaymentInstitution = selectedInstitution
+                }
+                selectedDividendAssetID = nil
+                selectedSellAssetID = nil
             default:
                 selectedDividendAssetID = nil
                 selectedSellAssetID = nil
+                selectedPaymentInstitution = nil
+            }
+        }
+        .onAppear {
+            if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
+                selectedPaymentInstitution = selectedInstitution
+            }
+        }
+        .onChange(of: selectedInstitution) { _, newValue in
+            if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
+                selectedPaymentInstitution = newValue
             }
         }
         .alert("Cash Requirement", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
@@ -282,20 +554,28 @@ struct AddTransactionView: View {
             return selectedSellAssetID != nil && quantity > 0 && price > 0 && hasValidInstitution
         case .buy:
             return !assetSymbol.isEmpty && quantity > 0 && price > 0 && hasValidInstitution
-        case .deposit, .withdrawal:
-            // keep same validation as amount-based (optional refinement later)
+        case .deposit:
             return amount > 0 && hasValidInstitution
+        case .insurance:
+            let hasSymbol = !insuranceSymbol.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            return cashValue > 0 && hasValidInstitution && hasSymbol
         }
     }
     
     private func saveTransaction() {
         let trimmedInstitutionName = tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines)
+        if selectedTransactionType == .insurance {
+            insuranceSymbol = insuranceSymbol.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        }
         var createdInstitution: Institution?
         var institutionForTransaction: Institution? = selectedInstitution
         if institutionForTransaction == nil, !trimmedInstitutionName.isEmpty {
             let (institution, wasCreated) = findOrCreateInstitution(name: trimmedInstitutionName)
             institutionForTransaction = institution
             if wasCreated { createdInstitution = institution }
+            if selectedPaymentInstitution == nil {
+                selectedPaymentInstitution = institution
+            }
         }
 
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
@@ -320,15 +600,16 @@ struct AddTransactionView: View {
                     failWithMessage("Not enough cash in \(institution.name ?? "this institution") to complete this purchase.")
                     return
                 }
-            case .withdrawal:
-                guard let institution = institutionForTransaction else {
-                    failWithMessage("Select a trading institution before withdrawing cash.")
+            case .insurance:
+                let paymentInstitution = selectedPaymentInstitution ?? institutionForTransaction
+                guard let paymentInstitution = paymentInstitution else {
+                    failWithMessage("Select a payment institution for this insurance policy.")
                     return
                 }
-                let netCash = amount - fees - tax
-                let requiredCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
-                if institution.cashBalanceSafe + 1e-6 < requiredCash {
-                    failWithMessage("Not enough cash in \(institution.name ?? "this institution") to withdraw this amount.")
+                let premiumAmount = max(0, insurancePaymentRawAmount())
+                let requiredFunds = max(0, convertToPortfolioCurrency(premiumAmount, from: selectedCurrency))
+                if paymentInstitution.cashBalanceSafe + 1e-6 < requiredFunds {
+                    failWithMessage("Not enough cash in \(paymentInstitution.name ?? "this institution") to purchase this insurance policy.")
                     return
                 }
             case .deposit, .sell:
@@ -338,6 +619,32 @@ struct AddTransactionView: View {
                 }
             default:
                 break
+            }
+        }
+
+        if selectedTransactionType == .insurance {
+            guard !policyholder.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                failWithMessage("Policyholder name is required for insurance transactions.")
+                return
+            }
+            guard !insuredPerson.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                failWithMessage("Insured person name is required for insurance transactions.")
+                return
+            }
+            guard !beneficiaries.isEmpty else {
+                failWithMessage("At least one beneficiary is required for insurance policies.")
+                return
+            }
+            let totalPercentage = beneficiaries.reduce(0) { $0 + $1.percentage }
+            guard abs(totalPercentage - 100.0) < 0.01 else {
+                failWithMessage("Beneficiary percentages must total 100%.")
+                return
+            }
+            for beneficiary in beneficiaries {
+                guard !beneficiary.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    failWithMessage("All beneficiary names are required.")
+                    return
+                }
             }
         }
 
@@ -367,30 +674,53 @@ struct AddTransactionView: View {
         transaction.createdAt = Date()
         transaction.portfolio = portfolio
         transaction.maturityDate = hasMaturityDate ? maturityDate : nil
+        let resolvedPaymentInstitution = selectedPaymentInstitution ?? institutionForTransaction
+        transaction.setValue(resolvedPaymentInstitution?.name, forKey: "paymentInstitutionName")
+        transaction.setValue(false, forKey: "paymentDeducted")
+        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
         
         if isAmountOnly {
-            transaction.amount = amount
-            transaction.quantity = 1
-            transaction.price = amount
+            if selectedTransactionType == .insurance {
+                // For insurance, use cash value instead of amount
+                transaction.amount = cashValue
+                transaction.quantity = 1
+                transaction.price = cashValue
 
-            // Increase portfolio cash by net amount
-            let netCash = amount - fees - tax
-            let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
-            switch selectedTransactionType {
-            case .deposit:
-                portfolio.addToCash(convertedNetCash)
-                if cashDisciplineEnabled, let institution = institutionForTransaction {
-                    institution.cashBalanceSafe += convertedNetCash
+                // For insurance, the cash value represents the premium paid
+                if cashDisciplineEnabled {
+                    let premiumAmount = max(0, insurancePaymentRawAmount())
+                    let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
+                    if convertedPremium > 0, let paymentInstitution = resolvedPaymentInstitution {
+                        portfolio.addToCash(-convertedPremium)
+                        paymentInstitution.cashBalanceSafe -= convertedPremium
+                        transaction.setValue(true, forKey: "paymentDeducted")
+                        transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
+                        transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
+                    } else {
+                        transaction.setValue(false, forKey: "paymentDeducted")
+                        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+                    }
                 }
-            case .withdrawal:
-                portfolio.addToCash(-convertedNetCash)
-                if cashDisciplineEnabled, let institution = institutionForTransaction {
-                    institution.cashBalanceSafe -= convertedNetCash
+            } else {
+                // Record amount-based transactions (dividend, interest, deposits)
+                transaction.amount = amount
+                transaction.quantity = 1
+                transaction.price = amount
+
+                // Increase portfolio cash by net amount
+                let netCash = amount - fees - tax
+                let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
+                switch selectedTransactionType {
+                case .deposit:
+                    portfolio.addToCash(convertedNetCash)
+                    if cashDisciplineEnabled, let institution = institutionForTransaction {
+                        institution.cashBalanceSafe += convertedNetCash
+                    }
+                case .dividend, .interest:
+                    portfolio.addToCash(convertedNetCash)
+                default:
+                    break
                 }
-            case .dividend, .interest:
-                portfolio.addToCash(convertedNetCash)
-            default:
-                break
             }
 
             // Record source security for dividends if provided
@@ -434,7 +764,52 @@ struct AddTransactionView: View {
                 portfolio.addToCash(-requiredFunds)
             }
         }
-        
+
+        // Special handling for insurance transactions
+        if selectedTransactionType == .insurance {
+            // Create insurance asset
+            let asset = createInsuranceAsset()
+            transaction.asset = asset
+
+            // Create insurance details
+            let insurance = NSEntityDescription.insertNewObject(forEntityName: "Insurance", into: viewContext)
+            insurance.setValue(UUID(), forKey: "id")
+            insurance.setValue(insuranceType, forKey: "insuranceType")
+            insurance.setValue(policyholder, forKey: "policyholder")
+            insurance.setValue(insuredPerson, forKey: "insuredPerson")
+            insurance.setValue(contactNumber, forKey: "contactNumber")
+            insurance.setValue(basicInsuredAmount, forKey: "basicInsuredAmount")
+            insurance.setValue(additionalPaymentAmount, forKey: "additionalPaymentAmount")
+            insurance.setValue(deathBenefit, forKey: "deathBenefit")
+            insurance.setValue(isParticipating, forKey: "isParticipating")
+            insurance.setValue(hasSupplementaryInsurance, forKey: "hasSupplementaryInsurance")
+            insurance.setValue(premiumPaymentTerm, forKey: "premiumPaymentTerm")
+            insurance.setValue(premiumPaymentStatus, forKey: "premiumPaymentStatus")
+            insurance.setValue(premiumPaymentType, forKey: "premiumPaymentType")
+            insurance.setValue(singlePremium, forKey: "singlePremium")
+            insurance.setValue(totalPremium, forKey: "totalPremium")
+            insurance.setValue(coverageExpirationDate, forKey: "coverageExpirationDate")
+            insurance.setValue(maturityBenefitRedemptionDate, forKey: "maturityBenefitRedemptionDate")
+            insurance.setValue(estimatedMaturityBenefit, forKey: "estimatedMaturityBenefit")
+            insurance.setValue(canWithdrawPremiums, forKey: "canWithdrawPremiums")
+            insurance.setValue(maxWithdrawalPercentage, forKey: "maxWithdrawalPercentage")
+            insurance.setValue(Date(), forKey: "createdAt")
+            insurance.setValue(asset, forKey: "asset")
+
+            // Create beneficiaries
+            for beneficiaryData in beneficiaries {
+                let beneficiary = NSEntityDescription.insertNewObject(forEntityName: "Beneficiary", into: viewContext)
+                beneficiary.setValue(UUID(), forKey: "id")
+                beneficiary.setValue(beneficiaryData.name, forKey: "name")
+                beneficiary.setValue(beneficiaryData.percentage, forKey: "percentage")
+                beneficiary.setValue(Date(), forKey: "createdAt")
+                beneficiary.setValue(insurance, forKey: "insurance")
+            }
+
+            // Create holding with cash value
+            updateInsuranceHolding(for: asset, transaction: transaction)
+        }
+
         // Recompute portfolio totals based on holdings' current prices
         recomputePortfolioTotals()
         
@@ -472,6 +847,10 @@ struct AddTransactionView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let totalHoldings = holdings.reduce(0.0) { partial, holding in
             guard let asset = holding.asset else { return partial }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return partial + cashValue
+            }
             return partial + (holding.quantity * asset.currentPrice)
         }
         portfolio.totalValue = totalHoldings + portfolio.cashBalanceSafe
@@ -568,13 +947,81 @@ struct AddTransactionView: View {
             
         case .dividend, .interest:
             holding.totalDividends += amountInPortfolioCurrency
-        case .deposit, .withdrawal:
+        case .deposit, .insurance:
             // No holding changes for cash movements
             break
         }
         
         holding.updatedAt = Date()
         print("📈 Updated holding for \(asset.symbol ?? "Unknown"): qty=\(holding.quantity), cost=\(holding.averageCostBasis), dividends=\(holding.totalDividends)")
+    }
+
+    private func createInsuranceAsset() -> Asset {
+        let policyName = "\(insuranceType) - \(policyholder)"
+        let trimmedSymbol = insuranceSymbol.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+
+        let request: NSFetchRequest<Asset> = Asset.fetchRequest()
+        if !trimmedSymbol.isEmpty {
+            request.predicate = NSPredicate(format: "symbol ==[c] %@", trimmedSymbol)
+        } else {
+            request.predicate = NSPredicate(format: "name ==[c] %@", policyName)
+        }
+
+        if let existingAsset = try? viewContext.fetch(request).first {
+            return existingAsset
+        } else {
+            let newAsset = Asset(context: viewContext)
+            newAsset.id = UUID()
+            newAsset.name = policyName
+            newAsset.symbol = trimmedSymbol.isEmpty ? "INS-\(UUID().uuidString.prefix(8))" : trimmedSymbol
+            newAsset.assetType = AssetType.insurance.rawValue
+            newAsset.currentPrice = 1.0 // Insurance policies don't have market prices
+            newAsset.createdAt = Date()
+            newAsset.lastPriceUpdate = Date()
+            return newAsset
+        }
+    }
+
+    private func updateInsuranceHolding(for asset: Asset, transaction: Transaction) {
+        let request: NSFetchRequest<Holding> = Holding.fetchRequest()
+        request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
+
+        let holding: Holding
+        if let existingHolding = try? viewContext.fetch(request).first {
+            holding = existingHolding
+        } else {
+            holding = Holding(context: viewContext)
+            holding.id = UUID()
+            holding.asset = asset
+            holding.portfolio = portfolio
+            holding.quantity = 1 // Insurance policies typically have quantity of 1
+            holding.averageCostBasis = 0
+            holding.realizedGainLoss = 0
+            holding.totalDividends = 0
+        }
+
+        // Set the cash value
+        let convertedCashValue = convertToPortfolioCurrency(cashValue, from: selectedCurrency)
+        holding.setValue(convertedCashValue, forKey: "cashValue")
+
+        holding.updatedAt = Date()
+        print("🛡️ Updated insurance holding: \(asset.name ?? "Unknown"), cash value: \(convertedCashValue)")
+    }
+}
+
+struct BeneficiaryData: Identifiable {
+    let id = UUID()
+    var name: String
+    var percentage: Double
+}
+
+private extension AddTransactionView {
+    func insurancePaymentRawAmount() -> Double {
+        let normalized = premiumPaymentType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if normalized == "lump sum" {
+            return totalPremium
+        }
+        return singlePremium
     }
 }
 

@@ -49,6 +49,8 @@ struct TransactionsView: View {
                     return false
                 }
             }
+        case .insurance:
+            return sorted.filter { $0.type == TransactionType.insurance.rawValue }
         }
     }
     
@@ -183,7 +185,7 @@ struct TransactionsView: View {
     private func reverseTransactionImpact(_ transaction: Transaction) {
         guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
 
-        let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .withdrawal
+        let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .insurance
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
         let institution = transaction.institution
@@ -198,12 +200,9 @@ struct TransactionsView: View {
                 if cashDisciplineEnabled, let institution = institution {
                     institution.cashBalanceSafe -= netCash
                 }
-            case .withdrawal:
-                portfolio.addToCash(netCash) // Reverse the withdrawal
-                if cashDisciplineEnabled, let institution = institution {
-                    institution.cashBalanceSafe += netCash
-                }
-            case .dividend, .interest:
+            case .insurance:
+                cleanupInsuranceArtifacts(for: transaction)
+        case .dividend, .interest:
                 portfolio.addToCash(-netCash) // Reverse the dividend/interest
                 // Also reverse dividend tracking on holding if there's an associated asset
                 if let asset = transaction.asset,
@@ -239,6 +238,8 @@ struct TransactionsView: View {
                             institution.cashBalanceSafe += cost
                         }
                     }
+                } else if transactionType == .insurance {
+                    cleanupInsuranceArtifacts(for: transaction)
                 }
             }
         }
@@ -292,6 +293,10 @@ struct TransactionsView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let totalHoldings = holdings.reduce(0.0) { partial, holding in
             guard let asset = holding.asset else { return partial }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return partial + cashValue
+            }
             return partial + (holding.quantity * asset.currentPrice)
         }
 
@@ -299,6 +304,48 @@ struct TransactionsView: View {
         let cashBalance = portfolio.cashBalanceSafe
         portfolio.totalValue = totalHoldings + cashBalance
         portfolio.updatedAt = Date()
+    }
+
+    private func cleanupInsuranceArtifacts(for transaction: Transaction) {
+        guard transaction.type == TransactionType.insurance.rawValue else { return }
+
+        let paymentDeducted = (transaction.value(forKey: "paymentDeducted") as? Bool) ?? false
+        if paymentDeducted {
+            let amount = (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0
+            if amount != 0 {
+                portfolio.addToCash(amount)
+                if let name = transaction.value(forKey: "paymentInstitutionName") as? String,
+                   let paymentInstitution = findInstitution(named: name) {
+                    paymentInstitution.cashBalanceSafe += amount
+                }
+            }
+            transaction.setValue(false, forKey: "paymentDeducted")
+            transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+        }
+
+        if let asset = transaction.asset {
+            if let holding = findHolding(for: asset) {
+                let holdingsSet = portfolio.mutableSetValue(forKey: "holdings")
+                holdingsSet.remove(holding)
+                viewContext.delete(holding)
+            }
+
+            if let insurance = asset.value(forKey: "insurance") as? NSManagedObject {
+                if let beneficiaries = insurance.value(forKey: "beneficiaries") as? Set<NSManagedObject> {
+                    beneficiaries.forEach { viewContext.delete($0) }
+                }
+                viewContext.delete(insurance)
+            }
+
+            viewContext.delete(asset)
+        }
+    }
+
+    private func findInstitution(named name: String) -> Institution? {
+        let request: NSFetchRequest<Institution> = Institution.fetchRequest()
+        request.predicate = NSPredicate(format: "name ==[c] %@", name)
+        request.fetchLimit = 1
+        return try? viewContext.fetch(request).first
     }
 }
 
@@ -405,7 +452,7 @@ struct TransactionRowView: View {
 }
 
 enum TransactionFilter: CaseIterable {
-    case all, buy, sell, dividend, interest, deposit
+    case all, buy, sell, dividend, interest, deposit, insurance
     
     var displayName: String {
         switch self {
@@ -415,6 +462,7 @@ enum TransactionFilter: CaseIterable {
         case .dividend: return "Dividend"
         case .interest: return "Interest"
         case .deposit: return "Deposit"
+        case .insurance: return "Insurance"
         }
     }
 }

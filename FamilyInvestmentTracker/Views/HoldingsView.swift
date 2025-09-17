@@ -49,10 +49,21 @@ struct HoldingsView: View {
 
 struct HoldingRowView: View {
     let holding: Holding
-    
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var showingCashValueEditor = false
+    @State private var editingCashValue: Double = 0
+
     private var currentValue: Double {
         guard let asset = holding.asset else { return 0 }
+        // For insurance, use cash value; for others, use market value
+        if asset.assetType == "Insurance" {
+            return holding.value(forKey: "cashValue") as? Double ?? 0
+        }
         return holding.quantity * asset.currentPrice
+    }
+
+    private var isInsurance: Bool {
+        holding.asset?.assetType == "Insurance"
     }
     
     private var costBasis: Double {
@@ -85,52 +96,104 @@ struct HoldingRowView: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text(Formatters.currency(currentValue))
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    HStack(spacing: 4) {
-                        Text(Formatters.signedCurrency(unrealizedGainLoss))
-                            .font(.subheadline)
-                            .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
-                        
-                        Text("(" + Formatters.signedPercent(gainLossPercentage) + ")")
+                    HStack {
+                        Text(Formatters.currency(currentValue))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+
+                        if isInsurance {
+                            Button(action: {
+                                editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                                showingCashValueEditor = true
+                            }) {
+                                Image(systemName: "pencil.circle")
+                                    .foregroundColor(.blue)
+                                    .font(.caption)
+                            }
+                        }
+                    }
+
+                    if isInsurance {
+                        Text("Cash Value")
                             .font(.caption)
-                            .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
+                            .foregroundColor(.secondary)
+                    } else {
+                        HStack(spacing: 4) {
+                            Text(Formatters.signedCurrency(unrealizedGainLoss))
+                                .font(.subheadline)
+                                .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
+
+                            Text("(" + Formatters.signedPercent(gainLossPercentage) + ")")
+                                .font(.caption)
+                                .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
+                        }
                     }
                 }
             }
             
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Shares")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(Formatters.decimal(holding.quantity))
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .center, spacing: 2) {
-                    Text("Avg Cost")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(Formatters.currency(holding.averageCostBasis))
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("Current Price")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(Formatters.currency(holding.asset?.currentPrice ?? 0))
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                if isInsurance {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Policy Type")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Insurance Policy")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .center, spacing: 2) {
+                        Text("Policyholder")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Policy Owner")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Death Benefit")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("Insurance")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Shares")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(Formatters.decimal(holding.quantity))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .center, spacing: 2) {
+                        Text("Avg Cost")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(Formatters.currency(holding.averageCostBasis))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Current Price")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(Formatters.currency(holding.asset?.currentPrice ?? 0))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
                 }
             }
             
@@ -150,6 +213,114 @@ struct HoldingRowView: View {
             }
         }
         .padding(.vertical, 8)
+        .sheet(isPresented: $showingCashValueEditor) {
+            CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
+        }
+    }
+}
+
+struct CashValueEditorView: View {
+    let holding: Holding
+    @Binding var editingCashValue: Double
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+    @State private var error: String?
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Update Cash Value")) {
+                    HStack {
+                        Text("Current Cash Value")
+                        Spacer()
+                        TextField("0.00", value: $editingCashValue, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                        Text("$")
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Section(header: Text("Policy Information")) {
+                    HStack {
+                        Text("Policy Type")
+                        Spacer()
+                        Text("Insurance Policy")
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        Text("Policyholder")
+                        Spacer()
+                        Text("Policy Owner")
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        Text("Previous Cash Value")
+                        Spacer()
+                        Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0))
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                if let error = error {
+                    Section {
+                        Text(error)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .navigationTitle("Update Cash Value")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        saveCashValue()
+                    }
+                    .disabled(editingCashValue < 0)
+                }
+            }
+        }
+    }
+
+    private func saveCashValue() {
+        guard editingCashValue >= 0 else {
+            error = "Cash value cannot be negative"
+            return
+        }
+
+        holding.setValue(editingCashValue, forKey: "cashValue")
+        holding.updatedAt = Date()
+
+        if let portfolio = holding.portfolio {
+            let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+            let holdingsValue = holdings.reduce(0.0) { sum, holding in
+                guard let asset = holding.asset else { return sum }
+                if asset.assetType == AssetType.insurance.rawValue {
+                    let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                    return sum + cashValue
+                }
+                return sum + (holding.quantity * asset.currentPrice)
+            }
+            portfolio.totalValue = holdingsValue + portfolio.cashBalanceSafe
+            portfolio.updatedAt = Date()
+        }
+
+        do {
+            try viewContext.save()
+            print("💰 Updated cash value for \(holding.asset?.name ?? "Unknown"): \(editingCashValue)")
+            dismiss()
+        } catch {
+            self.error = "Failed to save cash value: \(error.localizedDescription)"
+        }
     }
 }
 

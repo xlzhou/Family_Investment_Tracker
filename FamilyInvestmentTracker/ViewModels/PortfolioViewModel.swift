@@ -38,7 +38,12 @@ class PortfolioViewModel: ObservableObject {
         
         let totalValue = holdings.reduce(0.0) { total, holding in
             guard let asset = holding.asset else { return total }
-            return total + (holding.quantity * asset.currentPrice)
+            // For insurance assets, use cash value; for others, use market value
+            if asset.assetType == "Insurance" {
+                return total + (holding.value(forKey: "cashValue") as? Double ?? 0)
+            } else {
+                return total + (holding.quantity * asset.currentPrice)
+            }
         }
         
         portfolio.totalValue = totalValue
@@ -63,9 +68,18 @@ extension PortfolioViewModel {
         
         for holding in holdings {
             guard let asset = holding.asset else { continue }
-            
-            totalCurrentValue += holding.quantity * asset.currentPrice
-            totalCostBasis += holding.quantity * holding.averageCostBasis
+
+            // For insurance assets, use cash value; for others, use market value
+            if asset.assetType == "Insurance" {
+                totalCurrentValue += (holding.value(forKey: "cashValue") as? Double ?? 0)
+                // For insurance, cost basis is typically the premiums paid (stored as amount)
+                // We'll use a simplified approach here
+                totalCostBasis += 0 // Insurance premiums don't count as cost basis in traditional sense
+            } else {
+                totalCurrentValue += holding.quantity * asset.currentPrice
+                totalCostBasis += holding.quantity * holding.averageCostBasis
+            }
+
             totalDividends += holding.totalDividends
             totalRealizedGains += holding.realizedGainLoss
         }
@@ -94,8 +108,15 @@ extension PortfolioViewModel {
         for holding in holdings {
             guard let asset = holding.asset,
                   let assetType = asset.assetType else { continue }
-            
-            let value = holding.quantity * asset.currentPrice
+
+            // For insurance assets, use cash value; for others, use market value
+            let value: Double
+            if assetType == "Insurance" {
+                value = holding.value(forKey: "cashValue") as? Double ?? 0
+            } else {
+                value = holding.quantity * asset.currentPrice
+            }
+
             typeAllocations[assetType, default: 0] += value
             totalValue += value
         }

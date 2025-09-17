@@ -82,6 +82,10 @@ struct PortfolioHeaderView: View {
         // Calculate total value by converting all holdings to main currency
         let holdingsTotal = portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0.0) { result, holding in
             guard let asset = holding.asset else { return result }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return result + cashValue
+            }
             let holdingValue = holding.quantity * asset.currentPrice
             
             // For now, assume all assets are in the main currency

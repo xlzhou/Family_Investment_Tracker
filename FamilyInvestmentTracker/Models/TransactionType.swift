@@ -6,7 +6,7 @@ enum TransactionType: String, CaseIterable {
     case dividend = "Dividend"
     case interest = "Interest"
     case deposit = "Deposit"
-    case withdrawal = "Withdrawal"
+    case insurance = "Insurance"
     
     var displayName: String {
         return self.rawValue
@@ -20,6 +20,7 @@ enum AssetType: String, CaseIterable {
     case mutualFund = "Mutual Fund"
     case deposit = "Deposit"
     case cryptocurrency = "Cryptocurrency"
+    case insurance = "Insurance"
     case other = "Other"
     
     var displayName: String {

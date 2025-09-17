@@ -108,6 +108,10 @@ struct PortfolioListView: View {
             let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
             let holdingsValue = holdings.reduce(0.0) { sum, holding in
                 guard let asset = holding.asset else { return sum }
+                if asset.assetType == AssetType.insurance.rawValue {
+                    let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                    return sum + cashValue
+                }
                 return sum + (holding.quantity * asset.currentPrice)
             }
             return partial + holdingsValue + portfolio.cashBalanceSafe
@@ -142,9 +146,13 @@ struct PortfolioCardView: View {
     
     private var currentValue: Double {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-        let holdingsValue = holdings.reduce(0.0) { sum, h in
-            guard let asset = h.asset else { return sum }
-            return sum + (h.quantity * asset.currentPrice)
+        let holdingsValue = holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return sum + cashValue
+            }
+            return sum + (holding.quantity * asset.currentPrice)
         }
         return holdingsValue + portfolio.cashBalanceSafe
     }
