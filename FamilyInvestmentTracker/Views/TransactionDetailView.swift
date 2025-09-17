@@ -133,6 +133,15 @@ struct TransactionDetailView: View {
                         Text(transaction.tradingInstitution ?? "-")
                             .foregroundColor(.secondary)
                     }
+                    if transaction.type == TransactionType.sell.rawValue {
+                        HStack {
+                            Text("Realized P&L")
+                            Spacer()
+                            let realized = transaction.realizedGainAmount
+                            Text(Formatters.signedCurrency(realized, symbol: currency.symbol))
+                                .foregroundColor(realized >= 0 ? .green : .red)
+                        }
+                    }
                 }
 
                 if isInsurance {

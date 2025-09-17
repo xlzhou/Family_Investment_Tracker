@@ -64,6 +64,7 @@ struct BackupTransaction: Codable {
     let paymentInstitutionName: String?
     let paymentDeducted: Bool
     let paymentDeductedAmount: Double
+    let realizedGain: Double
 }
 
 struct BackupInstitution: Codable {
@@ -172,7 +173,8 @@ final class BackupService {
                         maturityDate: transaction.maturityDate,
                         paymentInstitutionName: transaction.value(forKey: "paymentInstitutionName") as? String,
                         paymentDeducted: (transaction.value(forKey: "paymentDeducted") as? Bool) ?? false,
-                        paymentDeductedAmount: (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0
+                        paymentDeductedAmount: (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0,
+                        realizedGain: transaction.realizedGainAmount
                     )
                 },
                 institutions: institutions.map { institution in
@@ -280,6 +282,7 @@ final class BackupService {
                 transaction.setValue(transactionData.paymentInstitutionName, forKey: "paymentInstitutionName")
                 transaction.setValue(transactionData.paymentDeducted, forKey: "paymentDeducted")
                 transaction.setValue(transactionData.paymentDeductedAmount, forKey: "paymentDeductedAmount")
+                transaction.realizedGainAmount = transactionData.realizedGain
                 if let portfolioID = transactionData.portfolioID {
                     transaction.portfolio = portfoliosDict[portfolioID]
                 }

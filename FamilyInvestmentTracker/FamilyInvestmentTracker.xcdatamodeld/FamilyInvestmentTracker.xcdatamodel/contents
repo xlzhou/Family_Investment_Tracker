@@ -55,6 +55,7 @@
         <attribute name="paymentDeducted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="paymentDeductedAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="paymentInstitutionName" optional="YES" attributeType="String"/>
+        <attribute name="realizedGain" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="maturityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="tax" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tradingInstitution" optional="YES" attributeType="String"/>

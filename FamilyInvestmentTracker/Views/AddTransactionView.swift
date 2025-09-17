@@ -587,6 +587,28 @@ struct AddTransactionView: View {
             cashDisciplineError = message
         }
 
+        var preselectedSellAsset: Asset?
+
+        if selectedTransactionType == .sell {
+            guard let sellID = selectedSellAssetID,
+                  let sellAsset = try? viewContext.existingObject(with: sellID) as? Asset else {
+                failWithMessage("Select a holding to sell before saving.")
+                return
+            }
+
+            let holdingFetch: NSFetchRequest<Holding> = Holding.fetchRequest()
+            holdingFetch.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", sellAsset, portfolio)
+            holdingFetch.fetchLimit = 1
+
+            let availableQuantity = (try? viewContext.fetch(holdingFetch).first?.quantity) ?? 0
+            if availableQuantity + 1e-6 < quantity {
+                failWithMessage("Not enough shares available to sell. You currently hold \(Formatters.decimal(availableQuantity)).")
+                return
+            }
+
+            preselectedSellAsset = sellAsset
+        }
+
         if cashDisciplineEnabled {
             switch selectedTransactionType {
             case .buy:
@@ -678,6 +700,7 @@ struct AddTransactionView: View {
         transaction.setValue(resolvedPaymentInstitution?.name, forKey: "paymentInstitutionName")
         transaction.setValue(false, forKey: "paymentDeducted")
         transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+        transaction.realizedGainAmount = 0
         
         if isAmountOnly {
             if selectedTransactionType == .insurance {
@@ -735,9 +758,8 @@ struct AddTransactionView: View {
             
             // Determine asset based on type
             let asset: Asset
-            if selectedTransactionType == .sell, let id = selectedSellAssetID,
-               let selected = try? viewContext.existingObject(with: id) as? Asset {
-                asset = selected
+            if selectedTransactionType == .sell, let preselectedSellAsset {
+                asset = preselectedSellAsset
             } else {
                 // Buy or fallback: create/find from entered fields
                 asset = findOrCreateAsset()
@@ -745,7 +767,10 @@ struct AddTransactionView: View {
             transaction.asset = asset
             
             // Update or create holding
-            updateHolding(for: asset, transaction: transaction)
+            let realizedGain = updateHolding(for: asset, transaction: transaction)
+            if let realizedGain = realizedGain {
+                transaction.realizedGainAmount = realizedGain
+            }
 
             // Cash movement for sell: deposit net proceeds into cash account
             if selectedTransactionType == .sell {
@@ -897,7 +922,7 @@ struct AddTransactionView: View {
         }
     }
     
-    private func updateHolding(for asset: Asset, transaction: Transaction) {
+    private func updateHolding(for asset: Asset, transaction: Transaction) -> Double? {
         let request: NSFetchRequest<Holding> = Holding.fetchRequest()
         request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
         
@@ -920,7 +945,9 @@ struct AddTransactionView: View {
         let priceInPortfolioCurrency = currencyService.convertAmount(transaction.price, from: transactionCurrency, to: portfolioCurrency)
         let amountInPortfolioCurrency = currencyService.convertAmount(transaction.amount, from: transactionCurrency, to: portfolioCurrency)
 
-        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
+        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return nil }
+
+        var realizedGainForTransaction: Double? = nil
 
         switch transactionType {
         case .buy:
@@ -940,6 +967,7 @@ struct AddTransactionView: View {
             if holding.quantity == 0 {
                 holding.averageCostBasis = 0
             }
+            realizedGainForTransaction = realizedGain
             
         case .dividend, .interest:
             holding.totalDividends += amountInPortfolioCurrency
@@ -950,6 +978,7 @@ struct AddTransactionView: View {
         
         holding.updatedAt = Date()
         print("📈 Updated holding for \(asset.symbol ?? "Unknown"): qty=\(holding.quantity), cost=\(holding.averageCostBasis), dividends=\(holding.totalDividends)")
+        return realizedGainForTransaction
     }
 
     private func createInsuranceAsset() -> Asset {
