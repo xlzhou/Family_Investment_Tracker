@@ -10,6 +10,9 @@ struct PortfolioDashboardView: View {
     @State private var showingAddTransaction = false
     @State private var showingPortfolioSettings = false
     @State private var showingCloudShare = false
+    @State private var showingShareSetup = false
+    @State private var isPreparingShare = false
+    @State private var shareSetupError: String?
     @State private var selectedTab = 0
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
@@ -60,7 +63,7 @@ struct PortfolioDashboardView: View {
                 HStack(spacing: 16) {
                     if ownershipService.canSharePortfolio(portfolio) {
                         Button(action: {
-                            showingCloudShare = true
+                            handleShareButtonTap()
                         }) {
                             Image(systemName: "person.2")
                         }
@@ -80,6 +83,15 @@ struct PortfolioDashboardView: View {
         .sheet(isPresented: $showingPortfolioSettings) {
             PortfolioSettingsView(portfolio: portfolio)
         }
+        .sheet(isPresented: $showingShareSetup) {
+            ShareSetupSheet(
+                portfolioName: portfolio.name ?? "Portfolio",
+                isPreparingShare: isPreparingShare,
+                errorMessage: shareSetupError,
+                onCancel: { showingShareSetup = false },
+                onStartSharing: { startSharingFlow() }
+            )
+        }
         .sheet(isPresented: $showingCloudShare) {
             CloudShareView(
                 portfolioID: portfolio.objectID,
@@ -87,12 +99,127 @@ struct PortfolioDashboardView: View {
                 context: viewContext
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: .cloudShareStatusChanged)) { notification in
+            guard let object = notification.object as? NSManagedObjectID,
+                  object == portfolio.objectID else { return }
+            if let status = notification.userInfo?["status"] as? CloudShareStatus {
+                switch status {
+                case .shared:
+                    showingShareSetup = false
+                case .notShared:
+                    showingCloudShare = false
+                }
+            }
+        }
         .task {
             viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
         }
         .onChange(of: selectedTab) { _, newValue in
             if newValue == 0 || newValue == 2 {
                 viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
+            }
+        }
+    }
+
+    private func handleShareButtonTap() {
+        let container = PersistenceController.shared.container
+        let status = CloudShareManager.shared.currentStatus(for: portfolio.objectID,
+                                                            in: viewContext,
+                                                            container: container)
+        switch status {
+        case .shared:
+            showingCloudShare = true
+        case .notShared:
+            shareSetupError = nil
+            showingShareSetup = true
+        }
+    }
+
+    private func startSharingFlow() {
+        guard !isPreparingShare else { return }
+
+        isPreparingShare = true
+        shareSetupError = nil
+
+        Task {
+            do {
+                try await CloudShareManager.shared.createShare(for: portfolio.objectID,
+                                                                in: viewContext,
+                                                                container: PersistenceController.shared.container)
+
+                await MainActor.run {
+                    isPreparingShare = false
+                    showingShareSetup = false
+                    showingCloudShare = true
+                }
+            } catch {
+                await MainActor.run {
+                    isPreparingShare = false
+                    shareSetupError = error.localizedDescription
+                }
+            }
+        }
+    }
+}
+
+private struct ShareSetupSheet: View {
+    let portfolioName: String
+    let isPreparingShare: Bool
+    let errorMessage: String?
+    let onCancel: () -> Void
+    let onStartSharing: () -> Void
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                Image(systemName: "person.2.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.blue)
+
+                Text("Share \(portfolioName)")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Text("Invite family members to collaborate on this portfolio. You'll be able to choose who has access in the next step.")
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                Button(action: onStartSharing) {
+                    if isPreparingShare {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .tint(.white)
+                    } else {
+                        Text("Start Sharing")
+                            .font(.headline)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(isPreparingShare ? Color.gray : Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(12)
+                .disabled(isPreparingShare)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Share Portfolio")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close", action: onCancel)
+                        .disabled(isPreparingShare)
+                }
             }
         }
     }

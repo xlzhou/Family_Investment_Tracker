@@ -4,7 +4,10 @@ import CoreData
 
 struct TransactionDetailView: View {
     @ObservedObject var transaction: Transaction
+    @ObservedObject var portfolio: Portfolio
+    @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @State private var showingEdit = false
     
     private var currency: Currency {
         Currency(rawValue: transaction.currency ?? "USD") ?? .usd
@@ -161,10 +164,19 @@ struct TransactionDetailView: View {
             .navigationTitle("Transaction")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button("Close") { dismiss() }
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Edit") {
+                        showingEdit = true
+                    }
+                }
             }
+        }
+        .sheet(isPresented: $showingEdit) {
+            AddTransactionView(portfolio: portfolio, transactionToEdit: transaction)
+                .environment(\.managedObjectContext, viewContext)
         }
     }
 

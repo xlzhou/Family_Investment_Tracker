@@ -4,6 +4,8 @@ import Foundation
 
 struct AddTransactionView: View {
     let portfolio: Portfolio
+    let transactionToEdit: Transaction?
+    private let originalPaymentInstitutionName: String?
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
     @FetchRequest(
@@ -60,6 +62,119 @@ struct AddTransactionView: View {
 
     private let currencyService = CurrencyService.shared
     @State private var cashDisciplineError: String?
+
+    init(portfolio: Portfolio, transactionToEdit: Transaction? = nil) {
+        self.portfolio = portfolio
+        self.transactionToEdit = transactionToEdit
+        self.originalPaymentInstitutionName = transactionToEdit?.value(forKey: "paymentInstitutionName") as? String
+
+        let defaultDate = Date()
+        let initialType = transactionToEdit.flatMap { TransactionType(rawValue: $0.type ?? "") } ?? .buy
+        let initialAssetType: AssetType
+        if let rawType = transactionToEdit?.asset?.assetType,
+           let resolved = AssetType(rawValue: rawType) {
+            initialAssetType = resolved
+        } else {
+            initialAssetType = .stock
+        }
+
+        _selectedTransactionType = State(initialValue: initialType)
+        _selectedAssetType = State(initialValue: initialAssetType)
+        _assetSymbol = State(initialValue: transactionToEdit?.asset?.symbol ?? "")
+        _assetName = State(initialValue: transactionToEdit?.asset?.name ?? "")
+        _quantity = State(initialValue: transactionToEdit?.quantity ?? 0)
+        _price = State(initialValue: transactionToEdit?.price ?? 0)
+        _fees = State(initialValue: transactionToEdit?.fees ?? 0)
+        _transactionDate = State(initialValue: transactionToEdit?.transactionDate ?? defaultDate)
+        _notes = State(initialValue: transactionToEdit?.notes ?? "")
+        _amount = State(initialValue: transactionToEdit?.amount ?? 0)
+        _tradingInstitution = State(initialValue: transactionToEdit?.tradingInstitution ?? "")
+        _selectedInstitution = State(initialValue: transactionToEdit?.institution)
+        let shouldUseCustomInstitution = transactionToEdit?.institution == nil && !(transactionToEdit?.tradingInstitution?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        _showingCustomInstitution = State(initialValue: shouldUseCustomInstitution)
+        _tax = State(initialValue: transactionToEdit?.tax ?? 0)
+
+        let defaultCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+        let initialCurrency = transactionToEdit.flatMap { Currency(rawValue: $0.currency ?? "") } ?? defaultCurrency
+        _selectedCurrency = State(initialValue: initialCurrency)
+
+        let hasMaturity = transactionToEdit?.maturityDate != nil
+        _hasMaturityDate = State(initialValue: hasMaturity)
+        _maturityDate = State(initialValue: transactionToEdit?.maturityDate ?? defaultDate)
+
+        if initialType == .dividend {
+            _selectedDividendAssetID = State(initialValue: transactionToEdit?.asset?.objectID)
+        } else {
+            _selectedDividendAssetID = State(initialValue: nil)
+        }
+
+        if initialType == .sell {
+            _selectedSellAssetID = State(initialValue: transactionToEdit?.asset?.objectID)
+        } else {
+            _selectedSellAssetID = State(initialValue: nil)
+        }
+
+        let insuranceObject = transactionToEdit?.asset?.value(forKey: "insurance") as? NSManagedObject
+        _insuranceType = State(initialValue: (insuranceObject?.value(forKey: "insuranceType") as? String) ?? "Life Insurance")
+        _insuranceSymbol = State(initialValue: transactionToEdit?.asset?.symbol ?? "")
+        _policyholder = State(initialValue: (insuranceObject?.value(forKey: "policyholder") as? String) ?? "")
+        _insuredPerson = State(initialValue: (insuranceObject?.value(forKey: "insuredPerson") as? String) ?? "")
+        _basicInsuredAmount = State(initialValue: insuranceObject?.value(forKey: "basicInsuredAmount") as? Double ?? 0)
+        _additionalPaymentAmount = State(initialValue: insuranceObject?.value(forKey: "additionalPaymentAmount") as? Double ?? 0)
+        _deathBenefit = State(initialValue: insuranceObject?.value(forKey: "deathBenefit") as? Double ?? 0)
+        _isParticipating = State(initialValue: insuranceObject?.value(forKey: "isParticipating") as? Bool ?? false)
+        _hasSupplementaryInsurance = State(initialValue: insuranceObject?.value(forKey: "hasSupplementaryInsurance") as? Bool ?? false)
+        _premiumPaymentTerm = State(initialValue: insuranceObject?.value(forKey: "premiumPaymentTerm") as? Int32 ?? 0)
+        _premiumPaymentStatus = State(initialValue: (insuranceObject?.value(forKey: "premiumPaymentStatus") as? String) ?? "Paid")
+        _premiumPaymentType = State(initialValue: (insuranceObject?.value(forKey: "premiumPaymentType") as? String) ?? "Lump Sum")
+        _singlePremium = State(initialValue: insuranceObject?.value(forKey: "singlePremium") as? Double ?? 0)
+        _totalPremium = State(initialValue: insuranceObject?.value(forKey: "totalPremium") as? Double ?? 0)
+        _coverageExpirationDate = State(initialValue: insuranceObject?.value(forKey: "coverageExpirationDate") as? Date ?? defaultDate)
+        _maturityBenefitRedemptionDate = State(initialValue: insuranceObject?.value(forKey: "maturityBenefitRedemptionDate") as? Date ?? defaultDate)
+        _estimatedMaturityBenefit = State(initialValue: insuranceObject?.value(forKey: "estimatedMaturityBenefit") as? Double ?? 0)
+        _canWithdrawPremiums = State(initialValue: insuranceObject?.value(forKey: "canWithdrawPremiums") as? Bool ?? false)
+        _maxWithdrawalPercentage = State(initialValue: insuranceObject?.value(forKey: "maxWithdrawalPercentage") as? Double ?? 0)
+        _cashValue = State(initialValue: transactionToEdit?.amount ?? 0)
+        _contactNumber = State(initialValue: (insuranceObject?.value(forKey: "contactNumber") as? String) ?? "")
+
+        if let beneficiariesSet = insuranceObject?.value(forKey: "beneficiaries") as? Set<NSManagedObject>, !beneficiariesSet.isEmpty {
+            let sorted = beneficiariesSet.sorted { lhs, rhs in
+                let leftName = lhs.value(forKey: "name") as? String ?? ""
+                let rightName = rhs.value(forKey: "name") as? String ?? ""
+                return leftName < rightName
+            }
+            let mapped = sorted.map { beneficiary -> BeneficiaryData in
+                let name = beneficiary.value(forKey: "name") as? String ?? ""
+                let percentage = beneficiary.value(forKey: "percentage") as? Double ?? 0
+                return BeneficiaryData(name: name, percentage: percentage)
+            }
+            _beneficiaries = State(initialValue: mapped)
+        } else {
+            _beneficiaries = State(initialValue: [])
+        }
+
+        if initialType == .insurance, transactionToEdit != nil, (_beneficiaries.wrappedValue).isEmpty {
+            _beneficiaries = State(initialValue: [BeneficiaryData(name: "", percentage: 100)])
+        }
+
+        let context = transactionToEdit?.managedObjectContext ?? portfolio.managedObjectContext
+        var initialPaymentInstitution: Institution?
+        if initialType == .insurance {
+            if let name = originalPaymentInstitutionName,
+               let context = context {
+                let request: NSFetchRequest<Institution> = Institution.fetchRequest()
+                request.predicate = NSPredicate(format: "name ==[c] %@", name)
+                request.fetchLimit = 1
+                initialPaymentInstitution = try? context.fetch(request).first
+            }
+            if initialPaymentInstitution == nil {
+                initialPaymentInstitution = transactionToEdit?.institution
+            }
+        }
+        _selectedPaymentInstitution = State(initialValue: initialPaymentInstitution)
+
+        _cashDisciplineError = State(initialValue: nil)
+    }
     
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -82,6 +197,10 @@ struct AddTransactionView: View {
         }
     }
     
+    private var isEditing: Bool {
+        transactionToEdit != nil
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -483,7 +602,7 @@ struct AddTransactionView: View {
                     }
                 }
             }
-            .navigationTitle("Add Transaction")
+            .navigationTitle(isEditing ? "Edit Transaction" : "Add Transaction")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -578,6 +697,8 @@ struct AddTransactionView: View {
             }
         }
 
+        let existingTransaction = transactionToEdit
+        let existingTransactionType = existingTransaction.flatMap { TransactionType(rawValue: $0.type ?? "") }
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
 
         func failWithMessage(_ message: String) {
@@ -601,8 +722,9 @@ struct AddTransactionView: View {
             holdingFetch.fetchLimit = 1
 
             let availableQuantity = (try? viewContext.fetch(holdingFetch).first?.quantity) ?? 0
-            if availableQuantity + 1e-6 < quantity {
-                failWithMessage("Not enough shares available to sell. You currently hold \(Formatters.decimal(availableQuantity)).")
+            let previousQuantity = (existingTransactionType == .sell && existingTransaction?.asset?.objectID == sellAsset.objectID) ? (existingTransaction?.quantity ?? 0) : 0
+            if availableQuantity + previousQuantity + 1e-6 < quantity {
+                failWithMessage("Not enough shares available to sell. You currently hold \(Formatters.decimal(availableQuantity + previousQuantity)).")
                 return
             }
 
@@ -618,8 +740,17 @@ struct AddTransactionView: View {
                 }
                 let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
                 let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
-                if institution.cashBalanceSafe + 1e-6 < requiredFunds {
-                    failWithMessage("Not enough cash in \(institution.name ?? "this institution") to complete this purchase.")
+                var availableFunds = institution.cashBalanceSafe
+                if let existingTransaction,
+                   existingTransactionType == .buy,
+                   existingTransaction.institution == institution {
+                    let previousCurrency = Currency(rawValue: existingTransaction.currency ?? selectedCurrency.rawValue) ?? selectedCurrency
+                    let previousCostRaw = (existingTransaction.quantity * existingTransaction.price) + existingTransaction.fees + existingTransaction.tax
+                    let previousCost = convertToPortfolioCurrency(previousCostRaw, from: previousCurrency)
+                    availableFunds += previousCost
+                }
+                if availableFunds + 1e-6 < requiredFunds {
+                    failWithMessage("Not enough cash in \(institution.name ?? "this institution") to complete this purchase. If you do not want cash to be deducted at the time of purchase, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
                     return
                 }
             case .insurance:
@@ -630,8 +761,19 @@ struct AddTransactionView: View {
                 }
                 let premiumAmount = max(0, insurancePaymentRawAmount())
                 let requiredFunds = max(0, convertToPortfolioCurrency(premiumAmount, from: selectedCurrency))
-                if paymentInstitution.cashBalanceSafe + 1e-6 < requiredFunds {
-                    failWithMessage("Not enough cash in \(paymentInstitution.name ?? "this institution") to purchase this insurance policy.")
+                var availableFunds = paymentInstitution.cashBalanceSafe
+                if let existingTransaction,
+                   existingTransactionType == .insurance {
+                    let previousInstitutionName = existingTransaction.value(forKey: "paymentInstitutionName") as? String ?? existingTransaction.institution?.name
+                    if let previousInstitutionName = previousInstitutionName,
+                       let currentName = paymentInstitution.name,
+                       previousInstitutionName.caseInsensitiveCompare(currentName) == .orderedSame {
+                        let previouslyDeducted = existingTransaction.value(forKey: "paymentDeductedAmount") as? Double ?? 0
+                        availableFunds += previouslyDeducted
+                    }
+                }
+                if availableFunds + 1e-6 < requiredFunds {
+                    failWithMessage("Not enough cash in \(paymentInstitution.name ?? "this institution") to purchase this insurance policy. If you do not want cash to be deducted at the time of purchase, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
                     return
                 }
             case .deposit, .sell:
@@ -670,16 +812,29 @@ struct AddTransactionView: View {
             }
         }
 
-        let transaction = Transaction(context: viewContext)
-        transaction.id = UUID()
+        let transaction = existingTransaction ?? Transaction(context: viewContext)
+
+        if let existingTransaction = existingTransaction {
+            TransactionImpactService.reverse(existingTransaction, in: portfolio, context: viewContext)
+        } else {
+            transaction.id = UUID()
+            transaction.createdAt = Date()
+        }
+
+        if transaction.createdAt == nil {
+            transaction.createdAt = Date()
+        }
+
         transaction.type = selectedTransactionType.rawValue
         transaction.transactionDate = transactionDate
         transaction.fees = fees
         transaction.tax = tax
         transaction.currency = selectedCurrency.rawValue
+        transaction.notes = notes.isEmpty ? nil : notes
+        transaction.maturityDate = hasMaturityDate ? maturityDate : nil
+        transaction.portfolio = portfolio
         transaction.ensureIdentifiers()
 
-        // Handle institution
         if let institution = institutionForTransaction {
             transaction.institution = institution
             if let name = institution.name, !name.isEmpty {
@@ -690,26 +845,23 @@ struct AddTransactionView: View {
                 transaction.tradingInstitution = nil
             }
         } else {
+            transaction.institution = nil
             transaction.tradingInstitution = trimmedInstitutionName.isEmpty ? nil : trimmedInstitutionName
         }
-        transaction.notes = notes.isEmpty ? nil : notes
-        transaction.createdAt = Date()
-        transaction.portfolio = portfolio
-        transaction.maturityDate = hasMaturityDate ? maturityDate : nil
+
         let resolvedPaymentInstitution = selectedPaymentInstitution ?? institutionForTransaction
         transaction.setValue(resolvedPaymentInstitution?.name, forKey: "paymentInstitutionName")
         transaction.setValue(false, forKey: "paymentDeducted")
         transaction.setValue(0.0, forKey: "paymentDeductedAmount")
         transaction.realizedGainAmount = 0
-        
+        transaction.asset = nil
+
         if isAmountOnly {
             if selectedTransactionType == .insurance {
-                // For insurance, use cash value instead of amount
                 transaction.amount = cashValue
                 transaction.quantity = 1
                 transaction.price = cashValue
 
-                // For insurance, the cash value represents the premium paid
                 if cashDisciplineEnabled {
                     let premiumAmount = max(0, insurancePaymentRawAmount())
                     let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
@@ -725,12 +877,10 @@ struct AddTransactionView: View {
                     }
                 }
             } else {
-                // Record amount-based transactions (dividend, interest, deposits)
                 transaction.amount = amount
                 transaction.quantity = 1
                 transaction.price = amount
 
-                // Increase portfolio cash by net amount
                 let netCash = amount - fees - tax
                 let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
                 switch selectedTransactionType {
@@ -739,40 +889,35 @@ struct AddTransactionView: View {
                     if cashDisciplineEnabled, let institution = institutionForTransaction {
                         institution.cashBalanceSafe += convertedNetCash
                     }
-                case .dividend, .interest:
+                case .dividend:
+                    portfolio.addToCash(convertedNetCash)
+                    if let assetID = selectedDividendAssetID,
+                       let srcAsset = try? viewContext.existingObject(with: assetID) as? Asset {
+                        transaction.asset = srcAsset
+                    }
+                case .interest:
                     portfolio.addToCash(convertedNetCash)
                 default:
                     break
                 }
             }
-
-            // Record source security for dividends if provided
-            if selectedTransactionType == .dividend, let id = selectedDividendAssetID,
-               let srcAsset = try? viewContext.existingObject(with: id) as? Asset {
-                transaction.asset = srcAsset
-            }
         } else {
             transaction.quantity = quantity
             transaction.price = price
             transaction.amount = quantity * price
-            
-            // Determine asset based on type
+
             let asset: Asset
             if selectedTransactionType == .sell, let preselectedSellAsset {
                 asset = preselectedSellAsset
             } else {
-                // Buy or fallback: create/find from entered fields
                 asset = findOrCreateAsset()
             }
             transaction.asset = asset
-            
-            // Update or create holding
-            let realizedGain = updateHolding(for: asset, transaction: transaction)
-            if let realizedGain = realizedGain {
+
+            if let realizedGain = updateHolding(for: asset, transaction: transaction) {
                 transaction.realizedGainAmount = realizedGain
             }
 
-            // Cash movement for sell: deposit net proceeds into cash account
             if selectedTransactionType == .sell {
                 let netProceeds = (quantity * price) - fees - tax
                 if netProceeds != 0 {
@@ -790,13 +935,10 @@ struct AddTransactionView: View {
             }
         }
 
-        // Special handling for insurance transactions
         if selectedTransactionType == .insurance {
-            // Create insurance asset
             let asset = createInsuranceAsset()
             transaction.asset = asset
 
-            // Create insurance details
             let insurance = NSEntityDescription.insertNewObject(forEntityName: "Insurance", into: viewContext)
             insurance.setValue(UUID(), forKey: "id")
             insurance.setValue(insuranceType, forKey: "insuranceType")
@@ -821,7 +963,6 @@ struct AddTransactionView: View {
             insurance.setValue(Date(), forKey: "createdAt")
             insurance.setValue(asset, forKey: "asset")
 
-            // Create beneficiaries
             for beneficiaryData in beneficiaries {
                 let beneficiary = NSEntityDescription.insertNewObject(forEntityName: "Beneficiary", into: viewContext)
                 beneficiary.setValue(UUID(), forKey: "id")
@@ -831,13 +972,11 @@ struct AddTransactionView: View {
                 beneficiary.setValue(insurance, forKey: "insurance")
             }
 
-            // Create holding with cash value
             updateInsuranceHolding(for: asset, transaction: transaction)
         }
 
-        // Recompute portfolio totals based on holdings' current prices
         recomputePortfolioTotals()
-        
+
         do {
             try viewContext.save()
             print("✅ Transaction saved successfully: \(transaction.type ?? "Unknown") - \(transaction.amount)")
@@ -845,6 +984,7 @@ struct AddTransactionView: View {
         } catch {
             print("❌ Error saving transaction: \(error)")
             print("Transaction details: type=\(selectedTransactionType.rawValue), amount=\(transaction.amount), institution=\(tradingInstitution)")
+            viewContext.rollback()
         }
     }
 

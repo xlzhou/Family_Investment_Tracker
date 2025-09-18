@@ -5,17 +5,11 @@ import Foundation
 struct TransactionsView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
-    private let currencyService = CurrencyService.shared
-    
     @State private var selectedFilter = TransactionFilter.all
     @State private var selectedTransaction: Transaction?
     @State private var showingDeleteConfirmation = false
     @State private var transactionToDelete: Transaction?
     @State private var showingRealizedPnL = false
-    
-    private var portfolioCurrency: Currency {
-        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
-    }
     
     private var filteredTransactions: [Transaction] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
@@ -107,7 +101,7 @@ struct TransactionsView: View {
         }
         .sheet(isPresented: Binding(get: { selectedTransaction != nil }, set: { if !$0 { selectedTransaction = nil } })) {
             if let txn = selectedTransaction {
-                TransactionDetailView(transaction: txn)
+                TransactionDetailView(transaction: txn, portfolio: portfolio)
             }
         }
         .sheet(isPresented: $showingRealizedPnL) {
@@ -142,9 +136,7 @@ struct TransactionsView: View {
     
     private func deleteTransaction(_ transaction: Transaction) {
         withAnimation {
-            // Reverse the transaction's impact on portfolio before deleting
-            reverseTransactionImpact(transaction)
-
+            TransactionImpactService.reverse(transaction, in: portfolio, context: viewContext)
             viewContext.delete(transaction)
 
             do {
@@ -181,9 +173,8 @@ struct TransactionsView: View {
         withAnimation {
             let transactionsToDelete = offsets.map { filteredTransactions[$0] }
 
-            // Reverse each transaction's impact on portfolio before deleting
             transactionsToDelete.forEach { transaction in
-                reverseTransactionImpact(transaction)
+                TransactionImpactService.reverse(transaction, in: portfolio, context: viewContext)
             }
 
             transactionsToDelete.forEach(viewContext.delete)
@@ -196,171 +187,6 @@ struct TransactionsView: View {
         }
     }
 
-    private func reverseTransactionImpact(_ transaction: Transaction) {
-        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
-
-        let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .insurance
-        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
-        let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
-        let institution = transaction.institution
-
-        if isAmountOnly {
-            // Reverse cash movements
-            let originalNetCash = transaction.amount - transaction.fees - transaction.tax
-            let netCash = currencyService.convertAmount(originalNetCash, from: transactionCurrency, to: portfolioCurrency)
-            switch transactionType {
-            case .deposit:
-                portfolio.addToCash(-netCash) // Reverse the deposit
-                if cashDisciplineEnabled, let institution = institution {
-                    institution.cashBalanceSafe -= netCash
-                }
-            case .insurance:
-                cleanupInsuranceArtifacts(for: transaction)
-        case .dividend, .interest:
-                portfolio.addToCash(-netCash) // Reverse the dividend/interest
-                // Also reverse dividend tracking on holding if there's an associated asset
-                if let asset = transaction.asset,
-                   let holding = findHolding(for: asset) {
-                    let dividendValue = currencyService.convertAmount(transaction.amount, from: transactionCurrency, to: portfolioCurrency)
-                    holding.totalDividends = max(0, holding.totalDividends - dividendValue)
-                    holding.updatedAt = Date()
-                }
-            default:
-                break
-            }
-        } else {
-            // Reverse asset transactions (buy/sell)
-            if let asset = transaction.asset {
-                reverseHoldingImpact(for: asset, transaction: transaction, transactionType: transactionType)
-
-                // Reverse cash movement for sells
-                if transactionType == .sell {
-                    let originalProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
-                    let netProceeds = currencyService.convertAmount(originalProceeds, from: transactionCurrency, to: portfolioCurrency)
-                    if netProceeds != 0 {
-                        portfolio.addToCash(-netProceeds) // Reverse the cash from sale
-                        if cashDisciplineEnabled, let institution = institution {
-                            institution.cashBalanceSafe -= netProceeds
-                        }
-                    }
-                } else if transactionType == .buy {
-                    let originalCost = (transaction.quantity * transaction.price) + transaction.fees + transaction.tax
-                    let cost = currencyService.convertAmount(originalCost, from: transactionCurrency, to: portfolioCurrency)
-                    if cashDisciplineEnabled {
-                        portfolio.addToCash(cost)
-                        if let institution = institution {
-                            institution.cashBalanceSafe += cost
-                        }
-                    }
-                } else if transactionType == .insurance {
-                    cleanupInsuranceArtifacts(for: transaction)
-                }
-            }
-        }
-
-        // Recompute portfolio totals
-        recomputePortfolioTotals()
-    }
-
-    private func findHolding(for asset: Asset) -> Holding? {
-        let request: NSFetchRequest<Holding> = Holding.fetchRequest()
-        request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
-        return try? viewContext.fetch(request).first
-    }
-
-    private func reverseHoldingImpact(for asset: Asset, transaction: Transaction, transactionType: TransactionType) {
-        guard let holding = findHolding(for: asset) else { return }
-        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
-        let priceInPortfolio = currencyService.convertAmount(transaction.price, from: transactionCurrency, to: portfolioCurrency)
-
-        switch transactionType {
-        case .buy:
-            // Reverse buy: subtract quantity and recalculate cost basis
-            let transactionCost = transaction.quantity * priceInPortfolio
-            let currentTotalCost = holding.quantity * holding.averageCostBasis
-            let newQuantity = holding.quantity - transaction.quantity
-
-            if newQuantity > 0 {
-                let newTotalCost = currentTotalCost - transactionCost
-                holding.averageCostBasis = newTotalCost / newQuantity
-                holding.quantity = newQuantity
-            } else {
-                // If quantity goes to zero or below, reset the holding
-                holding.quantity = 0
-                holding.averageCostBasis = 0
-            }
-
-        case .sell:
-            // Reverse sell: add quantity back and reverse realized gains
-            holding.quantity += transaction.quantity
-            let realizedGain = transaction.quantity * (priceInPortfolio - holding.averageCostBasis)
-            holding.realizedGainLoss -= realizedGain
-
-        default:
-            break
-        }
-
-        holding.updatedAt = Date()
-    }
-
-    private func recomputePortfolioTotals() {
-        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-        let totalHoldings = holdings.reduce(0.0) { partial, holding in
-            guard let asset = holding.asset else { return partial }
-            if asset.assetType == AssetType.insurance.rawValue {
-                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
-                return partial + cashValue
-            }
-            return partial + (holding.quantity * asset.currentPrice)
-        }
-
-        // Use the safe cash balance accessor
-        let cashBalance = portfolio.cashBalanceSafe
-        portfolio.totalValue = totalHoldings + cashBalance
-        portfolio.updatedAt = Date()
-    }
-
-    private func cleanupInsuranceArtifacts(for transaction: Transaction) {
-        guard transaction.type == TransactionType.insurance.rawValue else { return }
-
-        let paymentDeducted = (transaction.value(forKey: "paymentDeducted") as? Bool) ?? false
-        if paymentDeducted {
-            let amount = (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0
-            if amount != 0 {
-                portfolio.addToCash(amount)
-                if let name = transaction.value(forKey: "paymentInstitutionName") as? String,
-                   let paymentInstitution = findInstitution(named: name) {
-                    paymentInstitution.cashBalanceSafe += amount
-                }
-            }
-            transaction.setValue(false, forKey: "paymentDeducted")
-            transaction.setValue(0.0, forKey: "paymentDeductedAmount")
-        }
-
-        if let asset = transaction.asset {
-            if let holding = findHolding(for: asset) {
-                let holdingsSet = portfolio.mutableSetValue(forKey: "holdings")
-                holdingsSet.remove(holding)
-                viewContext.delete(holding)
-            }
-
-            if let insurance = asset.value(forKey: "insurance") as? NSManagedObject {
-                if let beneficiaries = insurance.value(forKey: "beneficiaries") as? Set<NSManagedObject> {
-                    beneficiaries.forEach { viewContext.delete($0) }
-                }
-                viewContext.delete(insurance)
-            }
-
-            viewContext.delete(asset)
-        }
-    }
-
-    private func findInstitution(named name: String) -> Institution? {
-        let request: NSFetchRequest<Institution> = Institution.fetchRequest()
-        request.predicate = NSPredicate(format: "name ==[c] %@", name)
-        request.fetchLimit = 1
-        return try? viewContext.fetch(request).first
-    }
 }
 
 struct TransactionRowView: View {
