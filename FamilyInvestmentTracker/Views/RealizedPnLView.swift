@@ -136,12 +136,12 @@ struct RealizedPnLView: View {
             .navigationTitle("Realized P&L")
             .navigationBarTitleDisplayMode(.inline)
         }
-        .onChange(of: startDate) { newValue in
+        .onChange(of: startDate) { _, newValue in
             if newValue > endDate {
                 endDate = newValue
             }
         }
-        .onChange(of: endDate) { newValue in
+        .onChange(of: endDate) { _, newValue in
             if newValue < startDate {
                 startDate = newValue
             }

@@ -99,7 +99,10 @@ struct PortfolioListView: View {
                 .environmentObject(authManager)
         }
         .onAppear {
-            createDefaultPortfoliosIfNeeded()
+            // Clean up existing default portfolios on first launch
+            cleanupDefaultPortfolios()
+            // Ensure current user ID is fetched
+            PortfolioOwnershipService.shared.fetchCurrentUserID()
         }
     }
     
@@ -117,32 +120,47 @@ struct PortfolioListView: View {
             return partial + holdingsValue + portfolio.cashBalanceSafe
         }
     }
-    
-    private func createDefaultPortfoliosIfNeeded() {
-        if portfolios.isEmpty {
-            let defaultNames = ["Jerry", "Carol", "Ray", "Family"]
-            
-            for name in defaultNames {
-                let portfolio = Portfolio(context: viewContext)
-                portfolio.id = UUID()
-                portfolio.name = name
-                portfolio.createdAt = Date()
-                portfolio.updatedAt = Date()
-                portfolio.totalValue = 0.0
-                portfolio.enforcesCashDisciplineEnabled = true
-            }
-            
-            do {
-                try viewContext.save()
-            } catch {
-                print("Error creating default portfolios: \(error)")
+
+    private func cleanupDefaultPortfolios() {
+        // Only run this cleanup once
+        let hasCleanedUp = UserDefaults.standard.bool(forKey: "HasCleanedUpDefaultPortfolios")
+        guard !hasCleanedUp else { return }
+
+        let defaultNames = ["Jerry", "Carol", "Ray", "Family"]
+
+        // Find and delete portfolios with default names that have no owner
+        for portfolio in portfolios {
+            if let name = portfolio.name,
+               defaultNames.contains(name),
+               portfolio.ownerID == nil {
+
+                // Delete all related data first
+                let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+                let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+
+                transactions.forEach(viewContext.delete)
+                holdings.forEach(viewContext.delete)
+
+                // Delete the portfolio itself
+                viewContext.delete(portfolio)
             }
         }
+
+        do {
+            try viewContext.save()
+            UserDefaults.standard.set(true, forKey: "HasCleanedUpDefaultPortfolios")
+            print("Cleaned up default portfolios")
+        } catch {
+            print("Error cleaning up default portfolios: \(error)")
+        }
     }
+
 }
 
 struct PortfolioCardView: View {
     @ObservedObject var portfolio: Portfolio
+    @StateObject private var ownershipService = PortfolioOwnershipService.shared
+    @State private var ownerName: String?
     
     private var currentValue: Double {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
@@ -163,9 +181,22 @@ struct PortfolioCardView: View {
                 Text(portfolio.name ?? "Unknown")
                     .font(.title2)
                     .fontWeight(.semibold)
-                
+
+                if ownershipService.isCurrentUserOwner(of: portfolio) {
+                    Image(systemName: "crown.fill")
+                        .foregroundColor(.yellow)
+                        .font(.caption)
+                }
+
+                if let ownerName = ownerName {
+                    Text("Owner: \(ownerName)")
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .fontWeight(.medium)
+                }
+
                 Spacer()
-                
+
                 Image(systemName: "chevron.right")
                     .foregroundColor(.secondary)
             }
@@ -187,19 +218,19 @@ struct PortfolioCardView: View {
                     Text("Holdings")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text("\(portfolio.holdings?.count ?? 0)")
                         .font(.subheadline)
                         .fontWeight(.medium)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing) {
                     Text("Transactions")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     Text("\(portfolio.transactions?.count ?? 0)")
                         .font(.subheadline)
                         .fontWeight(.medium)
@@ -211,6 +242,20 @@ struct PortfolioCardView: View {
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .onAppear {
+            refreshOwnerName()
+        }
+        .onReceive(ownershipService.$currentUserID) { userID in
+            // Refresh owner name when current user ID changes
+            print("Portfolio card received user ID update: \(userID ?? "nil")")
+            refreshOwnerName()
+        }
+    }
+
+    private func refreshOwnerName() {
+        ownershipService.getOwnerName(for: portfolio) { name in
+            ownerName = name
+        }
     }
 }
 

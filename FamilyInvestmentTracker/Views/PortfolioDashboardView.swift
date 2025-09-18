@@ -9,8 +9,10 @@ struct PortfolioDashboardView: View {
     
     @State private var showingAddTransaction = false
     @State private var showingPortfolioSettings = false
+    @State private var showingCloudShare = false
     @State private var selectedTab = 0
     @StateObject private var viewModel = PortfolioViewModel()
+    @StateObject private var ownershipService = PortfolioOwnershipService.shared
     
     var body: some View {
         VStack(spacing: 20) {
@@ -55,10 +57,20 @@ struct PortfolioDashboardView: View {
             }
             
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    showingAddTransaction = true
-                }) {
-                    Image(systemName: "plus")
+                HStack(spacing: 16) {
+                    if ownershipService.canSharePortfolio(portfolio) {
+                        Button(action: {
+                            showingCloudShare = true
+                        }) {
+                            Image(systemName: "person.2")
+                        }
+                    }
+
+                    Button(action: {
+                        showingAddTransaction = true
+                    }) {
+                        Image(systemName: "plus")
+                    }
                 }
             }
         }
@@ -68,10 +80,17 @@ struct PortfolioDashboardView: View {
         .sheet(isPresented: $showingPortfolioSettings) {
             PortfolioSettingsView(portfolio: portfolio)
         }
+        .sheet(isPresented: $showingCloudShare) {
+            CloudShareView(
+                portfolioID: portfolio.objectID,
+                container: PersistenceController.shared.container,
+                context: viewContext
+            )
+        }
         .task {
             viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
         }
-        .onChange(of: selectedTab) { newValue in
+        .onChange(of: selectedTab) { _, newValue in
             if newValue == 0 || newValue == 2 {
                 viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
             }

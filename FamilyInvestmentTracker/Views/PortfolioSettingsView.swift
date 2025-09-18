@@ -14,6 +14,8 @@ struct PortfolioSettingsView: View {
     @State private var activeAlert: ActiveAlert?
     @State private var institutionPendingDeletion: Institution?
     @State private var enforceCashDiscipline: Bool
+    @StateObject private var ownershipService = PortfolioOwnershipService.shared
+    @State private var ownerName: String?
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Institution.name, ascending: true)],
@@ -23,6 +25,7 @@ struct PortfolioSettingsView: View {
     private enum ActiveAlert: String, Identifiable {
         case deleteInstitution
         case resetPortfolio
+        case deletePortfolio
 
         var id: String { rawValue }
     }
@@ -122,23 +125,44 @@ struct PortfolioSettingsView: View {
                         Text("Reset Portfolio Data")
                     }
                     .disabled(isResetDisabled)
+
+                    if ownershipService.canDeletePortfolio(portfolio) {
+                        Button(role: .destructive) {
+                            activeAlert = .deletePortfolio
+                        } label: {
+                            Text("Delete Portfolio")
+                        }
+                    }
                 }
 
                 Section(header: Text("Statistics")) {
+                    HStack {
+                        Text("Portfolio Owner")
+                        Spacer()
+                        if let ownerName = ownerName {
+                            Text(ownerName)
+                                .foregroundColor(.blue)
+                                .fontWeight(.medium)
+                        } else {
+                            Text("Loading...")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
                     HStack {
                         Text("Total Holdings")
                         Spacer()
                         Text("\(portfolio.holdings?.count ?? 0)")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Total Transactions")
                         Spacer()
                         Text("\(portfolio.transactions?.count ?? 0)")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
                         Text("Created")
                         Spacer()
@@ -192,6 +216,20 @@ struct PortfolioSettingsView: View {
                     },
                     secondaryButton: .cancel()
                 )
+            case .deletePortfolio:
+                return Alert(
+                    title: Text("Delete Portfolio"),
+                    message: Text("This will permanently delete \"\(portfolio.name ?? "this portfolio")\" and all its data. This action cannot be undone."),
+                    primaryButton: .destructive(Text("Delete")) {
+                        deletePortfolio()
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
+        }
+        .onAppear {
+            ownershipService.getOwnerName(for: portfolio) { name in
+                ownerName = name
             }
         }
     }
@@ -297,6 +335,31 @@ struct PortfolioSettingsView: View {
             try viewContext.save()
         } catch {
             print("Error resetting portfolio data: \(error)")
+        }
+    }
+
+    private func deletePortfolio() {
+        // Only allow owner to delete
+        guard ownershipService.canDeletePortfolio(portfolio) else {
+            print("Only the portfolio owner can delete this portfolio")
+            return
+        }
+
+        // Delete all related data
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+
+        transactions.forEach(viewContext.delete)
+        holdings.forEach(viewContext.delete)
+
+        // Delete the portfolio itself
+        viewContext.delete(portfolio)
+
+        do {
+            try viewContext.save()
+            dismiss()
+        } catch {
+            print("Error deleting portfolio: \(error)")
         }
     }
 }

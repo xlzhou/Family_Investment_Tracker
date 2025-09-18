@@ -17,10 +17,24 @@ struct SettingsView: View {
     @State private var isRestoring = false
     @State private var showRestoreAlert = false
     @State private var restoreError: String?
+    @StateObject private var ownershipService = PortfolioOwnershipService.shared
+    @State private var displayName: String = ""
     
     var body: some View {
         NavigationView {
             Form {
+                // User Profile Section
+                Section(header: Text("Profile"), footer: Text("This name will be shown to family members when you share portfolios.")) {
+                    HStack {
+                        Text("Display Name")
+                        TextField("Enter your name", text: $displayName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .onSubmit {
+                                ownershipService.setUserDisplayName(displayName)
+                            }
+                    }
+                }
+
                 // iCloud Sync Section
                 Section(header: Text("iCloud Sync"), footer: Text("Securely sync your portfolio data across all your devices using iCloud.")) {
                     HStack {
@@ -240,6 +254,7 @@ struct SettingsView: View {
         })
         .onAppear {
             cloudKitService.checkAccountStatus()
+            displayName = ownershipService.userDisplayName
         }
     }
 

@@ -1,4 +1,5 @@
 import CoreData
+import CloudKit
 
 struct PersistenceController {
     static let shared = PersistenceController()
@@ -46,6 +47,11 @@ struct PersistenceController {
             storeDescription.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
             storeDescription.setOption(true as NSNumber, forKey: NSMigratePersistentStoresAutomaticallyOption)
             storeDescription.setOption(true as NSNumber, forKey: NSInferMappingModelAutomaticallyOption)
+
+            // Configure CloudKit container
+            storeDescription.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                containerIdentifier: "iCloud.com.kongkong.FamilyInvestmentTracker"
+            )
         }
         
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
@@ -60,7 +66,7 @@ struct PersistenceController {
 extension PersistenceController {
     func save() {
         let context = container.viewContext
-        
+
         if context.hasChanges {
             do {
                 try context.save()
@@ -69,5 +75,15 @@ extension PersistenceController {
                 fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
             }
         }
+    }
+
+    // MARK: - CloudKit Sharing
+
+    func canEdit(object: NSManagedObject) -> Bool {
+        return container.canUpdateRecord(forManagedObjectWith: object.objectID)
+    }
+
+    func canDelete(object: NSManagedObject) -> Bool {
+        return container.canDeleteRecord(forManagedObjectWith: object.objectID)
     }
 }
