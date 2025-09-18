@@ -158,11 +158,11 @@ struct AddTransactionView: View {
                 if selectedTransactionType == .buy {
                     Section(header: Text("Asset Information")) {
                         Picker("Asset Type", selection: $selectedAssetType) {
-                            ForEach(AssetType.allCases, id: \.self) { type in
+                            ForEach(AssetType.allCases.filter { $0 != .deposit && $0 != .insurance }, id: \.self) { type in
                                 Text(type.displayName).tag(type)
                             }
                         }
-                        
+                
                         TextField("Symbol (e.g., AAPL)", text: $assetSymbol)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .textInputAutocapitalization(.characters)

@@ -20,6 +20,7 @@ enum AssetType: String, CaseIterable {
     case mutualFund = "Mutual Fund"
     case deposit = "Deposit"
     case cryptocurrency = "Cryptocurrency"
+    case preciousMetal = "Precious Metal"
     case insurance = "Insurance"
     case other = "Other"
     
