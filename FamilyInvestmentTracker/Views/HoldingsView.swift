@@ -59,6 +59,17 @@ struct HoldingRowView: View {
     @State private var showingCashValueEditor = false
     @State private var editingCashValue: Double = 0
 
+    private var portfolioCurrency: Currency {
+        guard let portfolio = holding.portfolio,
+              let code = portfolio.mainCurrency,
+              let resolved = Currency(rawValue: code) else {
+            return .usd
+        }
+        return resolved
+    }
+
+    private var currencySymbol: String { portfolioCurrency.symbol }
+
     private var currentValue: Double {
         // For insurance, use cash value; for others, use market value
         if asset.assetType == "Insurance" {
@@ -107,7 +118,7 @@ struct HoldingRowView: View {
                 
                 VStack(alignment: .trailing, spacing: 4) {
                     HStack {
-                        Text(Formatters.currency(currentValue))
+                        Text(Formatters.currency(currentValue, symbol: currencySymbol))
                             .font(.headline)
                             .fontWeight(.semibold)
 
@@ -129,7 +140,7 @@ struct HoldingRowView: View {
                             .foregroundColor(.secondary)
                     } else {
                         HStack(spacing: 4) {
-                            Text(Formatters.signedCurrency(unrealizedGainLoss))
+                            Text(Formatters.signedCurrency(unrealizedGainLoss, symbol: currencySymbol))
                                 .font(.subheadline)
                                 .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
 
@@ -189,7 +200,7 @@ struct HoldingRowView: View {
                         Text("Avg Cost")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(Formatters.currency(holding.averageCostBasis))
+                        Text(Formatters.currency(holding.averageCostBasis, symbol: currencySymbol))
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
@@ -201,7 +212,7 @@ struct HoldingRowView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         HStack {
-                            Text(Formatters.currency(asset.currentPrice))
+                            Text(Formatters.currency(asset.currentPrice, symbol: currencySymbol))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
 
@@ -227,7 +238,7 @@ struct HoldingRowView: View {
                     
                     Spacer()
                     
-                    Text(Formatters.currency(holding.totalDividends))
+                    Text(Formatters.currency(holding.totalDividends, symbol: currencySymbol))
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.blue)
@@ -255,6 +266,15 @@ struct CashValueEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var error: String?
 
+    private var currencySymbol: String {
+        guard let portfolio = holding.portfolio,
+              let code = portfolio.mainCurrency,
+              let currency = Currency(rawValue: code) else {
+            return Currency.usd.symbol
+        }
+        return currency.symbol
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -266,7 +286,7 @@ struct CashValueEditorView: View {
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 120)
-                        Text("$")
+                        Text(currencySymbol)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -289,7 +309,7 @@ struct CashValueEditorView: View {
                     HStack {
                         Text("Previous Cash Value")
                         Spacer()
-                        Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0))
+                        Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: currencySymbol))
                             .foregroundColor(.secondary)
                     }
                 }

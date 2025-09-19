@@ -1,10 +1,13 @@
 import SwiftUI
 import Foundation
 import Charts
+import CoreData
 
 struct AnalyticsView: View {
     @ObservedObject var portfolio: Portfolio
     @StateObject private var viewModel = PortfolioViewModel()
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var refreshID = UUID()
     
     var body: some View {
         ScrollView {
@@ -23,6 +26,16 @@ struct AnalyticsView: View {
             }
             .padding()
         }
+        .id(refreshID)
+        .onReceive(NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: viewContext)) { notification in
+            let updated = notification.userInfo?[NSUpdatedObjectsKey] as? Set<NSManagedObject> ?? []
+            let refreshed = notification.userInfo?[NSRefreshedObjectsKey] as? Set<NSManagedObject> ?? []
+            let inserted = notification.userInfo?[NSInsertedObjectsKey] as? Set<NSManagedObject> ?? []
+            let relevant = updated.union(refreshed).union(inserted)
+            if relevant.contains(where: { $0.objectID == portfolio.objectID }) {
+                refreshID = UUID()
+            }
+        }
     }
 }
 
@@ -32,6 +45,14 @@ struct PerformanceSummaryView: View {
     
     private var performance: PortfolioPerformance {
         viewModel.calculatePortfolioPerformance(portfolio: portfolio)
+    }
+
+    private var portfolioCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
+    
+    private var currencySymbol: String {
+        portfolioCurrency.symbol
     }
     
     var body: some View {
@@ -46,19 +67,19 @@ struct PerformanceSummaryView: View {
             ], spacing: 16) {
                 PerformanceCardView(
                     title: "Current Value",
-                    value: Formatters.currency(performance.currentValue),
+                    value: Formatters.currency(performance.currentValue, symbol: currencySymbol),
                     color: .blue
                 )
                 
                 PerformanceCardView(
                     title: "Cost Basis",
-                    value: Formatters.currency(performance.costBasis),
+                    value: Formatters.currency(performance.costBasis, symbol: currencySymbol),
                     color: .gray
                 )
                 
                 PerformanceCardView(
                     title: "Unrealized P&L",
-                    value: Formatters.signedCurrency(performance.unrealizedGainLoss),
+                    value: Formatters.signedCurrency(performance.unrealizedGainLoss, symbol: currencySymbol),
                     color: performance.unrealizedGainLoss >= 0 ? .green : .red
                 )
                 
@@ -70,13 +91,13 @@ struct PerformanceSummaryView: View {
                 
                 PerformanceCardView(
                     title: "Realized P&L",
-                    value: Formatters.signedCurrency(performance.realizedGainLoss),
+                    value: Formatters.signedCurrency(performance.realizedGainLoss, symbol: currencySymbol),
                     color: performance.realizedGainLoss >= 0 ? .green : .red
                 )
                 
                 PerformanceCardView(
                     title: "Total Dividends",
-                    value: Formatters.currency(performance.totalDividends),
+                    value: Formatters.currency(performance.totalDividends, symbol: currencySymbol),
                     color: .purple
                 )
             }
@@ -118,6 +139,14 @@ struct AssetAllocationChartView: View {
     private var allocations: [AssetAllocation] {
         viewModel.getAssetAllocation(portfolio: portfolio)
     }
+
+    private var portfolioCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
+
+    private var currencySymbol: String {
+        portfolioCurrency.symbol
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -156,7 +185,7 @@ struct AssetAllocationChartView: View {
                                         .font(.subheadline)
                                         .fontWeight(.medium)
                                     
-                                    Text("\(Formatters.decimal(allocation.percentage, fractionDigits: 1))% • \(Formatters.currency(allocation.value, fractionDigits: 0))")
+                                    Text("\(Formatters.decimal(allocation.percentage, fractionDigits: 1))% • \(Formatters.currency(allocation.value, symbol: currencySymbol, fractionDigits: 0))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -188,6 +217,8 @@ struct AssetAllocationChartView: View {
             return .yellow
         case "Deposit":
             return .gray
+        case "Cash":
+            return .teal
         default:
             return .pink
         }

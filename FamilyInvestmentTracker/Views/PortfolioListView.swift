@@ -155,6 +155,16 @@ struct PortfolioCardView: View {
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var ownerName: String?
     
+    private var portfolioCurrency: Currency {
+        guard let code = portfolio.mainCurrency,
+              let currency = Currency(rawValue: code) else {
+            return .usd
+        }
+        return currency
+    }
+
+    private var currencySymbol: String { portfolioCurrency.symbol }
+
     private var currentValue: Double {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let holdingsValue = holdings.reduce(0.0) { sum, holding in
@@ -199,7 +209,7 @@ struct PortfolioCardView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text(Formatters.currency(currentValue))
+                Text(Formatters.currency(currentValue, symbol: currencySymbol))
                     .font(.title3)
                     .fontWeight(.medium)
             }

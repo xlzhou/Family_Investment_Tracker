@@ -100,6 +100,8 @@ extension PortfolioViewModel {
             totalRealizedGains += holding.realizedGainLoss
         }
         
+        totalCurrentValue += portfolio.cashBalanceSafe
+
         let unrealizedGainLoss = totalCurrentValue - totalCostBasis
         let totalReturn = unrealizedGainLoss + totalRealizedGains + totalDividends
         let totalReturnPercentage = totalCostBasis > 0 ? (totalReturn / totalCostBasis) * 100 : 0
@@ -136,7 +138,13 @@ extension PortfolioViewModel {
             typeAllocations[assetType, default: 0] += value
             totalValue += value
         }
-        
+
+        let cashBalance = portfolio.cashBalanceSafe
+        if cashBalance != 0 {
+            typeAllocations["Cash", default: 0] += cashBalance
+            totalValue += cashBalance
+        }
+
         return typeAllocations.map { type, value in
             AssetAllocation(
                 type: type,

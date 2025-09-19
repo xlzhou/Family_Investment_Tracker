@@ -6,6 +6,7 @@ class MarketDataService: ObservableObject {
     
     private let session = URLSession.shared
     private let apiKey = "demo" // Using Yahoo Finance which doesn't require API key for basic quotes
+    private let currencyService = CurrencyService.shared
     
     private init() {}
     
@@ -32,7 +33,7 @@ class MarketDataService: ObservableObject {
                 for data in assetData {
                     if let asset = try? context.existingObject(with: data.objectID) as? Asset,
                        let price = prices[data.symbol] {
-                        asset.currentPrice = price
+                        asset.currentPrice = convertPrice(price, for: asset)
                         asset.lastPriceUpdate = Date()
                     }
                 }
@@ -100,6 +101,22 @@ class MarketDataService: ObservableObject {
         // Add some random variation (±5%)
         let variation = Double.random(in: -0.05...0.05)
         return basePrice * (1 + variation)
+    }
+}
+
+private extension MarketDataService {
+    func convertPrice(_ price: Double, for asset: Asset) -> Double {
+        guard let holdings = asset.holdings?.allObjects as? [Holding], !holdings.isEmpty else {
+            return price
+        }
+
+        let portfolios = Set(holdings.compactMap { $0.portfolio })
+        guard portfolios.count == 1, let portfolio = portfolios.first else {
+            return price
+        }
+
+        let targetCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+        return currencyService.convertAmount(price, from: .usd, to: targetCurrency)
     }
 }
 

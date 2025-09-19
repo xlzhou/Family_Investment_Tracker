@@ -5,6 +5,7 @@ struct PortfolioSettingsView: View {
     let portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    private let currencyService = CurrencyService.shared
     
     @State private var portfolioName: String
     @State private var selectedMainCurrency: Currency
@@ -237,8 +238,15 @@ struct PortfolioSettingsView: View {
     }
 
     private func saveSettings() {
+        let previousCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+        let newCurrency = selectedMainCurrency
+
+        if previousCurrency != newCurrency {
+            applyCurrencyChange(from: previousCurrency, to: newCurrency)
+        }
+
         portfolio.name = portfolioName.trimmingCharacters(in: .whitespacesAndNewlines)
-        portfolio.mainCurrency = selectedMainCurrency.rawValue
+        portfolio.mainCurrency = newCurrency.rawValue
         portfolio.updatedAt = Date()
         portfolio.enforcesCashDisciplineEnabled = enforceCashDiscipline
 
@@ -362,6 +370,78 @@ struct PortfolioSettingsView: View {
             dismiss()
         } catch {
             print("Error deleting portfolio: \(error)")
+        }
+    }
+}
+
+private extension PortfolioSettingsView {
+    func applyCurrencyChange(from oldCurrency: Currency, to newCurrency: Currency) {
+        let convert: (Double) -> Double = { amount in
+            currencyService.convertAmount(amount, from: oldCurrency, to: newCurrency)
+        }
+
+        portfolio.cashBalanceSafe = convert(portfolio.cashBalanceSafe)
+        portfolio.totalValue = convert(portfolio.totalValue)
+
+        if let holdings = portfolio.holdings?.allObjects as? [Holding] {
+            for holding in holdings {
+                holding.averageCostBasis = convert(holding.averageCostBasis)
+                holding.realizedGainLoss = convert(holding.realizedGainLoss)
+                holding.totalDividends = convert(holding.totalDividends)
+
+                if let cashValue = holding.value(forKey: "cashValue") as? Double {
+                    holding.setValue(convert(cashValue), forKey: "cashValue")
+                }
+
+                if let asset = holding.asset {
+                    convertAssetPriceIfSafe(asset, using: convert)
+                    if let insurance = asset.value(forKey: "insurance") as? NSManagedObject {
+                        convertInsuranceValues(insurance, using: convert)
+                    }
+                }
+            }
+        }
+
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        for transaction in transactions {
+            let realized = transaction.realizedGainAmount
+            if realized != 0 {
+                transaction.realizedGainAmount = convert(realized)
+            }
+
+            if let deducted = transaction.value(forKey: "paymentDeductedAmount") as? Double {
+                transaction.setValue(convert(deducted), forKey: "paymentDeductedAmount")
+            }
+        }
+
+        let relatedInstitutions = Set(transactions.compactMap { $0.institution })
+        for institution in relatedInstitutions {
+            institution.cashBalanceSafe = convert(institution.cashBalanceSafe)
+        }
+    }
+
+    func convertAssetPriceIfSafe(_ asset: Asset, using convert: (Double) -> Double) {
+        guard let holdings = asset.holdings?.allObjects as? [Holding] else { return }
+        let otherPortfolios = holdings.compactMap { $0.portfolio }.filter { $0 != portfolio }
+        if otherPortfolios.isEmpty {
+            asset.currentPrice = convert(asset.currentPrice)
+        }
+    }
+
+    func convertInsuranceValues(_ insurance: NSManagedObject, using convert: (Double) -> Double) {
+        let monetaryKeys = [
+            "basicInsuredAmount",
+            "additionalPaymentAmount",
+            "deathBenefit",
+            "singlePremium",
+            "totalPremium",
+            "estimatedMaturityBenefit"
+        ]
+
+        for key in monetaryKeys {
+            if let value = insurance.value(forKey: key) as? Double {
+                insurance.setValue(convert(value), forKey: key)
+            }
         }
     }
 }
