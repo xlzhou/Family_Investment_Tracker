@@ -55,6 +55,7 @@ struct HoldingRowView: View {
     @ObservedObject var holding: Holding
     @ObservedObject var asset: Asset
     @Environment(\.managedObjectContext) private var viewContext
+    @State private var showingHoldingDetail = false
     @State private var showingCashValueEditor = false
     @State private var editingCashValue: Double = 0
 
@@ -83,6 +84,11 @@ struct HoldingRowView: View {
         return (unrealizedGainLoss / costBasis) * 100
     }
     
+    private var hasAutoFetchEnabled: Bool {
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        return transactions.contains { $0.autoFetchPrice }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -194,9 +200,21 @@ struct HoldingRowView: View {
                         Text("Current Price")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(Formatters.currency(asset.currentPrice))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                        HStack {
+                            Text(Formatters.currency(asset.currentPrice))
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+
+                            if hasAutoFetchEnabled {
+                                Image(systemName: "globe")
+                                    .foregroundColor(.blue)
+                                    .font(.caption2)
+                            } else {
+                                Image(systemName: "pencil")
+                                    .foregroundColor(.orange)
+                                    .font(.caption2)
+                            }
+                        }
                     }
                 }
             }
@@ -217,6 +235,13 @@ struct HoldingRowView: View {
             }
         }
         .padding(.vertical, 8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            showingHoldingDetail = true
+        }
+        .sheet(isPresented: $showingHoldingDetail) {
+            HoldingDetailView(holding: holding, asset: asset)
+        }
         .sheet(isPresented: $showingCashValueEditor) {
             CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
         }

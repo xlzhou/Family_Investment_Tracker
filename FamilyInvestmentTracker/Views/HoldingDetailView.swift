@@ -1,0 +1,431 @@
+import SwiftUI
+import CoreData
+import Foundation
+
+struct HoldingDetailView: View {
+    @ObservedObject var holding: Holding
+    @ObservedObject var asset: Asset
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var editingPrice: Double = 0
+    @State private var editingCashValue: Double = 0
+    @State private var showingPriceEditor = false
+    @State private var showingCashValueEditor = false
+    @State private var error: String?
+
+    private let currencyService = CurrencyService.shared
+
+    private var isInsurance: Bool {
+        asset.assetType == "Insurance"
+    }
+
+    private var hasAutoFetchEnabled: Bool {
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        return transactions.contains { $0.autoFetchPrice }
+    }
+
+    private var currentValue: Double {
+        if isInsurance {
+            return holding.value(forKey: "cashValue") as? Double ?? 0
+        }
+        return holding.quantity * asset.currentPrice
+    }
+
+    private var costBasis: Double {
+        return holding.quantity * holding.averageCostBasis
+    }
+
+    private var unrealizedGainLoss: Double {
+        return currentValue - costBasis
+    }
+
+    private var gainLossPercentage: Double {
+        guard costBasis > 0 else { return 0 }
+        return (unrealizedGainLoss / costBasis) * 100
+    }
+
+    private var portfolioMainCurrency: Currency {
+        guard let portfolio = holding.portfolio,
+              let currencyCode = portfolio.mainCurrency else {
+            return .usd
+        }
+        return Currency(rawValue: currencyCode) ?? .usd
+    }
+
+    private var displayCurrency: Currency {
+        // Get all buy transactions for this asset
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        let buyTransactions = transactions.filter { $0.type == TransactionType.buy.rawValue }
+
+        if buyTransactions.isEmpty {
+            return portfolioMainCurrency
+        }
+
+        // Get unique currencies from buy transactions
+        let currencies = Set(buyTransactions.compactMap { transaction in
+            Currency(rawValue: transaction.currency ?? "")
+        })
+
+        // If all transactions use the same currency, use that
+        if currencies.count == 1, let currency = currencies.first {
+            return currency
+        }
+
+        // If multiple currencies, use portfolio main currency
+        return portfolioMainCurrency
+    }
+
+    private var displayPrice: Double {
+        // Convert current price from portfolio currency to display currency
+        return currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency)
+    }
+
+    private var displayCurrentValue: Double {
+        if isInsurance {
+            return holding.value(forKey: "cashValue") as? Double ?? 0
+        }
+        return holding.quantity * displayPrice
+    }
+
+    var body: some View {
+        NavigationView {
+            Form {
+                // Asset Information Section
+                Section(header: Text("Asset Information")) {
+                    HStack {
+                        Text("Symbol")
+                        Spacer()
+                        Text(asset.symbol ?? "N/A")
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        Text("Name")
+                        Spacer()
+                        Text(asset.name ?? "Unknown Asset")
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        Text("Type")
+                        Spacer()
+                        Text(asset.assetType?.capitalized ?? "Unknown")
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                // Holdings Information Section
+                Section(header: Text("Holdings Information")) {
+                    if isInsurance {
+                        HStack {
+                            Text("Cash Value")
+                            Spacer()
+                            Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0))
+                                .fontWeight(.medium)
+                            Button(action: {
+                                editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                                showingCashValueEditor = true
+                            }) {
+                                Image(systemName: "pencil.circle")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    } else {
+                        HStack {
+                            Text("Quantity")
+                            Spacer()
+                            Text(Formatters.decimal(holding.quantity))
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Current Price")
+                                Text("(\(displayCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            HStack {
+                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.symbol))
+                                    .fontWeight(.medium)
+
+                                if hasAutoFetchEnabled {
+                                    Image(systemName: "globe")
+                                        .foregroundColor(.blue)
+                                        .font(.caption)
+                                } else {
+                                    Button(action: {
+                                        editingPrice = displayPrice
+                                        showingPriceEditor = true
+                                    }) {
+                                        Image(systemName: "pencil.circle")
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            }
+                        }
+
+                        if hasAutoFetchEnabled {
+                            HStack {
+                                Text("Price Source")
+                                Spacer()
+                                Text("Auto-fetched from Yahoo Finance")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Average Cost Basis")
+                                Text("(\(portfolioMainCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.symbol))
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Total Value")
+                                Text("(\(displayCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.symbol))
+                                .fontWeight(.semibold)
+                        }
+                    }
+                }
+
+                // Performance Section (for non-insurance assets)
+                if !isInsurance {
+                    Section(header: Text("Performance")) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Cost Basis")
+                                Text("(\(portfolioMainCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(Formatters.currency(costBasis, symbol: portfolioMainCurrency.symbol))
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Unrealized Gain/Loss")
+                                Text("(\(portfolioMainCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text(Formatters.signedCurrency(unrealizedGainLoss, symbol: portfolioMainCurrency.symbol))
+                                    .fontWeight(.medium)
+                                    .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
+
+                                Text("(" + Formatters.signedPercent(gainLossPercentage) + ")")
+                                    .font(.caption)
+                                    .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
+                            }
+                        }
+
+                        if holding.totalDividends > 0 {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Total Dividends")
+                                    Text("(\(portfolioMainCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(Formatters.currency(holding.totalDividends, symbol: portfolioMainCurrency.symbol))
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+
+                        if holding.realizedGainLoss != 0 {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Realized Gain/Loss")
+                                    Text("(\(portfolioMainCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(Formatters.signedCurrency(holding.realizedGainLoss, symbol: portfolioMainCurrency.symbol))
+                                    .fontWeight(.medium)
+                                    .foregroundColor(holding.realizedGainLoss >= 0 ? .green : .red)
+                            }
+                        }
+                    }
+                }
+
+                // Price Update Information
+                if let lastUpdate = asset.lastPriceUpdate {
+                    Section(header: Text("Price Information")) {
+                        HStack {
+                            Text("Last Updated")
+                            Spacer()
+                            Text(lastUpdate, style: .relative)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+
+                if let error = error {
+                    Section {
+                        Text(error)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .navigationTitle(asset.symbol ?? "Asset Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $showingPriceEditor) {
+            PriceEditorView(asset: asset, editingPrice: $editingPrice, displayCurrency: displayCurrency, portfolioMainCurrency: portfolioMainCurrency)
+        }
+        .sheet(isPresented: $showingCashValueEditor) {
+            CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
+        }
+    }
+}
+
+struct PriceEditorView: View {
+    @ObservedObject var asset: Asset
+    @Binding var editingPrice: Double
+    let displayCurrency: Currency
+    let portfolioMainCurrency: Currency
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+    @State private var error: String?
+
+    private let currencyService = CurrencyService.shared
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Update Current Price")) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Current Price")
+                            Text("(\(displayCurrency.displayName))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        TextField("0.00", value: $editingPrice, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                        Text(displayCurrency.symbol)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Section(header: Text("Asset Information")) {
+                    HStack {
+                        Text("Symbol")
+                        Spacer()
+                        Text(asset.symbol ?? "N/A")
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        Text("Name")
+                        Spacer()
+                        Text(asset.name ?? "Unknown Asset")
+                            .foregroundColor(.secondary)
+                    }
+
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Previous Price")
+                            Text("(\(displayCurrency.displayName))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        Text(Formatters.currency(currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency), symbol: displayCurrency.symbol))
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Section(footer: Text("Note: This will manually set the price. To enable automatic price fetching, turn on 'Auto-fetch price' when creating or editing transactions for this asset.")) {
+                    EmptyView()
+                }
+
+                if let error = error {
+                    Section {
+                        Text(error)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .navigationTitle("Update Price")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Save") {
+                        savePrice()
+                    }
+                    .disabled(editingPrice <= 0)
+                }
+            }
+        }
+    }
+
+    private func savePrice() {
+        guard editingPrice > 0 else {
+            error = "Price must be greater than zero"
+            return
+        }
+
+        // Convert price from display currency to portfolio main currency for storage
+        let priceInPortfolioCurrency = currencyService.convertAmount(editingPrice, from: displayCurrency, to: portfolioMainCurrency)
+
+        asset.currentPrice = priceInPortfolioCurrency
+        asset.lastPriceUpdate = Date()
+
+        do {
+            try viewContext.save()
+            print("💰 Updated price for \(asset.symbol ?? "Unknown"): \(editingPrice) \(displayCurrency.code) -> \(priceInPortfolioCurrency) \(portfolioMainCurrency.code)")
+            dismiss()
+        } catch {
+            self.error = "Failed to save price: \(error.localizedDescription)"
+        }
+    }
+}
+
+#Preview {
+    let context = PersistenceController.preview.container.viewContext
+    if let holding = context.registeredObjects.first(where: { $0 is Holding }) as? Holding,
+       let asset = holding.asset {
+        return HoldingDetailView(holding: holding, asset: asset)
+            .environment(\.managedObjectContext, context)
+    } else {
+        return Text("No preview data available")
+    }
+}

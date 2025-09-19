@@ -253,15 +253,10 @@ struct TransactionRowView: View {
                 }
                 
                 if let asset = transaction.asset {
-                    Text(asset.symbol ?? "N/A")
+                    Text(asset.name ?? asset.symbol ?? "N/A")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                }
-
-                if let code = transaction.transactionCode {
-                    Text(code)
-                        .font(.system(.caption2, design: .monospaced))
-                        .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
                 
                 HStack {

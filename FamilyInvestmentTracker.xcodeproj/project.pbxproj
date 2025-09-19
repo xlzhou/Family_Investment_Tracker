@@ -38,6 +38,7 @@
 		D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CA597ABF61463EBB88272F /* PortfolioListView.swift */; };
 		DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E366BA19FB884F43926B5E7B /* ExportService.swift */; };
 		DC9D5EF6AE3B47378F352FEC /* HoldingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */; };
+		29D6308CA77F440B853D914F /* HoldingDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C50FDA55600A41BC875E0BD6 /* HoldingDetailView.swift */; };
 		E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */; };
 		E5595773ED24E0FEF64845E6 /* Institution+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8702523FBFC6E22949A4646D /* Institution+Cash.swift */; };
 		F70A2E2BE7324FD9938E12DB /* FamilyInvestmentTracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */; };
@@ -51,6 +52,7 @@
 		15E592AC0E3F4869838779D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1CCD403B2EA641EB8CD92769 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingsView.swift; sourceTree = "<group>"; };
+		C50FDA55600A41BC875E0BD6 /* HoldingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingDetailView.swift; sourceTree = "<group>"; };
 		34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = FamilyInvestmentTracker.xcdatamodeld; sourceTree = "<group>"; };
 		395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Identifier.swift"; sourceTree = "<group>"; };
 		3D046EC644910D6BDC69E714 /* RealizedPnLView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealizedPnLView.swift; sourceTree = "<group>"; };
@@ -142,6 +144,7 @@
 				98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */,
 				46CA597ABF61463EBB88272F /* PortfolioListView.swift */,
 				1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */,
+				C50FDA55600A41BC875E0BD6 /* HoldingDetailView.swift */,
 				3D046EC644910D6BDC69E714 /* RealizedPnLView.swift */,
 				CF52C0EA3CEE4AE2ADBCD676 /* AuthenticationView.swift */,
 				C92FBCCFBC834245B55F0285 /* AnalyticsView.swift */,
@@ -284,6 +287,7 @@
 				5FAF03082FDC46558F9413C4 /* PortfolioDashboardView.swift in Sources */,
 				D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */,
 				DC9D5EF6AE3B47378F352FEC /* HoldingsView.swift in Sources */,
+				29D6308CA77F440B853D914F /* HoldingDetailView.swift in Sources */,
 				ABDE230C8B0048F780ACCAB0 /* AuthenticationView.swift in Sources */,
 				347C0A05FBD64A32B512CA58 /* AnalyticsView.swift in Sources */,
 				8F98ABE15450474E80A397BB /* TransactionsView.swift in Sources */,

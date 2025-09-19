@@ -30,7 +30,23 @@ class PortfolioViewModel: ObservableObject {
     
     private func getAllAssetsInPortfolio(_ portfolio: Portfolio) -> [Asset] {
         let holdings = portfolio.holdings?.allObjects as? [Holding] ?? []
-        return holdings.compactMap { $0.asset }
+        var autoFetchAssets: [Asset] = []
+
+        for holding in holdings {
+            guard let asset = holding.asset else { continue }
+
+            // Check if any transaction for this asset has auto-fetch enabled
+            let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+            let hasAutoFetchEnabled = transactions.contains { transaction in
+                transaction.autoFetchPrice
+            }
+
+            if hasAutoFetchEnabled && !autoFetchAssets.contains(where: { $0.objectID == asset.objectID }) {
+                autoFetchAssets.append(asset)
+            }
+        }
+
+        return autoFetchAssets
     }
     
     private func updatePortfolioTotalValue(portfolio: Portfolio, context: NSManagedObjectContext) {

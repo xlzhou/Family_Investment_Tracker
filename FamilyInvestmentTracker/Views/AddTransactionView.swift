@@ -31,6 +31,7 @@ struct AddTransactionView: View {
     @State private var selectedCurrency = Currency.usd
     @State private var hasMaturityDate = false
     @State private var maturityDate = Date()
+    @State private var autoFetchPrice = true
     // Dividend-specific: source security
     @State private var selectedDividendAssetID: NSManagedObjectID?
     // Sell-specific: security to sell
@@ -101,6 +102,7 @@ struct AddTransactionView: View {
         let hasMaturity = transactionToEdit?.maturityDate != nil
         _hasMaturityDate = State(initialValue: hasMaturity)
         _maturityDate = State(initialValue: transactionToEdit?.maturityDate ?? defaultDate)
+        _autoFetchPrice = State(initialValue: transactionToEdit?.autoFetchPrice ?? true)
 
         if initialType == .dividend {
             _selectedDividendAssetID = State(initialValue: transactionToEdit?.asset?.objectID)
@@ -380,6 +382,8 @@ struct AddTransactionView: View {
                             Text(Formatters.currency(quantity * price, symbol: selectedCurrency.symbol))
                                 .fontWeight(.medium)
                         }
+
+                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
                     }
                     
                     // Fees only for non-insurance transactions
@@ -832,6 +836,7 @@ struct AddTransactionView: View {
         transaction.currency = selectedCurrency.rawValue
         transaction.notes = notes.isEmpty ? nil : notes
         transaction.maturityDate = hasMaturityDate ? maturityDate : nil
+        transaction.autoFetchPrice = autoFetchPrice
         transaction.portfolio = portfolio
         transaction.ensureIdentifiers()
 
