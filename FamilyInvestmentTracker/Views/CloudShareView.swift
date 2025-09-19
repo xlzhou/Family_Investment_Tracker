@@ -94,10 +94,9 @@ struct CloudShareView: UIViewControllerRepresentable {
 
         context.perform {
             do {
-                if let object = try? self.context.existingObject(with: self.portfolioID) {
-                    _ = try? self.container.fetchShares(matching: [object.objectID])
-                    object.managedObjectContext?.refresh(object, mergeChanges: false)
-                }
+                let object = try self.context.existingObject(with: self.portfolioID)
+                _ = try self.container.fetchShares(matching: [object.objectID])
+                object.managedObjectContext?.refresh(object, mergeChanges: false)
             } catch {
                 print("Cloud sharing stop error: \(error)")
             }

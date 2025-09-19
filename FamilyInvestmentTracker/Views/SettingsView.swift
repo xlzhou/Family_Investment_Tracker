@@ -225,6 +225,8 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
+                        // Save display name before dismissing
+                        ownershipService.setUserDisplayName(displayName)
                         dismiss()
                     }
                 }

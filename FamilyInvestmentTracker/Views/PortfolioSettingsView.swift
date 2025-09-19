@@ -50,8 +50,9 @@ struct PortfolioSettingsView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
-                Section(header: Text("Currency Settings"), 
+
+
+                Section(header: Text("Currency Settings"),
                        footer: Text("All asset values will be converted to your main currency for total portfolio calculations.")) {
                     Picker("Main Currency", selection: $selectedMainCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
@@ -183,7 +184,7 @@ struct PortfolioSettingsView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button("Done") {
                         saveSettings()
                     }
                     .disabled(portfolioName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -228,6 +229,7 @@ struct PortfolioSettingsView: View {
             }
         }
         .onAppear {
+            // Get the portfolio owner name for display in Statistics
             ownershipService.getOwnerName(for: portfolio) { name in
                 ownerName = name
             }
