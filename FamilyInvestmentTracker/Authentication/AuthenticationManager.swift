@@ -6,12 +6,16 @@ class AuthenticationManager: ObservableObject {
     @Published var isAuthenticated = false
     @Published var authenticationError: String?
     
-    private let context = LAContext()
-    
+    private func makeContext() -> LAContext {
+        let ctx = LAContext()
+        ctx.localizedFallbackTitle = "Use Passcode"
+        return ctx
+    }
+
     init() {
         checkAuthenticationStatus()
     }
-    
+
     func checkAuthenticationStatus() {
         // For development purposes, skip authentication
         // In production, this would check for valid session
@@ -23,6 +27,7 @@ class AuthenticationManager: ObservableObject {
     }
     
     func authenticateWithBiometrics() {
+        let context = makeContext()
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
             authenticationError = "Biometric authentication not available"
             return
@@ -43,6 +48,7 @@ class AuthenticationManager: ObservableObject {
     }
     
     func authenticateWithPasscode() {
+        let context = makeContext()
         guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil) else {
             authenticationError = "Device authentication not available"
             return
@@ -68,6 +74,8 @@ class AuthenticationManager: ObservableObject {
     }
     
     func getBiometricType() -> String {
+        let context = makeContext()
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
         switch context.biometryType {
         case .faceID:
             return "Face ID"
