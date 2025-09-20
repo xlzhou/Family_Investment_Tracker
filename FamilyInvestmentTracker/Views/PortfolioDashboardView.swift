@@ -14,6 +14,7 @@ struct PortfolioDashboardView: View {
     @State private var isPreparingShare = false
     @State private var shareSetupError: String?
     @State private var selectedTab = 0
+    @State private var showingCashBreakdown = false
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     
@@ -23,7 +24,7 @@ struct PortfolioDashboardView: View {
             PortfolioHeaderView(portfolio: portfolio)
             
             // Quick Stats
-            QuickStatsView(portfolio: portfolio)
+            QuickStatsView(portfolio: portfolio, showingCashBreakdown: $showingCashBreakdown)
             
             // Tab Selection
             Picker("View", selection: $selectedTab) {
@@ -119,6 +120,10 @@ struct PortfolioDashboardView: View {
             if newValue == 0 || newValue == 2 {
                 viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
             }
+        }
+        .sheet(isPresented: $showingCashBreakdown) {
+            CashBreakdownViewInline(portfolio: portfolio)
+                .environment(\.managedObjectContext, viewContext)
         }
     }
 
@@ -233,7 +238,15 @@ struct PortfolioHeaderView: View {
     private var mainCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
-    
+
+    private var totalCashFromInstitutions: Double {
+        // Get all institutions that have transactions in this portfolio
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let institutionSet = Set(transactions.compactMap { $0.institution })
+
+        return institutionSet.reduce(0) { $0 + $1.cashBalanceSafe }
+    }
+
     private var totalValueInMainCurrency: Double {
         // Calculate total value by converting all holdings to main currency
         let holdingsTotal = portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0.0) { result, holding in
@@ -249,7 +262,7 @@ struct PortfolioHeaderView: View {
             return result + holdingValue
         } ?? 0.0
         
-        return holdingsTotal + portfolio.cashBalanceSafe
+        return holdingsTotal + totalCashFromInstitutions
     }
     
     var body: some View {
@@ -292,6 +305,7 @@ struct PortfolioHeaderView: View {
 
 struct QuickStatsView: View {
     @ObservedObject var portfolio: Portfolio
+    @Binding var showingCashBreakdown: Bool
     @StateObject private var currencyService = CurrencyService.shared
     
     private var mainCurrency: Currency {
@@ -310,6 +324,14 @@ struct QuickStatsView: View {
     private var totalDividends: Double {
         portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0) { $0 + $1.totalDividends } ?? 0
     }
+
+    private var totalCashFromInstitutions: Double {
+        // Get all institutions that have transactions in this portfolio
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let institutionSet = Set(transactions.compactMap { $0.institution })
+
+        return institutionSet.reduce(0) { $0 + $1.cashBalanceSafe }
+    }
     
     var body: some View {
         HStack(spacing: 15) {
@@ -324,12 +346,17 @@ struct QuickStatsView: View {
                 value: currencyService.formatAmount(totalDividends, in: mainCurrency),
                 color: .blue
             )
-            
-            StatCardView(
-                title: "Cash",
-                value: currencyService.formatAmount(portfolio.cashBalanceSafe, in: mainCurrency),
-                color: .gray
-            )
+
+            Button(action: {
+                showingCashBreakdown = true
+            }) {
+                StatCardView(
+                    title: "Cash",
+                    value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
+                    color: .gray
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
         }
         .padding(.horizontal)
     }
@@ -356,6 +383,115 @@ struct StatCardView: View {
         .background(Color(.systemBackground))
         .cornerRadius(10)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+    }
+}
+
+struct CashBreakdownViewInline: View {
+    @ObservedObject var portfolio: Portfolio
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var currencyService = CurrencyService.shared
+
+    private var mainCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
+
+    private var institutionsWithCash: [Institution] {
+        // Get all institutions that have transactions in this portfolio
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let institutionSet = Set(transactions.compactMap { $0.institution })
+
+        // Filter to only show institutions with non-zero cash balance
+        return institutionSet.filter { $0.cashBalanceSafe != 0 }
+            .sorted { ($0.name ?? "") < ($1.name ?? "") }
+    }
+
+    private var totalCash: Double {
+        institutionsWithCash.reduce(0) { $0 + $1.cashBalanceSafe }
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack {
+                if institutionsWithCash.isEmpty {
+                    // Empty state
+                    VStack(spacing: 16) {
+                        Image(systemName: "banknote")
+                            .font(.system(size: 48))
+                            .foregroundColor(.secondary)
+
+                        Text("No Cash Holdings")
+                            .font(.title2)
+                            .fontWeight(.medium)
+
+                        Text("Cash balances will appear here when you make deposit transactions.")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // Cash breakdown list
+                    List {
+                        Section(header: Text("Cash by Institution")) {
+                            ForEach(institutionsWithCash, id: \.objectID) { institution in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(institution.name ?? "Unknown Institution")
+                                            .font(.headline)
+
+                                        Text("Last updated recently")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    Spacer()
+
+                                    VStack(alignment: .trailing, spacing: 2) {
+                                        Text(currencyService.formatAmount(institution.cashBalanceSafe, in: mainCurrency))
+                                            .font(.headline)
+                                            .foregroundColor(institution.cashBalanceSafe >= 0 ? .primary : .red)
+
+                                        Text(mainCurrency.displayName)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                            }
+                        }
+
+                        Section(footer: Text("Total cash is calculated by summing all institution cash balances.")) {
+                            HStack {
+                                Text("Total Cash")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+
+                                Spacer()
+
+                                Text(currencyService.formatAmount(totalCash, in: mainCurrency))
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(totalCash >= 0 ? .primary : .red)
+                            }
+                            .padding(.vertical, 8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Cash Holdings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
 

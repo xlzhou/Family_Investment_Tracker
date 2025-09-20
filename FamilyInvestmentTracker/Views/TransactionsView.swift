@@ -14,7 +14,6 @@ struct TransactionsView: View {
     private var filteredTransactions: [Transaction] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
         ensureTransactionIdentifiersIfNeeded(for: transactions)
-        print("📊 Found \(transactions.count) total transactions for portfolio \(portfolio.name ?? "Unknown")")
         let sorted = transactions.sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
         
         switch selectedFilter {

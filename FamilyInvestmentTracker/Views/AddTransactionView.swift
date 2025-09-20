@@ -928,14 +928,25 @@ struct AddTransactionView: View {
                 case .deposit:
                     // For deposits, allow negative amounts (withdrawals)
                     let convertedNetCash = convertToPortfolioCurrency(netCash, from: selectedCurrency)
-                    portfolio.addToCash(convertedNetCash)
-                    if cashDisciplineEnabled, let institution = institutionForTransaction {
+
+                    // Always update institution cash for deposits since our dashboard shows institution cash totals
+                    if let institution = institutionForTransaction {
                         institution.cashBalanceSafe += convertedNetCash
+                    } else {
+                        // Fallback: if no institution, update portfolio cash directly (shouldn't happen with current UI)
+                        portfolio.addToCash(convertedNetCash)
                     }
                 case .dividend:
                     // For dividends, ensure non-negative amounts
                     let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
-                    portfolio.addToCash(convertedNetCash)
+
+                    // Update institution cash if available, otherwise portfolio cash
+                    if let institution = institutionForTransaction {
+                        institution.cashBalanceSafe += convertedNetCash
+                    } else {
+                        portfolio.addToCash(convertedNetCash)
+                    }
+
                     if let assetID = selectedDividendAssetID,
                        let srcAsset = try? viewContext.existingObject(with: assetID) as? Asset {
                         transaction.asset = srcAsset
@@ -948,7 +959,13 @@ struct AddTransactionView: View {
                 case .interest:
                     // For interest, ensure non-negative amounts
                     let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
-                    portfolio.addToCash(convertedNetCash)
+
+                    // Update institution cash if available, otherwise portfolio cash
+                    if let institution = institutionForTransaction {
+                        institution.cashBalanceSafe += convertedNetCash
+                    } else {
+                        portfolio.addToCash(convertedNetCash)
+                    }
                 default:
                     break
                 }
@@ -979,16 +996,24 @@ struct AddTransactionView: View {
                 let netProceeds = (quantity * price) - fees - tax
                 if netProceeds != 0 {
                     let convertedProceeds = convertToPortfolioCurrency(netProceeds, from: selectedCurrency)
-                    portfolio.addToCash(convertedProceeds)
-                    if cashDisciplineEnabled, let institution = institutionForTransaction {
+
+                    // Update institution cash if available, otherwise portfolio cash
+                    if let institution = institutionForTransaction {
                         institution.cashBalanceSafe += convertedProceeds
+                    } else {
+                        portfolio.addToCash(convertedProceeds)
                     }
                 }
-            } else if selectedTransactionType == .buy, cashDisciplineEnabled, let institution = institutionForTransaction {
+            } else if selectedTransactionType == .buy {
                 let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
                 let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
-                institution.cashBalanceSafe -= requiredFunds
-                portfolio.addToCash(-requiredFunds)
+
+                // Update institution cash if available, otherwise portfolio cash
+                if let institution = institutionForTransaction {
+                    institution.cashBalanceSafe -= requiredFunds
+                } else {
+                    portfolio.addToCash(-requiredFunds)
+                }
             }
         }
 

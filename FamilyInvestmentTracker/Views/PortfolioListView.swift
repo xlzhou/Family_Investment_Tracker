@@ -246,32 +246,22 @@ struct PortfolioCardView: View {
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
         .onAppear {
-            print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] onAppear: Card appeared")
             refreshOwnerName()
         }
         .onReceive(ownershipService.$currentUserID) { userID in
             // Refresh owner name when current user ID changes
-            print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] received user ID update: \(userID ?? "nil")")
             refreshOwnerName()
         }
         .onReceive(ownershipService.$currentUserName) { userName in
             // Refresh owner name when current user display name changes
-            print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] received user name update: \(userName ?? "nil")")
             refreshOwnerName()
         }
     }
 
     private func refreshOwnerName() {
-        print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] refreshOwnerName: Starting refresh")
-        print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] refreshOwnerName: Current ownerName = '\(ownerName ?? "nil")'")
-
         ownershipService.getOwnerName(for: portfolio) { name in
-            print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] refreshOwnerName: Got new name = '\(name ?? "nil")'")
-
             DispatchQueue.main.async {
-                let oldName = self.ownerName
                 self.ownerName = name
-                print("🔧 PortfolioCard[\(portfolio.name ?? "Unknown")] refreshOwnerName: Updated ownerName from '\(oldName ?? "nil")' to '\(name ?? "nil")'")
             }
         }
     }
