@@ -10,9 +10,10 @@ struct BackupPackage: Codable {
     let transactions: [BackupTransaction]
     let institutions: [BackupInstitution]
     let insurances: [BackupInsurance]
+    let dashboardCurrencyCode: String?
 
     private enum CodingKeys: String, CodingKey {
-        case version, generatedAt, portfolios, holdings, assets, transactions, institutions, insurances
+        case version, generatedAt, portfolios, holdings, assets, transactions, institutions, insurances, dashboardCurrencyCode
     }
 
     init(version: Int,
@@ -22,7 +23,8 @@ struct BackupPackage: Codable {
          assets: [BackupAsset],
          transactions: [BackupTransaction],
          institutions: [BackupInstitution],
-         insurances: [BackupInsurance]) {
+         insurances: [BackupInsurance],
+         dashboardCurrencyCode: String?) {
         self.version = version
         self.generatedAt = generatedAt
         self.portfolios = portfolios
@@ -31,6 +33,7 @@ struct BackupPackage: Codable {
         self.transactions = transactions
         self.institutions = institutions
         self.insurances = insurances
+        self.dashboardCurrencyCode = dashboardCurrencyCode
     }
 
     init(from decoder: Decoder) throws {
@@ -43,6 +46,7 @@ struct BackupPackage: Codable {
         transactions = try container.decode([BackupTransaction].self, forKey: .transactions)
         institutions = try container.decode([BackupInstitution].self, forKey: .institutions)
         insurances = try container.decodeIfPresent([BackupInsurance].self, forKey: .insurances) ?? []
+        dashboardCurrencyCode = try container.decodeIfPresent(String.self, forKey: .dashboardCurrencyCode)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -55,6 +59,7 @@ struct BackupPackage: Codable {
         try container.encode(transactions, forKey: .transactions)
         try container.encode(institutions, forKey: .institutions)
         try container.encode(insurances, forKey: .insurances)
+        try container.encodeIfPresent(dashboardCurrencyCode, forKey: .dashboardCurrencyCode)
     }
 }
 
@@ -67,6 +72,7 @@ struct BackupPortfolio: Codable {
     let cashBalance: Double
     let totalValue: Double
     let enforcesCashDiscipline: Bool
+    let ownerID: String?
 
     init(id: UUID,
          name: String?,
@@ -75,7 +81,8 @@ struct BackupPortfolio: Codable {
          mainCurrency: String?,
          cashBalance: Double,
          totalValue: Double,
-         enforcesCashDiscipline: Bool) {
+         enforcesCashDiscipline: Bool,
+         ownerID: String?) {
         self.id = id
         self.name = name
         self.createdAt = createdAt
@@ -84,10 +91,11 @@ struct BackupPortfolio: Codable {
         self.cashBalance = cashBalance
         self.totalValue = totalValue
         self.enforcesCashDiscipline = enforcesCashDiscipline
+        self.ownerID = ownerID
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, createdAt, updatedAt, mainCurrency, cashBalance, totalValue, enforcesCashDiscipline
+        case id, name, createdAt, updatedAt, mainCurrency, cashBalance, totalValue, enforcesCashDiscipline, ownerID
     }
 
     init(from decoder: Decoder) throws {
@@ -100,6 +108,7 @@ struct BackupPortfolio: Codable {
         cashBalance = try container.decode(Double.self, forKey: .cashBalance)
         totalValue = try container.decode(Double.self, forKey: .totalValue)
         enforcesCashDiscipline = try container.decodeIfPresent(Bool.self, forKey: .enforcesCashDiscipline) ?? true
+        ownerID = try container.decodeIfPresent(String.self, forKey: .ownerID)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -112,6 +121,7 @@ struct BackupPortfolio: Codable {
         try container.encode(cashBalance, forKey: .cashBalance)
         try container.encode(totalValue, forKey: .totalValue)
         try container.encode(enforcesCashDiscipline, forKey: .enforcesCashDiscipline)
+        try container.encodeIfPresent(ownerID, forKey: .ownerID)
     }
 }
 
@@ -316,7 +326,7 @@ final class BackupService {
     static let shared = BackupService()
     private init() {}
     
-    private let backupVersion = 3
+    private let backupVersion = 4
     
     func createBackup(context: NSManagedObjectContext) throws -> URL {
         let encoder = JSONEncoder()
@@ -359,14 +369,15 @@ final class BackupService {
                         BackupPortfolio(
                             id: portfolio.id ?? UUID(),
                             name: portfolio.name,
-                            createdAt: portfolio.createdAt,
-                            updatedAt: portfolio.updatedAt,
-                            mainCurrency: portfolio.mainCurrency,
-                            cashBalance: portfolio.cashBalance,
-                            totalValue: portfolio.totalValue,
-                            enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled
-                        )
-                    },
+                        createdAt: portfolio.createdAt,
+                        updatedAt: portfolio.updatedAt,
+                        mainCurrency: portfolio.mainCurrency,
+                        cashBalance: portfolio.cashBalance,
+                        totalValue: portfolio.totalValue,
+                        enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled,
+                        ownerID: portfolio.ownerID
+                    )
+                },
                 holdings: holdings.map { holding in
                     BackupHolding(
                         id: holding.id ?? UUID(),
@@ -468,7 +479,8 @@ final class BackupService {
                         createdAt: insurance.value(forKey: "createdAt") as? Date,
                         beneficiaries: beneficiaries
                     )
-                }
+                },
+                dashboardCurrencyCode: DashboardSettingsService.shared.dashboardCurrency.rawValue
             )
         }
         
@@ -489,7 +501,12 @@ final class BackupService {
         decoder.dateDecodingStrategy = .iso8601
         
         let package = try decoder.decode(BackupPackage.self, from: data)
-        
+
+        if let currencyCode = package.dashboardCurrencyCode,
+           let currency = Currency(rawValue: currencyCode) {
+            DashboardSettingsService.shared.updateCurrency(currency)
+        }
+
         try context.performAndWait {
             try clearExistingData(in: context)
             
@@ -534,6 +551,7 @@ final class BackupService {
                 portfolio.cashBalance = portfolioData.cashBalance
                 portfolio.totalValue = portfolioData.totalValue
                 portfolio.enforcesCashDisciplineEnabled = portfolioData.enforcesCashDiscipline
+                portfolio.ownerID = portfolioData.ownerID
                 portfoliosDict[portfolioData.id] = portfolio
             }
             
@@ -623,8 +641,16 @@ final class BackupService {
                 if let institutionID = transactionData.institutionID {
                     transaction.institution = institutionsDict[institutionID]
                 }
+
+                if transactionData.interestRate == 0,
+                   let asset = transaction.asset,
+                   asset.assetType == AssetType.deposit.rawValue,
+                   let assetRate = asset.value(forKey: "interestRate") as? Double,
+                   assetRate != 0 {
+                    transaction.setValue(assetRate, forKey: "interestRate")
+                }
             }
-            
+
             try context.save()
         }
     }

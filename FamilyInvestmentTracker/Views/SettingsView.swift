@@ -18,7 +18,9 @@ struct SettingsView: View {
     @State private var showRestoreAlert = false
     @State private var restoreError: String?
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
+    @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
     @State private var displayName: String = ""
+    @State private var selectedDashboardCurrency: Currency = .usd
     
     var body: some View {
         NavigationView {
@@ -204,6 +206,15 @@ struct SettingsView: View {
                             .foregroundColor(.secondary)
                     }
                 }
+
+                Section(header: Text("Dashboard"), footer: Text("Choose the currency used for totals in the Investment Portfolios view.")) {
+                    Picker("Summary Currency", selection: $selectedDashboardCurrency) {
+                        ForEach(Currency.allCases, id: \.self) { currency in
+                            Text(currency.displayName).tag(currency)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                }
                 
                 // Security Section
                 Section(header: Text("Security")) {
@@ -257,6 +268,10 @@ struct SettingsView: View {
         .onAppear {
             cloudKitService.checkAccountStatus()
             displayName = ownershipService.userDisplayName
+            selectedDashboardCurrency = dashboardSettings.dashboardCurrency
+        }
+        .onChange(of: selectedDashboardCurrency) { _, newValue in
+            dashboardSettings.updateCurrency(newValue)
         }
     }
 

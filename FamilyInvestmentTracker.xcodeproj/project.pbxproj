@@ -36,6 +36,7 @@
 		B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3FD956593F495A808BA082 /* Formatters.swift */; };
 		B8A3BF339CA44DBF8A3D0047 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */; };
 		C4D5E6F7G8H9I0J1K2L3M4N5 /* PortfolioOwnershipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E6F7G8H9I0J1K2L3M4N5O6 /* PortfolioOwnershipService.swift */; };
+		A2C3D4E5F6A7B8090C1D2E3F /* DashboardSettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3B4F5C6D7A80901E2F3A4B5 /* DashboardSettingsService.swift */; };
 		D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CA597ABF61463EBB88272F /* PortfolioListView.swift */; };
 		DC551AD0B5EA412398AB1893 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E366BA19FB884F43926B5E7B /* ExportService.swift */; };
 		DC9D5EF6AE3B47378F352FEC /* HoldingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */; };
@@ -78,6 +79,7 @@
 		CF52C0EA3CEE4AE2ADBCD676 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
 		D5E6F7G8H9I0J1K2L3M4N5O6 /* PortfolioOwnershipService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioOwnershipService.swift; sourceTree = "<group>"; };
+		E3B4F5C6D7A80901E2F3A4B5 /* DashboardSettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardSettingsService.swift; sourceTree = "<group>"; };
 		D6B7C8A9E0F1123456789ABC /* CloudShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudShareManager.swift; sourceTree = "<group>"; };
 		E05B1E5F2D334E2190922280 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E366BA19FB884F43926B5E7B /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
@@ -197,6 +199,7 @@
 				6023B481F046438FB9D5AB1A /* MarketDataService.swift */,
 				595D7062BFBF413DA8BA003C /* CloudKitService.swift */,
 				D5E6F7G8H9I0J1K2L3M4N5O6 /* PortfolioOwnershipService.swift */,
+				E3B4F5C6D7A80901E2F3A4B5 /* DashboardSettingsService.swift */,
 				E4A1B2C3D4E5F60718293A4B /* TransactionImpactService.swift */,
 			);
 			path = Services;
@@ -313,6 +316,7 @@
 				02ABC2CEEA914C959E61E028 /* CloudKitService.swift in Sources */,
 				A1B2C3D4E5F6G7H8I9J0K1L2 /* CloudShareView.swift in Sources */,
 				C4D5E6F7G8H9I0J1K2L3M4N5 /* PortfolioOwnershipService.swift in Sources */,
+				A2C3D4E5F6A7B8090C1D2E3F /* DashboardSettingsService.swift in Sources */,
 				96B7992AEA38485CB1E59864 /* AuthenticationManager.swift in Sources */,
 				B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */,
 			);

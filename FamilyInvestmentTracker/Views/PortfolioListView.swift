@@ -5,6 +5,8 @@ import CoreData
 struct PortfolioListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var authManager: AuthenticationManager
+    @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
+    private let currencyService = CurrencyService.shared
     
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \Portfolio.name, ascending: true)],
@@ -24,7 +26,7 @@ struct PortfolioListView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text("Total Value: " + Formatters.decimal(totalPortfolioValue))
+                        Text("Total Value: " + Formatters.currency(totalPortfolioValue, symbol: dashboardSettings.dashboardCurrency.symbol))
                             .font(.headline)
                             .foregroundColor(.secondary)
                     }
@@ -96,22 +98,37 @@ struct PortfolioListView: View {
             cleanupDefaultPortfolios()
             // Ensure current user ID is fetched
             PortfolioOwnershipService.shared.fetchCurrentUserID()
+            ensureDashboardCurrencyDefault()
         }
     }
     
     private var totalPortfolioValue: Double {
         portfolios.reduce(0.0) { partial, portfolio in
-            let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-            let holdingsValue = holdings.reduce(0.0) { sum, holding in
-                guard let asset = holding.asset else { return sum }
-                if asset.assetType == AssetType.insurance.rawValue {
-                    let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
-                    return sum + cashValue
-                }
-                return sum + (holding.quantity * asset.currentPrice)
-            }
-            return partial + holdingsValue + portfolio.resolvedCashBalance()
+            let ownCurrencyValue = portfolioTotalValueInOwnCurrency(portfolio)
+            let fromCurrency = Currency(rawValue: portfolio.mainCurrency ?? dashboardSettings.dashboardCurrency.rawValue) ?? dashboardSettings.dashboardCurrency
+            dashboardSettings.ensureCurrencyIfUnset(fromCurrency)
+            let converted = currencyService.convertAmount(ownCurrencyValue, from: fromCurrency, to: dashboardSettings.dashboardCurrency)
+            return partial + converted
         }
+    }
+
+    private func portfolioTotalValueInOwnCurrency(_ portfolio: Portfolio) -> Double {
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        let holdingsValue = holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return sum + cashValue
+            }
+            return sum + (holding.quantity * asset.currentPrice)
+        }
+        return holdingsValue + portfolio.resolvedCashBalance()
+    }
+
+    private func ensureDashboardCurrencyDefault() {
+        guard let firstPortfolio = portfolios.first else { return }
+        let currency = Currency(rawValue: firstPortfolio.mainCurrency ?? dashboardSettings.dashboardCurrency.rawValue) ?? dashboardSettings.dashboardCurrency
+        dashboardSettings.ensureCurrencyIfUnset(currency)
     }
 
     private func cleanupDefaultPortfolios() {
