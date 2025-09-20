@@ -189,7 +189,7 @@ struct TransactionsView: View {
 }
 
 struct TransactionRowView: View {
-    let transaction: Transaction
+    @ObservedObject var transaction: Transaction
     
     private var transactionType: TransactionType? {
         TransactionType(rawValue: transaction.type ?? "")
@@ -295,19 +295,28 @@ struct TransactionRowView: View {
 
                 if transactionType == .deposit {
                     if depositSymbolLabel != nil || depositInstitutionLabel != nil {
-                        VStack(alignment: .leading, spacing: 2) {
-                            if let symbolLabel = depositSymbolLabel {
-                                Text(symbolLabel)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
+                        HStack(alignment: .top) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                if let symbolLabel = depositSymbolLabel {
+                                    Text(symbolLabel)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
+                                if let institutionLabel = depositInstitutionLabel {
+                                    Text(institutionLabel)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .lineLimit(1)
+                                }
                             }
-                            if let institutionLabel = depositInstitutionLabel {
-                                Text(institutionLabel)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .lineLimit(1)
-                            }
+
+                            Spacer()
+
+                            Text(Formatters.currency(netValue, symbol: transactionCurrency.symbol))
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(typeColor)
                         }
                     }
                 } else if transactionType == .insurance {
@@ -338,27 +347,23 @@ struct TransactionRowView: View {
                         .lineLimit(1)
                 }
                 
-                HStack {
-                    if transaction.quantity > 1 {
-                        Text("\(Formatters.decimal(transaction.quantity)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.symbol))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                if transactionType != .deposit {
+                    HStack {
+                        if transaction.quantity > 1 {
+                            Text("\(Formatters.decimal(transaction.quantity)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.symbol))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+
+                        Spacer()
+
+                        Text(Formatters.currency(netValue, symbol: transactionCurrency.symbol))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(typeColor)
                     }
-                    
-                    Spacer()
-                    
-                    Text(Formatters.currency(netValue, symbol: transactionCurrency.symbol))
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(typeColor)
                 }
                 
-                if let notes = transaction.notes, !notes.isEmpty {
-                    Text(notes)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
             }
         }
         .padding(.vertical, 4)

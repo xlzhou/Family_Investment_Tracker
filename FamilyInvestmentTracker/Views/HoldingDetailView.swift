@@ -20,9 +20,42 @@ struct HoldingDetailView: View {
         asset.assetType == "Insurance"
     }
 
+    private var isStructuredProduct: Bool {
+        asset.assetType == AssetType.structuredProduct.rawValue
+    }
+
     private var hasAutoFetchEnabled: Bool {
         let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
         return transactions.contains { $0.autoFetchPrice }
+    }
+
+    private var structuredProductTransactions: [Transaction] {
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        return transactions
+            .filter { $0.portfolio?.objectID == holding.portfolio?.objectID }
+            .sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
+    }
+
+    private var structuredProductInterestRate: Double {
+        asset.value(forKey: "interestRate") as? Double ?? 0
+    }
+
+    private var structuredProductLinkedAssets: String {
+        (asset.value(forKey: "linkedAssets") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var structuredProductMaturityDate: Date? {
+        structuredProductTransactions.first?.maturityDate
+    }
+
+    private var structuredProductInvestmentAmount: Double {
+        if let amount = structuredProductTransactions.first?.amount, amount > 0 {
+            return amount
+        }
+        if costBasis > 0 {
+            return costBasis
+        }
+        return currentValue
     }
 
     private var currentValue: Double {
@@ -130,6 +163,88 @@ struct HoldingDetailView: View {
                                 Image(systemName: "pencil.circle")
                                     .foregroundColor(.blue)
                             }
+                        }
+                    } else if isStructuredProduct {
+                        HStack {
+                            Text("Investment Amount")
+                            Spacer()
+                            Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.symbol))
+                                .fontWeight(.medium)
+                        }
+
+                        HStack {
+                            Text("Interest Rate")
+                            Spacer()
+                            Text(Formatters.percent(structuredProductInterestRate, fractionDigits: 2))
+                                .foregroundColor(.secondary)
+                        }
+
+                        if let maturityDate = structuredProductMaturityDate {
+                            HStack {
+                                Text("Maturity Date")
+                                Spacer()
+                                Text(maturityDate, style: .date)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        if !structuredProductLinkedAssets.isEmpty {
+                            HStack {
+                                Text("Linked Assets")
+                                Spacer()
+                                Text(structuredProductLinkedAssets)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Current Price")
+                                Text("(\(displayCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            HStack {
+                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.symbol))
+                                    .fontWeight(.medium)
+
+                                if hasAutoFetchEnabled {
+                                    Image(systemName: "globe")
+                                        .foregroundColor(.blue)
+                                        .font(.caption)
+                                } else {
+                                    Button(action: {
+                                        editingPrice = displayPrice
+                                        showingPriceEditor = true
+                                    }) {
+                                        Image(systemName: "pencil.circle")
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                            }
+                        }
+
+                        if hasAutoFetchEnabled {
+                            HStack {
+                                Text("Price Source")
+                                Spacer()
+                                Text("Auto-fetched from Yahoo Finance")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Total Value")
+                                Text("(\(displayCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.symbol))
+                                .foregroundColor(.secondary)
                         }
                     } else {
                         HStack {

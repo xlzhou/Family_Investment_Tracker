@@ -82,6 +82,10 @@ struct HoldingRowView: View {
         asset.assetType == "Insurance"
     }
     
+    private var isStructuredProduct: Bool {
+        asset.assetType == AssetType.structuredProduct.rawValue
+    }
+    
     private var costBasis: Double {
         return holding.quantity * holding.averageCostBasis
     }
@@ -100,20 +104,49 @@ struct HoldingRowView: View {
         return transactions.contains { $0.autoFetchPrice }
     }
 
+    private var structuredProductTransactions: [Transaction] {
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        return transactions
+            .filter { $0.portfolio?.objectID == holding.portfolio?.objectID }
+            .sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
+    }
+
+    private var structuredProductInterestRateValue: Double {
+        asset.value(forKey: "interestRate") as? Double ?? 0
+    }
+
+    private var structuredProductLinkedAssetsText: String {
+        (asset.value(forKey: "linkedAssets") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var structuredProductMaturityDate: Date? {
+        structuredProductTransactions.first?.maturityDate
+    }
+
+    private var structuredProductInvestmentAmountValue: Double {
+        if let amount = structuredProductTransactions.first?.amount, amount > 0 {
+            return amount
+        }
+        if costBasis > 0 {
+            return costBasis
+        }
+        return currentValue
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(asset.symbol ?? "N/A")
+                    Text(asset.name ?? "Unknown Asset")
                         .font(.headline)
                         .fontWeight(.semibold)
-                    
-                    Text(asset.name ?? "Unknown Asset")
+
+                    Text(asset.symbol ?? "N/A")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
-                
+
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
@@ -184,6 +217,42 @@ struct HoldingRowView: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
+                } else if isStructuredProduct {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Investment Amount")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(Formatters.currency(structuredProductInvestmentAmountValue, symbol: currencySymbol))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .center, spacing: 2) {
+                        Text("Interest Rate")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(Formatters.percent(structuredProductInterestRateValue, fractionDigits: 2))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Spacer()
+
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("Current Price")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        HStack(spacing: 4) {
+                            Text(Formatters.currency(asset.currentPrice, symbol: currencySymbol))
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Image(systemName: "pencil")
+                                .foregroundColor(.orange)
+                                .font(.caption2)
+                        }
+                    }
                 } else {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Shares")
@@ -229,7 +298,13 @@ struct HoldingRowView: View {
                     }
                 }
             }
-            
+
+            if isStructuredProduct, !structuredProductLinkedAssetsText.isEmpty {
+                Text("Linked Assets: \(structuredProductLinkedAssetsText)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
             if holding.totalDividends > 0 {
                 HStack {
                     Text("Total Dividends:")

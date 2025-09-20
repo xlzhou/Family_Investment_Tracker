@@ -22,6 +22,7 @@ enum AssetType: String, CaseIterable {
     case cryptocurrency = "Cryptocurrency"
     case preciousMetal = "Precious Metal"
     case insurance = "Insurance"
+    case structuredProduct = "Structured Product"
     case other = "Other"
     
     var displayName: String {

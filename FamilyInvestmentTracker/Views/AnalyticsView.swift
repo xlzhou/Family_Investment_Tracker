@@ -268,6 +268,8 @@ struct AssetAllocationChartView: View {
             return .gray
         case "Cash":
             return .teal
+        case "Structured Product":
+            return .brown
         default:
             return .pink
         }

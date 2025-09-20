@@ -9,6 +9,53 @@ struct BackupPackage: Codable {
     let assets: [BackupAsset]
     let transactions: [BackupTransaction]
     let institutions: [BackupInstitution]
+    let insurances: [BackupInsurance]
+
+    private enum CodingKeys: String, CodingKey {
+        case version, generatedAt, portfolios, holdings, assets, transactions, institutions, insurances
+    }
+
+    init(version: Int,
+         generatedAt: Date,
+         portfolios: [BackupPortfolio],
+         holdings: [BackupHolding],
+         assets: [BackupAsset],
+         transactions: [BackupTransaction],
+         institutions: [BackupInstitution],
+         insurances: [BackupInsurance]) {
+        self.version = version
+        self.generatedAt = generatedAt
+        self.portfolios = portfolios
+        self.holdings = holdings
+        self.assets = assets
+        self.transactions = transactions
+        self.institutions = institutions
+        self.insurances = insurances
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        version = try container.decode(Int.self, forKey: .version)
+        generatedAt = try container.decode(Date.self, forKey: .generatedAt)
+        portfolios = try container.decode([BackupPortfolio].self, forKey: .portfolios)
+        holdings = try container.decode([BackupHolding].self, forKey: .holdings)
+        assets = try container.decode([BackupAsset].self, forKey: .assets)
+        transactions = try container.decode([BackupTransaction].self, forKey: .transactions)
+        institutions = try container.decode([BackupInstitution].self, forKey: .institutions)
+        insurances = try container.decodeIfPresent([BackupInsurance].self, forKey: .insurances) ?? []
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(version, forKey: .version)
+        try container.encode(generatedAt, forKey: .generatedAt)
+        try container.encode(portfolios, forKey: .portfolios)
+        try container.encode(holdings, forKey: .holdings)
+        try container.encode(assets, forKey: .assets)
+        try container.encode(transactions, forKey: .transactions)
+        try container.encode(institutions, forKey: .institutions)
+        try container.encode(insurances, forKey: .insurances)
+    }
 }
 
 struct BackupPortfolio: Codable {
@@ -19,7 +66,53 @@ struct BackupPortfolio: Codable {
     let mainCurrency: String?
     let cashBalance: Double
     let totalValue: Double
-    let enforcesCashDiscipline: Bool?
+    let enforcesCashDiscipline: Bool
+
+    init(id: UUID,
+         name: String?,
+         createdAt: Date?,
+         updatedAt: Date?,
+         mainCurrency: String?,
+         cashBalance: Double,
+         totalValue: Double,
+         enforcesCashDiscipline: Bool) {
+        self.id = id
+        self.name = name
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.mainCurrency = mainCurrency
+        self.cashBalance = cashBalance
+        self.totalValue = totalValue
+        self.enforcesCashDiscipline = enforcesCashDiscipline
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, createdAt, updatedAt, mainCurrency, cashBalance, totalValue, enforcesCashDiscipline
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
+        mainCurrency = try container.decodeIfPresent(String.self, forKey: .mainCurrency)
+        cashBalance = try container.decode(Double.self, forKey: .cashBalance)
+        totalValue = try container.decode(Double.self, forKey: .totalValue)
+        enforcesCashDiscipline = try container.decodeIfPresent(Bool.self, forKey: .enforcesCashDiscipline) ?? true
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(mainCurrency, forKey: .mainCurrency)
+        try container.encode(cashBalance, forKey: .cashBalance)
+        try container.encode(totalValue, forKey: .totalValue)
+        try container.encode(enforcesCashDiscipline, forKey: .enforcesCashDiscipline)
+    }
 }
 
 struct BackupHolding: Codable {
@@ -31,6 +124,7 @@ struct BackupHolding: Codable {
     let totalDividends: Double
     let realizedGainLoss: Double
     let updatedAt: Date?
+    let cashValue: Double?
 }
 
 struct BackupAsset: Codable {
@@ -41,6 +135,8 @@ struct BackupAsset: Codable {
     let createdAt: Date?
     let currentPrice: Double
     let lastPriceUpdate: Date?
+    let interestRate: Double?
+    let linkedAssets: String?
 }
 
 struct BackupTransaction: Codable {
@@ -65,6 +161,148 @@ struct BackupTransaction: Codable {
     let paymentDeducted: Bool
     let paymentDeductedAmount: Double
     let realizedGain: Double
+    let autoFetchPrice: Bool
+    let interestRate: Double
+
+    init(id: UUID,
+         portfolioID: UUID?,
+         assetID: UUID?,
+         institutionID: UUID?,
+         type: String?,
+         transactionDate: Date?,
+         amount: Double,
+         quantity: Double,
+         price: Double,
+         fees: Double,
+         tax: Double,
+         currency: String?,
+         tradingInstitution: String?,
+         transactionCode: String?,
+         notes: String?,
+         createdAt: Date?,
+         maturityDate: Date?,
+         paymentInstitutionName: String?,
+         paymentDeducted: Bool,
+         paymentDeductedAmount: Double,
+         realizedGain: Double,
+         autoFetchPrice: Bool,
+         interestRate: Double) {
+        self.id = id
+        self.portfolioID = portfolioID
+        self.assetID = assetID
+        self.institutionID = institutionID
+        self.type = type
+        self.transactionDate = transactionDate
+        self.amount = amount
+        self.quantity = quantity
+        self.price = price
+        self.fees = fees
+        self.tax = tax
+        self.currency = currency
+        self.tradingInstitution = tradingInstitution
+        self.transactionCode = transactionCode
+        self.notes = notes
+        self.createdAt = createdAt
+        self.maturityDate = maturityDate
+        self.paymentInstitutionName = paymentInstitutionName
+        self.paymentDeducted = paymentDeducted
+        self.paymentDeductedAmount = paymentDeductedAmount
+        self.realizedGain = realizedGain
+        self.autoFetchPrice = autoFetchPrice
+        self.interestRate = interestRate
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, interestRate
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        portfolioID = try container.decodeIfPresent(UUID.self, forKey: .portfolioID)
+        assetID = try container.decodeIfPresent(UUID.self, forKey: .assetID)
+        institutionID = try container.decodeIfPresent(UUID.self, forKey: .institutionID)
+        type = try container.decodeIfPresent(String.self, forKey: .type)
+        transactionDate = try container.decodeIfPresent(Date.self, forKey: .transactionDate)
+        amount = try container.decode(Double.self, forKey: .amount)
+        quantity = try container.decode(Double.self, forKey: .quantity)
+        price = try container.decode(Double.self, forKey: .price)
+        fees = try container.decode(Double.self, forKey: .fees)
+        tax = try container.decode(Double.self, forKey: .tax)
+        currency = try container.decodeIfPresent(String.self, forKey: .currency)
+        tradingInstitution = try container.decodeIfPresent(String.self, forKey: .tradingInstitution)
+        transactionCode = try container.decodeIfPresent(String.self, forKey: .transactionCode)
+        notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        maturityDate = try container.decodeIfPresent(Date.self, forKey: .maturityDate)
+        paymentInstitutionName = try container.decodeIfPresent(String.self, forKey: .paymentInstitutionName)
+        paymentDeducted = try container.decode(Bool.self, forKey: .paymentDeducted)
+        paymentDeductedAmount = try container.decode(Double.self, forKey: .paymentDeductedAmount)
+        realizedGain = try container.decode(Double.self, forKey: .realizedGain)
+        autoFetchPrice = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPrice) ?? true
+        interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate) ?? 0
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(portfolioID, forKey: .portfolioID)
+        try container.encodeIfPresent(assetID, forKey: .assetID)
+        try container.encodeIfPresent(institutionID, forKey: .institutionID)
+        try container.encodeIfPresent(type, forKey: .type)
+        try container.encodeIfPresent(transactionDate, forKey: .transactionDate)
+        try container.encode(amount, forKey: .amount)
+        try container.encode(quantity, forKey: .quantity)
+        try container.encode(price, forKey: .price)
+        try container.encode(fees, forKey: .fees)
+        try container.encode(tax, forKey: .tax)
+        try container.encodeIfPresent(currency, forKey: .currency)
+        try container.encodeIfPresent(tradingInstitution, forKey: .tradingInstitution)
+        try container.encodeIfPresent(transactionCode, forKey: .transactionCode)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(maturityDate, forKey: .maturityDate)
+        try container.encodeIfPresent(paymentInstitutionName, forKey: .paymentInstitutionName)
+        try container.encode(paymentDeducted, forKey: .paymentDeducted)
+        try container.encode(paymentDeductedAmount, forKey: .paymentDeductedAmount)
+        try container.encode(realizedGain, forKey: .realizedGain)
+        try container.encode(autoFetchPrice, forKey: .autoFetchPrice)
+        try container.encode(interestRate, forKey: .interestRate)
+    }
+}
+
+struct BackupInsurance: Codable {
+    let id: UUID
+    let assetID: UUID
+    let insuranceType: String?
+    let policyholder: String?
+    let insuredPerson: String?
+    let contactNumber: String?
+    let basicInsuredAmount: Double
+    let additionalPaymentAmount: Double
+    let deathBenefit: Double
+    let isParticipating: Bool
+    let hasSupplementaryInsurance: Bool
+    let premiumPaymentTerm: Int32
+    let premiumPaymentStatus: String?
+    let premiumPaymentType: String?
+    let singlePremium: Double
+    let totalPremium: Double
+    let coverageExpirationDate: Date?
+    let maturityBenefitRedemptionDate: Date?
+    let estimatedMaturityBenefit: Double
+    let canWithdrawPremiums: Bool
+    let maxWithdrawalPercentage: Double
+    let createdAt: Date?
+    let beneficiaries: [BackupBeneficiary]
+}
+
+struct BackupBeneficiary: Codable {
+    let id: UUID
+    let insuranceID: UUID
+    let name: String?
+    let percentage: Double
+    let createdAt: Date?
 }
 
 struct BackupInstitution: Codable {
@@ -78,7 +316,7 @@ final class BackupService {
     static let shared = BackupService()
     private init() {}
     
-    private let backupVersion = 1
+    private let backupVersion = 3
     
     func createBackup(context: NSManagedObjectContext) throws -> URL {
         let encoder = JSONEncoder()
@@ -114,21 +352,21 @@ final class BackupService {
                 try context.save()
             }
             
-            payload = BackupPackage(
-                version: backupVersion,
-                generatedAt: Date(),
-                portfolios: portfolios.map { portfolio in
-                    BackupPortfolio(
-                        id: portfolio.id ?? UUID(),
-                        name: portfolio.name,
-                        createdAt: portfolio.createdAt,
-                        updatedAt: portfolio.updatedAt,
-                        mainCurrency: portfolio.mainCurrency,
-                        cashBalance: portfolio.cashBalance,
-                        totalValue: portfolio.totalValue,
-                        enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled
-                    )
-                },
+                payload = BackupPackage(
+                    version: backupVersion,
+                    generatedAt: Date(),
+                    portfolios: portfolios.map { portfolio in
+                        BackupPortfolio(
+                            id: portfolio.id ?? UUID(),
+                            name: portfolio.name,
+                            createdAt: portfolio.createdAt,
+                            updatedAt: portfolio.updatedAt,
+                            mainCurrency: portfolio.mainCurrency,
+                            cashBalance: portfolio.cashBalance,
+                            totalValue: portfolio.totalValue,
+                            enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled
+                        )
+                    },
                 holdings: holdings.map { holding in
                     BackupHolding(
                         id: holding.id ?? UUID(),
@@ -138,7 +376,8 @@ final class BackupService {
                         averageCostBasis: holding.averageCostBasis,
                         totalDividends: holding.totalDividends,
                         realizedGainLoss: holding.realizedGainLoss,
-                        updatedAt: holding.updatedAt
+                        updatedAt: holding.updatedAt,
+                        cashValue: holding.value(forKey: "cashValue") as? Double
                     )
                 },
                 assets: assets.map { asset in
@@ -149,7 +388,9 @@ final class BackupService {
                         assetType: asset.assetType,
                         createdAt: asset.createdAt,
                         currentPrice: asset.currentPrice,
-                        lastPriceUpdate: asset.lastPriceUpdate
+                        lastPriceUpdate: asset.lastPriceUpdate,
+                        interestRate: asset.value(forKey: "interestRate") as? Double,
+                        linkedAssets: asset.value(forKey: "linkedAssets") as? String
                     )
                 },
                 transactions: transactions.map { transaction in
@@ -174,7 +415,9 @@ final class BackupService {
                         paymentInstitutionName: transaction.value(forKey: "paymentInstitutionName") as? String,
                         paymentDeducted: (transaction.value(forKey: "paymentDeducted") as? Bool) ?? false,
                         paymentDeductedAmount: (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0,
-                        realizedGain: transaction.realizedGainAmount
+                        realizedGain: transaction.realizedGainAmount,
+                        autoFetchPrice: transaction.autoFetchPrice,
+                        interestRate: (transaction.value(forKey: "interestRate") as? Double) ?? 0
                     )
                 },
                 institutions: institutions.map { institution in
@@ -183,6 +426,47 @@ final class BackupService {
                         name: institution.name,
                         createdAt: institution.createdAt,
                         cashBalance: institution.cashBalanceSafe
+                    )
+                },
+                insurances: assets.compactMap { asset in
+                    guard let insurance = asset.value(forKey: "insurance") as? NSManagedObject,
+                          let assetID = asset.id else { return nil }
+
+                    let beneficiariesSet = insurance.value(forKey: "beneficiaries") as? Set<NSManagedObject> ?? []
+                    let beneficiaries = beneficiariesSet.map { beneficiary -> BackupBeneficiary in
+                        BackupBeneficiary(
+                            id: (beneficiary.value(forKey: "id") as? UUID) ?? UUID(),
+                            insuranceID: (insurance.value(forKey: "id") as? UUID) ?? UUID(),
+                            name: beneficiary.value(forKey: "name") as? String,
+                            percentage: beneficiary.value(forKey: "percentage") as? Double ?? 0,
+                            createdAt: beneficiary.value(forKey: "createdAt") as? Date
+                        )
+                    }
+
+                    return BackupInsurance(
+                        id: (insurance.value(forKey: "id") as? UUID) ?? UUID(),
+                        assetID: assetID,
+                        insuranceType: insurance.value(forKey: "insuranceType") as? String,
+                        policyholder: insurance.value(forKey: "policyholder") as? String,
+                        insuredPerson: insurance.value(forKey: "insuredPerson") as? String,
+                        contactNumber: insurance.value(forKey: "contactNumber") as? String,
+                        basicInsuredAmount: insurance.value(forKey: "basicInsuredAmount") as? Double ?? 0,
+                        additionalPaymentAmount: insurance.value(forKey: "additionalPaymentAmount") as? Double ?? 0,
+                        deathBenefit: insurance.value(forKey: "deathBenefit") as? Double ?? 0,
+                        isParticipating: insurance.value(forKey: "isParticipating") as? Bool ?? false,
+                        hasSupplementaryInsurance: insurance.value(forKey: "hasSupplementaryInsurance") as? Bool ?? false,
+                        premiumPaymentTerm: insurance.value(forKey: "premiumPaymentTerm") as? Int32 ?? 0,
+                        premiumPaymentStatus: insurance.value(forKey: "premiumPaymentStatus") as? String,
+                        premiumPaymentType: insurance.value(forKey: "premiumPaymentType") as? String,
+                        singlePremium: insurance.value(forKey: "singlePremium") as? Double ?? 0,
+                        totalPremium: insurance.value(forKey: "totalPremium") as? Double ?? 0,
+                        coverageExpirationDate: insurance.value(forKey: "coverageExpirationDate") as? Date,
+                        maturityBenefitRedemptionDate: insurance.value(forKey: "maturityBenefitRedemptionDate") as? Date,
+                        estimatedMaturityBenefit: insurance.value(forKey: "estimatedMaturityBenefit") as? Double ?? 0,
+                        canWithdrawPremiums: insurance.value(forKey: "canWithdrawPremiums") as? Bool ?? false,
+                        maxWithdrawalPercentage: insurance.value(forKey: "maxWithdrawalPercentage") as? Double ?? 0,
+                        createdAt: insurance.value(forKey: "createdAt") as? Date,
+                        beneficiaries: beneficiaries
                     )
                 }
             )
@@ -222,6 +506,12 @@ final class BackupService {
                 asset.createdAt = assetData.createdAt
                 asset.currentPrice = assetData.currentPrice
                 asset.lastPriceUpdate = assetData.lastPriceUpdate
+                if let interestRate = assetData.interestRate {
+                    asset.setValue(interestRate, forKey: "interestRate")
+                }
+                if let linkedAssets = assetData.linkedAssets {
+                    asset.setValue(linkedAssets, forKey: "linkedAssets")
+                }
                 assetsDict[assetData.id] = asset
             }
             
@@ -243,7 +533,7 @@ final class BackupService {
                 portfolio.mainCurrency = portfolioData.mainCurrency
                 portfolio.cashBalance = portfolioData.cashBalance
                 portfolio.totalValue = portfolioData.totalValue
-                portfolio.enforcesCashDisciplineEnabled = portfolioData.enforcesCashDiscipline ?? true
+                portfolio.enforcesCashDisciplineEnabled = portfolioData.enforcesCashDiscipline
                 portfoliosDict[portfolioData.id] = portfolio
             }
             
@@ -255,6 +545,9 @@ final class BackupService {
                 holding.totalDividends = holdingData.totalDividends
                 holding.realizedGainLoss = holdingData.realizedGainLoss
                 holding.updatedAt = holdingData.updatedAt
+                if let cashValue = holdingData.cashValue {
+                    holding.setValue(cashValue, forKey: "cashValue")
+                }
                 if let portfolioID = holdingData.portfolioID {
                     holding.portfolio = portfoliosDict[portfolioID]
                 }
@@ -262,7 +555,43 @@ final class BackupService {
                     holding.asset = assetsDict[assetID]
                 }
             }
-            
+
+            for insuranceData in package.insurances {
+                guard let asset = assetsDict[insuranceData.assetID] else { continue }
+                let insurance = NSEntityDescription.insertNewObject(forEntityName: "Insurance", into: context)
+                insurance.setValue(insuranceData.id, forKey: "id")
+                insurance.setValue(insuranceData.insuranceType, forKey: "insuranceType")
+                insurance.setValue(insuranceData.policyholder, forKey: "policyholder")
+                insurance.setValue(insuranceData.insuredPerson, forKey: "insuredPerson")
+                insurance.setValue(insuranceData.contactNumber, forKey: "contactNumber")
+                insurance.setValue(insuranceData.basicInsuredAmount, forKey: "basicInsuredAmount")
+                insurance.setValue(insuranceData.additionalPaymentAmount, forKey: "additionalPaymentAmount")
+                insurance.setValue(insuranceData.deathBenefit, forKey: "deathBenefit")
+                insurance.setValue(insuranceData.isParticipating, forKey: "isParticipating")
+                insurance.setValue(insuranceData.hasSupplementaryInsurance, forKey: "hasSupplementaryInsurance")
+                insurance.setValue(insuranceData.premiumPaymentTerm, forKey: "premiumPaymentTerm")
+                insurance.setValue(insuranceData.premiumPaymentStatus, forKey: "premiumPaymentStatus")
+                insurance.setValue(insuranceData.premiumPaymentType, forKey: "premiumPaymentType")
+                insurance.setValue(insuranceData.singlePremium, forKey: "singlePremium")
+                insurance.setValue(insuranceData.totalPremium, forKey: "totalPremium")
+                insurance.setValue(insuranceData.coverageExpirationDate, forKey: "coverageExpirationDate")
+                insurance.setValue(insuranceData.maturityBenefitRedemptionDate, forKey: "maturityBenefitRedemptionDate")
+                insurance.setValue(insuranceData.estimatedMaturityBenefit, forKey: "estimatedMaturityBenefit")
+                insurance.setValue(insuranceData.canWithdrawPremiums, forKey: "canWithdrawPremiums")
+                insurance.setValue(insuranceData.maxWithdrawalPercentage, forKey: "maxWithdrawalPercentage")
+                insurance.setValue(insuranceData.createdAt, forKey: "createdAt")
+                insurance.setValue(asset, forKey: "asset")
+
+                for beneficiaryData in insuranceData.beneficiaries {
+                    let beneficiary = NSEntityDescription.insertNewObject(forEntityName: "Beneficiary", into: context)
+                    beneficiary.setValue(beneficiaryData.id, forKey: "id")
+                    beneficiary.setValue(beneficiaryData.name, forKey: "name")
+                    beneficiary.setValue(beneficiaryData.percentage, forKey: "percentage")
+                    beneficiary.setValue(beneficiaryData.createdAt, forKey: "createdAt")
+                    beneficiary.setValue(insurance, forKey: "insurance")
+                }
+            }
+
             for transactionData in package.transactions {
                 let transaction = Transaction(context: context)
                 transaction.id = transactionData.id
@@ -283,6 +612,8 @@ final class BackupService {
                 transaction.setValue(transactionData.paymentDeducted, forKey: "paymentDeducted")
                 transaction.setValue(transactionData.paymentDeductedAmount, forKey: "paymentDeductedAmount")
                 transaction.realizedGainAmount = transactionData.realizedGain
+                transaction.autoFetchPrice = transactionData.autoFetchPrice
+                transaction.setValue(transactionData.interestRate, forKey: "interestRate")
                 if let portfolioID = transactionData.portfolioID {
                     transaction.portfolio = portfoliosDict[portfolioID]
                 }
@@ -299,7 +630,7 @@ final class BackupService {
     }
     
     private func clearExistingData(in context: NSManagedObjectContext) throws {
-        let entityNames = ["Transaction", "Holding", "Portfolio", "Asset", "Institution"]
+        let entityNames = ["Transaction", "Holding", "Insurance", "Beneficiary", "Portfolio", "Asset", "Institution"]
         for name in entityNames {
             let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: name)
             let objects = try context.fetch(fetch)

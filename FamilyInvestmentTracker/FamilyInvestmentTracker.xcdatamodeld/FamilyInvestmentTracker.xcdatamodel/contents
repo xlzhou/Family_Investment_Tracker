@@ -16,6 +16,7 @@
         <attribute name="interestRate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="lastPriceUpdate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="linkedAssets" optional="YES" attributeType="String"/>
         <attribute name="symbol" optional="YES" attributeType="String"/>
         <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Holding" inverseName="asset" inverseEntity="Holding"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Transaction" inverseName="asset" inverseEntity="Transaction"/>
@@ -61,6 +62,7 @@
         <attribute name="paymentInstitutionName" optional="YES" attributeType="String"/>
         <attribute name="realizedGain" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="maturityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="interestRate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tax" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tradingInstitution" optional="YES" attributeType="String"/>
         <attribute name="transactionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

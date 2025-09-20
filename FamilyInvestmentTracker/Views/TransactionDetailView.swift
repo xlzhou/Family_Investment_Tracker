@@ -31,21 +31,27 @@ struct TransactionDetailView: View {
 
     private var depositInterestRateText: String? {
         guard transactionTypeEnum == .deposit else { return nil }
+        let rate = (transaction.value(forKey: "interestRate") as? Double) ?? 0
+        return Formatters.percent(rate, fractionDigits: 2)
+    }
+
+    private var isStructuredProduct: Bool {
+        transaction.asset?.assetType == AssetType.structuredProduct.rawValue
+    }
+
+    private var structuredProductInterestRateText: String {
         let rate = (transaction.asset?.value(forKey: "interestRate") as? Double) ?? 0
         return Formatters.percent(rate, fractionDigits: 2)
+    }
+
+    private var structuredProductLinkedAssets: String {
+        (transaction.asset?.value(forKey: "linkedAssets") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("Overview")) {
-                    HStack {
-                        Text("Transaction ID")
-                        Spacer()
-                        Text(transaction.transactionCode ?? "-")
-                            .font(.system(.callout, design: .monospaced))
-                            .foregroundColor(.secondary)
-                    }
                     HStack {
                         Text("Type")
                         Spacer()
@@ -124,6 +130,27 @@ struct TransactionDetailView: View {
                             Spacer()
                             Text(Formatters.currency(transaction.price, symbol: currency.symbol))
                                 .foregroundColor(.secondary)
+                        }
+                    } else if isStructuredProduct {
+                        HStack {
+                            Text("Investment Amount")
+                            Spacer()
+                            Text(Formatters.currency(transaction.amount, symbol: currency.symbol))
+                                .foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("Interest Rate")
+                            Spacer()
+                            Text(structuredProductInterestRateText)
+                                .foregroundColor(.secondary)
+                        }
+                        if !structuredProductLinkedAssets.isEmpty {
+                            HStack {
+                                Text("Linked Assets")
+                                Spacer()
+                                Text(structuredProductLinkedAssets)
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     } else if !isDividend {
                         HStack {
