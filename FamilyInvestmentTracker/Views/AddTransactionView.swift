@@ -292,15 +292,23 @@ struct AddTransactionView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                 } else if selectedTransactionType == .sell {
-                    Section(header: Text("Sell Security"), footer: Text("Select the holding you want to sell.")) {
+                    let hasInstitution = selectedInstitution != nil || !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    let footerText = hasInstitution ? "Select the holding you want to sell." : "Select a trading institution first to see available securities."
+
+                    Section(header: Text("Sell Security"), footer: Text(footerText)) {
                         Picker("Security", selection: $selectedSellAssetID) {
-                            Text("Select...").tag(Optional<NSManagedObjectID>.none)
-                            ForEach(sellSourceAssets, id: \.objectID) { asset in
-                                Text(asset.symbol ?? asset.name ?? "Unknown")
-                                    .tag(Optional(asset.objectID))
+                            if hasInstitution {
+                                Text("Select...").tag(Optional<NSManagedObjectID>.none)
+                                ForEach(sellSourceAssets, id: \.objectID) { asset in
+                                    Text(asset.symbol ?? asset.name ?? "Unknown")
+                                        .tag(Optional(asset.objectID))
+                                }
+                            } else {
+                                Text("Select institution first").tag(Optional<NSManagedObjectID>.none)
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
+                        .disabled(!hasInstitution)
                     }
                 }
                 // Dividend Source (only for dividends)
@@ -656,6 +664,17 @@ struct AddTransactionView: View {
             if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
                 selectedPaymentInstitution = newValue
             }
+
+            // Reset selected sell asset when institution changes for sell transactions
+            if selectedTransactionType == .sell {
+                selectedSellAssetID = nil
+            }
+        }
+        .onChange(of: tradingInstitution) { _, newValue in
+            // Reset selected sell asset when trading institution text changes for sell transactions
+            if selectedTransactionType == .sell {
+                selectedSellAssetID = nil
+            }
         }
         .alert("Cash Requirement", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
             Button("OK", role: .cancel) {
@@ -678,7 +697,7 @@ struct AddTransactionView: View {
         case .buy:
             return !assetSymbol.isEmpty && quantity > 0 && price > 0 && hasValidInstitution
         case .deposit:
-            return amount > 0 && hasValidInstitution
+            return amount != 0 && hasValidInstitution
         case .insurance:
             let hasSymbol = !insuranceSymbol.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             return cashValue > 0 && hasValidInstitution && hasSymbol
@@ -780,7 +799,25 @@ struct AddTransactionView: View {
                     failWithMessage("Not enough cash in \(paymentInstitution.name ?? "this institution") to purchase this insurance policy. If you do not want cash to be deducted at the time of purchase, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
                     return
                 }
-            case .deposit, .sell:
+            case .deposit:
+                guard let institution = institutionForTransaction else {
+                    failWithMessage("Select a trading institution for this transaction.")
+                    return
+                }
+                // Check for withdrawal (negative amount) if amount < 0
+                if amount < 0 {
+                    let withdrawalAmount = abs(amount)
+                    let netWithdrawal = withdrawalAmount + fees + tax  // fees and tax add to the withdrawal cost
+                    let convertedWithdrawal = convertToPortfolioCurrency(netWithdrawal, from: selectedCurrency)
+                    if institution.cashBalanceSafe < convertedWithdrawal {
+                        let institutionName = institution.name ?? "this institution"
+                        let currentBalance = currencyService.formatAmount(institution.cashBalanceSafe, in: portfolioCurrency)
+                        let requiredAmount = currencyService.formatAmount(convertedWithdrawal, in: portfolioCurrency)
+                        failWithMessage("Not enough cash in \(institutionName) for this withdrawal. Current balance: \(currentBalance), Required: \(requiredAmount).")
+                        return
+                    }
+                }
+            case .sell:
                 guard institutionForTransaction != nil else {
                     failWithMessage("Select a trading institution for this transaction.")
                     return
@@ -887,20 +924,30 @@ struct AddTransactionView: View {
                 transaction.price = amount
 
                 let netCash = amount - fees - tax
-                let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
                 switch selectedTransactionType {
                 case .deposit:
+                    // For deposits, allow negative amounts (withdrawals)
+                    let convertedNetCash = convertToPortfolioCurrency(netCash, from: selectedCurrency)
                     portfolio.addToCash(convertedNetCash)
                     if cashDisciplineEnabled, let institution = institutionForTransaction {
                         institution.cashBalanceSafe += convertedNetCash
                     }
                 case .dividend:
+                    // For dividends, ensure non-negative amounts
+                    let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
                     portfolio.addToCash(convertedNetCash)
                     if let assetID = selectedDividendAssetID,
                        let srcAsset = try? viewContext.existingObject(with: assetID) as? Asset {
                         transaction.asset = srcAsset
+
+                        // Maintain institution-asset relationship for dividends
+                        if let institution = institutionForTransaction {
+                            maintainInstitutionAssetRelationship(institution: institution, asset: srcAsset, transactionDate: transactionDate)
+                        }
                     }
                 case .interest:
+                    // For interest, ensure non-negative amounts
+                    let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
                     portfolio.addToCash(convertedNetCash)
                 default:
                     break
@@ -918,6 +965,11 @@ struct AddTransactionView: View {
                 asset = findOrCreateAsset()
             }
             transaction.asset = asset
+
+            // Maintain institution-asset relationship for buy/sell transactions
+            if let institution = institutionForTransaction {
+                maintainInstitutionAssetRelationship(institution: institution, asset: asset, transactionDate: transactionDate)
+            }
 
             if let realizedGain = updateHolding(for: asset, transaction: transaction) {
                 transaction.realizedGainAmount = realizedGain
@@ -943,6 +995,11 @@ struct AddTransactionView: View {
         if selectedTransactionType == .insurance {
             let asset = createInsuranceAsset()
             transaction.asset = asset
+
+            // Maintain institution-asset relationship for insurance transactions
+            if let institution = institutionForTransaction {
+                maintainInstitutionAssetRelationship(institution: institution, asset: asset, transactionDate: transactionDate)
+            }
 
             let insurance = NSEntityDescription.insertNewObject(forEntityName: "Insurance", into: viewContext)
             insurance.setValue(UUID(), forKey: "id")
@@ -1011,7 +1068,40 @@ struct AddTransactionView: View {
         return unique.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
     }
 
-    private var sellSourceAssets: [Asset] { dividendSourceAssets }
+    private var sellSourceAssets: [Asset] {
+        // If no institution is selected, return empty array to disable security selection
+        guard let institution = selectedInstitution ??
+              ((!tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ?
+               findExistingInstitution(name: tradingInstitution) : nil) else {
+            return []
+        }
+
+        // Get assets available at the selected institution
+        let institutionAssets = getAssetsAvailableAt(institution: institution)
+
+        // Filter to only include assets we actually hold
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        let holdAssets = holdings.compactMap { holding -> Asset? in
+            guard holding.quantity > 0 else { return nil }
+            return holding.asset
+        }
+
+        // Find intersection: assets we hold AND available at this institution
+        let availableHoldAssets = institutionAssets.filter { institutionAsset in
+            holdAssets.contains { holdAsset in
+                holdAsset.objectID == institutionAsset.objectID
+            }
+        }
+
+        return availableHoldAssets.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
+    }
+
+    private func findExistingInstitution(name: String) -> Institution? {
+        let request: NSFetchRequest<Institution> = Institution.fetchRequest()
+        request.predicate = NSPredicate(format: "name ==[c] %@", name.trimmingCharacters(in: .whitespacesAndNewlines))
+        request.fetchLimit = 1
+        return try? viewContext.fetch(request).first
+    }
 
     private func recomputePortfolioTotals() {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
@@ -1192,6 +1282,48 @@ private extension AddTransactionView {
             return totalPremium
         }
         return singlePremium
+    }
+
+    func maintainInstitutionAssetRelationship(institution: Institution, asset: Asset, transactionDate: Date) {
+        // Check if relationship already exists
+        let request: NSFetchRequest<InstitutionAssetAvailability> = NSFetchRequest(entityName: "InstitutionAssetAvailability")
+        request.predicate = NSPredicate(format: "institution == %@ AND asset == %@", institution, asset)
+        request.fetchLimit = 1
+
+        do {
+            let existingRelationships = try viewContext.fetch(request)
+
+            if let existingRelationship = existingRelationships.first {
+                // Update the last transaction date
+                existingRelationship.setValue(transactionDate, forKey: "lastTransactionDate")
+                print("🔗 Updated existing Institution-Asset relationship: \(institution.name ?? "Unknown") <-> \(asset.symbol ?? "Unknown")")
+            } else {
+                // Create new relationship
+                let availability = NSEntityDescription.insertNewObject(forEntityName: "InstitutionAssetAvailability", into: viewContext)
+                availability.setValue(UUID(), forKey: "id")
+                availability.setValue(Date(), forKey: "createdAt")
+                availability.setValue(transactionDate, forKey: "lastTransactionDate")
+                availability.setValue(institution, forKey: "institution")
+                availability.setValue(asset, forKey: "asset")
+                print("🆕 Created new Institution-Asset relationship: \(institution.name ?? "Unknown") <-> \(asset.symbol ?? "Unknown")")
+            }
+        } catch {
+            print("❌ Error maintaining Institution-Asset relationship: \(error)")
+        }
+    }
+
+    func getAssetsAvailableAt(institution: Institution) -> [Asset] {
+        let request: NSFetchRequest<InstitutionAssetAvailability> = NSFetchRequest(entityName: "InstitutionAssetAvailability")
+        request.predicate = NSPredicate(format: "institution == %@", institution)
+        request.sortDescriptors = [NSSortDescriptor(key: "lastTransactionDate", ascending: false)]
+
+        do {
+            let availabilities = try viewContext.fetch(request)
+            return availabilities.compactMap { $0.value(forKey: "asset") as? Asset }
+        } catch {
+            print("❌ Error fetching assets for institution \(institution.name ?? "Unknown"): \(error)")
+            return []
+        }
     }
 }
 

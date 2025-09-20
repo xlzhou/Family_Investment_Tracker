@@ -6,6 +6,7 @@
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Transaction" inverseName="institution" inverseEntity="Transaction"/>
+        <relationship name="assetAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="institution" inverseEntity="InstitutionAssetAvailability"/>
     </entity>
     <entity name="Asset" representedClassName="Asset" syncable="YES" codeGenerationType="class">
         <attribute name="assetType" optional="YES" attributeType="String"/>
@@ -18,6 +19,7 @@
         <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Holding" inverseName="asset" inverseEntity="Holding"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Transaction" inverseName="asset" inverseEntity="Transaction"/>
         <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Insurance" inverseName="asset" inverseEntity="Insurance"/>
+        <relationship name="institutionAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="asset" inverseEntity="InstitutionAssetAvailability"/>
     </entity>
     <entity name="Holding" representedClassName="Holding" syncable="YES" codeGenerationType="class">
         <attribute name="averageCostBasis" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -98,5 +100,12 @@
         <attribute name="percentage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Insurance" inverseName="beneficiaries" inverseEntity="Insurance"/>
+    </entity>
+    <entity name="InstitutionAssetAvailability" representedClassName="InstitutionAssetAvailability" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastTransactionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="assetAvailabilities" inverseEntity="Institution"/>
+        <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="institutionAvailabilities" inverseEntity="Asset"/>
     </entity>
 </model>
