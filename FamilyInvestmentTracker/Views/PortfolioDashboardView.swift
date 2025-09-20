@@ -79,6 +79,7 @@ struct PortfolioDashboardView: View {
         }
         .sheet(isPresented: $showingAddTransaction) {
             AddTransactionView(portfolio: portfolio)
+                .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingPortfolioSettings) {
             PortfolioSettingsView(portfolio: portfolio)

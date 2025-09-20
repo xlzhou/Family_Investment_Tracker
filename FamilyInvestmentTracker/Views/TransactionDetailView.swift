@@ -177,6 +177,7 @@ struct TransactionDetailView: View {
         .sheet(isPresented: $showingEdit) {
             AddTransactionView(portfolio: portfolio, transactionToEdit: transaction)
                 .environment(\.managedObjectContext, viewContext)
+                .interactiveDismissDisabled()
         }
     }
 

@@ -300,6 +300,7 @@ struct HoldingDetailView: View {
         }
         .sheet(isPresented: $showingPriceEditor) {
             PriceEditorView(asset: asset, editingPrice: $editingPrice, displayCurrency: displayCurrency, portfolioMainCurrency: portfolioMainCurrency)
+                .interactiveDismissDisabled()
         }
         .sheet(isPresented: $showingCashValueEditor) {
             CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
