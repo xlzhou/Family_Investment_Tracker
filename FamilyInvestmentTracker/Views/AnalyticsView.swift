@@ -140,6 +140,10 @@ struct AssetAllocationChartView: View {
         viewModel.getAssetAllocation(portfolio: portfolio)
     }
 
+    private var institutionAllocations: [InstitutionAllocation] {
+        viewModel.getInstitutionAllocations(portfolio: portfolio)
+    }
+
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
@@ -149,48 +153,93 @@ struct AssetAllocationChartView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Asset Allocation")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
+                .font(.headline)            
             if allocations.isEmpty {
                 Text("No assets to display")
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
-                HStack(spacing: 20) {
-                    // Pie Chart
-                    Chart(allocations, id: \.type) { allocation in
-                        SectorMark(
-                            angle: .value("Value", allocation.value),
-                            innerRadius: .ratio(0.4),
-                            angularInset: 1
-                        )
-                        .foregroundStyle(colorForAssetType(allocation.type))
-                        .opacity(0.8)
-                    }
-                    .frame(width: 200, height: 200)
-                    
-                    // Legend
-                    VStack(alignment: .leading, spacing: 8) {
-                        ForEach(allocations, id: \.type) { allocation in
-                            HStack(spacing: 8) {
-                                Circle()
-                                    .fill(colorForAssetType(allocation.type))
-                                    .frame(width: 12, height: 12)
-                                
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(allocation.type)
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                    
-                                    Text("\(Formatters.decimal(allocation.percentage, fractionDigits: 1))% • \(Formatters.currency(allocation.value, symbol: currencySymbol, fractionDigits: 0))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                HStack(alignment: .top, spacing: 32) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("By Asset Type")
+                            .font(.headline)
+
+                        HStack(spacing: 16) {
+                            Chart(allocations, id: \.type) { allocation in
+                                SectorMark(
+                                    angle: .value("Value", allocation.value),
+                                    innerRadius: .ratio(0.4),
+                                    angularInset: 1
+                                )
+                                .foregroundStyle(colorForAssetType(allocation.type))
+                                .opacity(0.8)
+                            }
+                            .frame(width: 160, height: 160)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                ForEach(allocations, id: \.type) { allocation in
+                                    HStack(spacing: 8) {
+                                        Circle()
+                                            .fill(colorForAssetType(allocation.type))
+                                            .frame(width: 12, height: 12)
+
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(allocation.type)
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+
+                                            Text("\(Formatters.decimal(allocation.percentage, fractionDigits: 1))% • \(Formatters.currency(allocation.value, symbol: currencySymbol, fractionDigits: 0))")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        Spacer()
+                                    }
                                 }
-                                
-                                Spacer()
+                            }
+                        }
+                    }
+
+                    if !institutionAllocations.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("By Institution")
+                                .font(.headline)
+
+                            HStack(spacing: 16) {
+                                Chart(institutionAllocations, id: \.name) { allocation in
+                                    SectorMark(
+                                        angle: .value("Value", allocation.value),
+                                        innerRadius: .ratio(0.4),
+                                        angularInset: 1
+                                    )
+                                    .foregroundStyle(colorForInstitution(allocation.name))
+                                    .opacity(0.85)
+                                }
+                                .frame(width: 160, height: 160)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    ForEach(institutionAllocations, id: \.name) { allocation in
+                                        HStack(spacing: 8) {
+                                            Circle()
+                                                .fill(colorForInstitution(allocation.name))
+                                                .frame(width: 12, height: 12)
+
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(allocation.name)
+                                                    .font(.subheadline)
+                                                    .fontWeight(.medium)
+
+                                                Text("\(Formatters.decimal(allocation.percentage, fractionDigits: 1))% • \(Formatters.currency(allocation.value, symbol: currencySymbol, fractionDigits: 0))")
+                                                    .font(.caption)
+                                                    .foregroundColor(.secondary)
+                                            }
+
+                                            Spacer()
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -222,6 +271,13 @@ struct AssetAllocationChartView: View {
         default:
             return .pink
         }
+    }
+
+    private func colorForInstitution(_ name: String) -> Color {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hash = abs(trimmed.hashValue)
+        let hue = Double(hash % 360) / 360.0
+        return Color(hue: hue, saturation: 0.55, brightness: 0.85)
     }
 }
 

@@ -18,7 +18,7 @@ struct TransactionImpactService {
             switch transactionType {
             case .deposit:
                 portfolio.addToCash(-netCash)
-                if cashDisciplineEnabled, let institution = institution {
+                if let institution = institution {
                     institution.cashBalanceSafe -= netCash
                 }
             case .insurance:

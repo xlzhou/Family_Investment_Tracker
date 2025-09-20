@@ -110,7 +110,7 @@ struct PortfolioListView: View {
                 }
                 return sum + (holding.quantity * asset.currentPrice)
             }
-            return partial + holdingsValue + portfolio.cashBalanceSafe
+            return partial + holdingsValue + portfolio.resolvedCashBalance()
         }
     }
 
@@ -175,7 +175,7 @@ struct PortfolioCardView: View {
             }
             return sum + (holding.quantity * asset.currentPrice)
         }
-        return holdingsValue + portfolio.cashBalanceSafe
+        return holdingsValue + portfolio.resolvedCashBalance()
     }
     
     var body: some View {

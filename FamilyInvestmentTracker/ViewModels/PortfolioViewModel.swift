@@ -100,7 +100,7 @@ extension PortfolioViewModel {
             totalRealizedGains += holding.realizedGainLoss
         }
         
-        totalCurrentValue += portfolio.cashBalanceSafe
+        totalCurrentValue += portfolio.resolvedCashBalance()
 
         let unrealizedGainLoss = totalCurrentValue - totalCostBasis
         let totalReturn = unrealizedGainLoss + totalRealizedGains + totalDividends
@@ -139,7 +139,7 @@ extension PortfolioViewModel {
             totalValue += value
         }
 
-        let cashBalance = portfolio.cashBalanceSafe
+        let cashBalance = portfolio.resolvedCashBalance()
         if cashBalance != 0 {
             typeAllocations["Cash", default: 0] += cashBalance
             totalValue += cashBalance
@@ -150,6 +150,74 @@ extension PortfolioViewModel {
                 type: type,
                 value: value,
                 percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
+            )
+        }.sorted { $0.value > $1.value }
+    }
+
+    func getInstitutionAllocations(portfolio: Portfolio) -> [InstitutionAllocation] {
+        var institutionValues: [String: Double] = [:]
+
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let institutions = Set(transactions.compactMap { $0.institution })
+        var allocatedInstitutionCash: Double = 0
+
+        for institution in institutions {
+            let name = normalizedInstitutionName(institution)
+            let cash = institution.cashBalanceSafe
+            if abs(cash) > 0.01 {
+                institutionValues[name, default: 0] += cash
+                allocatedInstitutionCash += cash
+            }
+        }
+
+        let holdings = portfolio.holdings?.allObjects as? [Holding] ?? []
+        for holding in holdings {
+            guard let asset = holding.asset else { continue }
+
+            let value: Double
+            if asset.assetType == AssetType.insurance.rawValue {
+                value = holding.value(forKey: "cashValue") as? Double ?? 0
+            } else {
+                value = holding.quantity * asset.currentPrice
+            }
+
+            guard abs(value) > 0 else { continue }
+
+            if let availabilitySet = asset.value(forKey: "institutionAvailabilities") as? Set<NSManagedObject>, !availabilitySet.isEmpty {
+                let relatedInstitutions = availabilitySet.compactMap { $0.value(forKey: "institution") as? Institution }
+                if !relatedInstitutions.isEmpty {
+                    let allocationShare = value / Double(relatedInstitutions.count)
+                    for institution in relatedInstitutions {
+                        let name = normalizedInstitutionName(institution)
+                        institutionValues[name, default: 0] += allocationShare
+                    }
+                    continue
+                }
+            }
+
+            if let fallbackInstitution = latestInstitution(for: asset, in: portfolio) {
+                let name = normalizedInstitutionName(fallbackInstitution)
+                institutionValues[name, default: 0] += value
+            } else {
+                institutionValues["Unassigned", default: 0] += value
+            }
+        }
+
+        let resolvedCash = portfolio.resolvedCashBalance()
+        let remainingCash = resolvedCash - allocatedInstitutionCash
+        if abs(remainingCash) > 0.01 {
+            let label = remainingCash >= 0 ? "Unassigned Cash" : "Unassigned Cash (Negative)"
+            institutionValues[label, default: 0] += remainingCash
+        }
+
+        let total = institutionValues.values.reduce(0, +)
+        guard abs(total) > 0.01 else { return [] }
+
+        return institutionValues.map { name, value in
+            InstitutionAllocation(
+                name: name,
+                value: value,
+                percentage: total != 0 ? (value / total) * 100 : 0
             )
         }.sorted { $0.value > $1.value }
     }
@@ -169,4 +237,31 @@ struct AssetAllocation {
     let type: String
     let value: Double
     let percentage: Double
+}
+
+struct InstitutionAllocation {
+    let name: String
+    let value: Double
+    let percentage: Double
+}
+
+private extension PortfolioViewModel {
+    func normalizedInstitutionName(_ institution: Institution?) -> String {
+        let trimmed = institution?.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty { return "Unnamed Institution" }
+        return trimmed
+    }
+
+    func latestInstitution(for asset: Asset, in portfolio: Portfolio) -> Institution? {
+        guard let transactions = asset.transactions?.allObjects as? [Transaction] else { return nil }
+        let filtered = transactions.filter {
+            $0.portfolio?.objectID == portfolio.objectID && $0.institution != nil
+        }
+        let sorted = filtered.sorted { lhs, rhs in
+            let leftDate = lhs.transactionDate ?? Date.distantPast
+            let rightDate = rhs.transactionDate ?? Date.distantPast
+            return leftDate > rightDate
+        }
+        return sorted.first?.institution
+    }
 }

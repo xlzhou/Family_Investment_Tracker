@@ -228,7 +228,49 @@ struct TransactionRowView: View {
     private var netValue: Double {
         return transaction.amount - transaction.fees - transaction.tax
     }
-    
+
+    private var depositSymbolLabel: String? {
+        guard transactionType == .deposit else { return nil }
+        let symbol = transaction.asset?.symbol ?? transaction.asset?.name
+        let trimmed = symbol?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let trimmed, !trimmed.isEmpty {
+            return trimmed
+        }
+        return nil
+    }
+
+    private var depositInstitutionLabel: String? {
+        guard transactionType == .deposit else { return nil }
+        let primary = transaction.tradingInstitution?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let primary, !primary.isEmpty {
+            return primary
+        }
+
+        let fallback = transaction.institution?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let fallback, !fallback.isEmpty {
+            return fallback
+        }
+        return nil
+    }
+
+    private var insuranceSymbolLabel: String? {
+        guard transactionType == .insurance else { return nil }
+        let symbol = transaction.asset?.symbol?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let symbol, !symbol.isEmpty {
+            return symbol
+        }
+        return nil
+    }
+
+    private var insuranceNameLabel: String? {
+        guard transactionType == .insurance else { return nil }
+        let name = transaction.asset?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let name, !name.isEmpty {
+            return name
+        }
+        return nil
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Type Icon
@@ -250,8 +292,46 @@ struct TransactionRowView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
-                if let asset = transaction.asset {
+
+                if transactionType == .deposit {
+                    if depositSymbolLabel != nil || depositInstitutionLabel != nil {
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let symbolLabel = depositSymbolLabel {
+                                Text(symbolLabel)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                            if let institutionLabel = depositInstitutionLabel {
+                                Text(institutionLabel)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                    }
+                } else if transactionType == .insurance {
+                    if insuranceSymbolLabel != nil || insuranceNameLabel != nil {
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let symbolLabel = insuranceSymbolLabel {
+                                Text(symbolLabel)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                            if let nameLabel = insuranceNameLabel {
+                                Text(nameLabel)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+                    } else {
+                        Text("Insurance")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                } else if let asset = transaction.asset {
                     Text(asset.name ?? asset.symbol ?? "N/A")
                         .font(.subheadline)
                         .foregroundColor(.secondary)

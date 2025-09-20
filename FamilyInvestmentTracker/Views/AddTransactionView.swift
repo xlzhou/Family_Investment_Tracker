@@ -36,6 +36,9 @@ struct AddTransactionView: View {
     @State private var selectedDividendAssetID: NSManagedObjectID?
     // Sell-specific: security to sell
     @State private var selectedSellAssetID: NSManagedObjectID?
+    // Deposit-specific selection
+    @State private var selectedDepositCategory = DepositCategory.demand
+    @State private var depositInterestRate: Double = 0
 
     // Insurance-specific fields
     @State private var insuranceType = "Life Insurance"
@@ -99,7 +102,25 @@ struct AddTransactionView: View {
         let initialCurrency = transactionToEdit.flatMap { Currency(rawValue: $0.currency ?? "") } ?? defaultCurrency
         _selectedCurrency = State(initialValue: initialCurrency)
 
-        let hasMaturity = transactionToEdit?.maturityDate != nil
+        let initialDepositCategory: DepositCategory
+        if initialType == .deposit {
+            let existingDepositValue = transactionToEdit?.asset?.symbol ?? transactionToEdit?.asset?.name
+            initialDepositCategory = DepositCategory.resolve(from: existingDepositValue) ?? .demand
+        } else {
+            initialDepositCategory = .demand
+        }
+        _selectedDepositCategory = State(initialValue: initialDepositCategory)
+
+        let initialInterestRate: Double
+        if initialType == .deposit {
+            let existingRate = transactionToEdit?.asset?.value(forKey: "interestRate") as? Double
+            initialInterestRate = existingRate ?? 0
+        } else {
+            initialInterestRate = 0
+        }
+        _depositInterestRate = State(initialValue: initialInterestRate)
+
+        let hasMaturity = (transactionToEdit?.maturityDate != nil) && (initialType != .deposit || initialDepositCategory == .fixed)
         _hasMaturityDate = State(initialValue: hasMaturity)
         _maturityDate = State(initialValue: transactionToEdit?.maturityDate ?? defaultDate)
         _autoFetchPrice = State(initialValue: transactionToEdit?.autoFetchPrice ?? true)
@@ -185,9 +206,13 @@ struct AddTransactionView: View {
     private var isAmountOnly: Bool {
         selectedTransactionType == .dividend || selectedTransactionType == .interest || selectedTransactionType == .deposit || selectedTransactionType == .insurance
     }
-    
+
     private var requiresTax: Bool {
         selectedTransactionType == .sell || selectedTransactionType == .dividend || selectedTransactionType == .interest
+    }
+
+    private var isMaturityToggleDisabled: Bool {
+        selectedTransactionType == .deposit && selectedDepositCategory != .fixed
     }
 
     private var availableInstitutions: [Institution] {
@@ -329,14 +354,35 @@ struct AddTransactionView: View {
                 Section(header: Text("Transaction Details")) {
                     DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
 
+                    if selectedTransactionType == .deposit {
+                        Picker("Symbol", selection: $selectedDepositCategory) {
+                            ForEach(DepositCategory.allCases, id: \.self) { category in
+                                Text(category.displayTitle).tag(category)
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+
+                        HStack {
+                            Text("Interest Rate")
+                            Spacer()
+                            TextField("0", value: $depositInterestRate, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text("%")
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
                     // Maturity date only for non-insurance transactions
                     if selectedTransactionType != .insurance {
                         Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
+                            .disabled(isMaturityToggleDisabled)
                         if hasMaturityDate {
                             DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
                         }
                     }
-                    
+
                     if isAmountOnly {
                         if selectedTransactionType == .insurance {
                             // Cash Value for insurance transactions
@@ -654,6 +700,10 @@ struct AddTransactionView: View {
                 selectedSellAssetID = nil
                 selectedPaymentInstitution = nil
             }
+
+            if newValue == .deposit && selectedDepositCategory != .fixed {
+                hasMaturityDate = false
+            }
         }
         .onAppear {
             if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
@@ -674,6 +724,11 @@ struct AddTransactionView: View {
             // Reset selected sell asset when trading institution text changes for sell transactions
             if selectedTransactionType == .sell {
                 selectedSellAssetID = nil
+            }
+        }
+        .onChange(of: selectedDepositCategory) { _, newValue in
+            if selectedTransactionType == .deposit && newValue != .fixed {
+                hasMaturityDate = false
             }
         }
         .alert("Cash Requirement", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
@@ -862,6 +917,8 @@ struct AddTransactionView: View {
             transaction.createdAt = Date()
         }
 
+        let previousAsset = transaction.asset
+
         if transaction.createdAt == nil {
             transaction.createdAt = Date()
         }
@@ -923,6 +980,11 @@ struct AddTransactionView: View {
                 transaction.quantity = 1
                 transaction.price = amount
 
+                if selectedTransactionType == .deposit {
+                    let depositAsset = findOrCreateDepositAsset(for: selectedDepositCategory, existingAsset: previousAsset)
+                    transaction.asset = depositAsset
+                }
+
                 let netCash = amount - fees - tax
                 switch selectedTransactionType {
                 case .deposit:
@@ -932,10 +994,8 @@ struct AddTransactionView: View {
                     // Always update institution cash for deposits since our dashboard shows institution cash totals
                     if let institution = institutionForTransaction {
                         institution.cashBalanceSafe += convertedNetCash
-                    } else {
-                        // Fallback: if no institution, update portfolio cash directly (shouldn't happen with current UI)
-                        portfolio.addToCash(convertedNetCash)
                     }
+                    portfolio.addToCash(convertedNetCash)
                 case .dividend:
                     // For dividends, ensure non-negative amounts
                     let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
@@ -1162,6 +1222,40 @@ struct AddTransactionView: View {
         }
     }
 
+    private func findOrCreateDepositAsset(for category: DepositCategory, existingAsset: Asset?) -> Asset {
+        if let asset = existingAsset, asset.assetType == AssetType.deposit.rawValue {
+            asset.symbol = category.assetSymbol
+            asset.name = category.assetName
+            asset.assetType = AssetType.deposit.rawValue
+            asset.lastPriceUpdate = Date()
+            asset.setValue(depositInterestRate, forKey: "interestRate")
+            return asset
+        }
+
+        let request: NSFetchRequest<Asset> = Asset.fetchRequest()
+        request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, category.assetSymbol)
+
+        if let existingAsset = try? viewContext.fetch(request).first {
+            existingAsset.symbol = category.assetSymbol
+            existingAsset.name = category.assetName
+            existingAsset.assetType = AssetType.deposit.rawValue
+            existingAsset.lastPriceUpdate = Date()
+            existingAsset.setValue(depositInterestRate, forKey: "interestRate")
+            return existingAsset
+        }
+
+        let newAsset = Asset(context: viewContext)
+        newAsset.id = UUID()
+        newAsset.symbol = category.assetSymbol
+        newAsset.name = category.assetName
+        newAsset.assetType = AssetType.deposit.rawValue
+        newAsset.createdAt = Date()
+        newAsset.lastPriceUpdate = Date()
+        newAsset.currentPrice = 0
+        newAsset.setValue(depositInterestRate, forKey: "interestRate")
+        return newAsset
+    }
+
     private func findOrCreateAsset() -> Asset {
         let request: NSFetchRequest<Asset> = Asset.fetchRequest()
         request.predicate = NSPredicate(format: "symbol == %@", assetSymbol.uppercased())
@@ -1298,6 +1392,30 @@ struct BeneficiaryData: Identifiable {
     let id = UUID()
     var name: String
     var percentage: Double
+}
+
+enum DepositCategory: String, CaseIterable {
+    case demand = "demand deposit"
+    case fixed = "fixed deposit"
+
+    var displayTitle: String {
+        rawValue.capitalized
+    }
+
+    var assetSymbol: String {
+        displayTitle
+    }
+
+    var assetName: String {
+        displayTitle
+    }
+
+    static func resolve(from value: String?) -> DepositCategory? {
+        guard let normalized = value?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !normalized.isEmpty else {
+            return nil
+        }
+        return DepositCategory(rawValue: normalized)
+    }
 }
 
 private extension AddTransactionView {

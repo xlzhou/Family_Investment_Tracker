@@ -144,7 +144,7 @@ struct HoldingRowView: View {
                                 .font(.subheadline)
                                 .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
 
-                            Text("(" + Formatters.signedPercent(gainLossPercentage) + ")")
+                            Text("(" + Formatters.signedPercent(gainLossPercentage, fractionDigits: 2) + ")")
                                 .font(.caption)
                                 .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
                         }

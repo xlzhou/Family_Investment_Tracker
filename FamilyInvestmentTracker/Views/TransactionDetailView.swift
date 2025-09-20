@@ -17,12 +17,22 @@ struct TransactionDetailView: View {
         return transaction.amount - transaction.fees - transaction.tax
     }
 
+    private var transactionTypeEnum: TransactionType? {
+        TransactionType(rawValue: transaction.type ?? "")
+    }
+
     private var isInsurance: Bool {
         transaction.type == TransactionType.insurance.rawValue
     }
 
     private var insurance: NSManagedObject? {
         transaction.asset?.value(forKey: "insurance") as? NSManagedObject
+    }
+
+    private var depositInterestRateText: String? {
+        guard transactionTypeEnum == .deposit else { return nil }
+        let rate = (transaction.asset?.value(forKey: "interestRate") as? Double) ?? 0
+        return Formatters.percent(rate, fractionDigits: 2)
     }
 
     var body: some View {
@@ -88,7 +98,8 @@ struct TransactionDetailView: View {
                     }
                 }
                 
-                Section(header: Text(transaction.type == TransactionType.dividend.rawValue ? "Dividend Source" : "Asset")) {
+                let isDividend = transactionTypeEnum == .dividend
+                Section(header: Text(isDividend ? "Dividend Source" : "Asset")) {
                     HStack {
                         Text("Symbol")
                         Spacer()
@@ -101,7 +112,20 @@ struct TransactionDetailView: View {
                         Text(transaction.asset?.name ?? "-")
                             .foregroundColor(.secondary)
                     }
-                    if transaction.type != TransactionType.dividend.rawValue {
+                    if transactionTypeEnum == .deposit {
+                        HStack {
+                            Text("Interest Rate")
+                            Spacer()
+                            Text(depositInterestRateText ?? "0%")
+                                .foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("Price")
+                            Spacer()
+                            Text(Formatters.currency(transaction.price, symbol: currency.symbol))
+                                .foregroundColor(.secondary)
+                        }
+                    } else if !isDividend {
                         HStack {
                             Text("Quantity")
                             Spacer()
