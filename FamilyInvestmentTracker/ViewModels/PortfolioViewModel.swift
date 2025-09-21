@@ -163,7 +163,7 @@ extension PortfolioViewModel {
 
         for institution in institutions {
             let name = normalizedInstitutionName(institution)
-            let cash = institution.cashBalanceSafe
+            let cash = institution.getCashBalance(for: portfolio)
             if abs(cash) > 0.01 {
                 institutionValues[name, default: 0] += cash
                 allocatedInstitutionCash += cash

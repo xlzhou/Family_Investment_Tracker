@@ -15,7 +15,7 @@ struct ContentView: View {
             }
         }
         .environmentObject(authManager)
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .background || newPhase == .inactive {
                 authManager.logout()
             }

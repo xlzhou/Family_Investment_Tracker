@@ -247,7 +247,7 @@ struct PortfolioHeaderView: View {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
         let institutionSet = Set(transactions.compactMap { $0.institution })
 
-        return institutionSet.reduce(0) { $0 + $1.cashBalanceSafe }
+        return institutionSet.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
     }
 
     private var totalValueInMainCurrency: Double {
@@ -333,7 +333,7 @@ struct QuickStatsView: View {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
         let institutionSet = Set(transactions.compactMap { $0.institution })
 
-        return institutionSet.reduce(0) { $0 + $1.cashBalanceSafe }
+        return institutionSet.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
     }
     
     var body: some View {
@@ -405,12 +405,12 @@ struct CashBreakdownViewInline: View {
         let institutionSet = Set(transactions.compactMap { $0.institution })
 
         // Filter to only show institutions with non-zero cash balance
-        return institutionSet.filter { $0.cashBalanceSafe != 0 }
+        return institutionSet.filter { $0.getCashBalance(for: portfolio) != 0 }
             .sorted { ($0.name ?? "") < ($1.name ?? "") }
     }
 
     private var totalCash: Double {
-        institutionsWithCash.reduce(0) { $0 + $1.cashBalanceSafe }
+        institutionsWithCash.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
     }
 
     var body: some View {
@@ -452,9 +452,9 @@ struct CashBreakdownViewInline: View {
                                     Spacer()
 
                                     VStack(alignment: .trailing, spacing: 2) {
-                                        Text(currencyService.formatAmount(institution.cashBalanceSafe, in: mainCurrency))
+                                        Text(currencyService.formatAmount(institution.getCashBalance(for: portfolio), in: mainCurrency))
                                             .font(.headline)
-                                            .foregroundColor(institution.cashBalanceSafe >= 0 ? .primary : .red)
+                                            .foregroundColor(institution.getCashBalance(for: portfolio) >= 0 ? .primary : .red)
 
                                         Text(mainCurrency.displayName)
                                             .font(.caption)

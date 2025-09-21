@@ -18,21 +18,45 @@ extension Portfolio {
     }
 
     func resolvedCashBalance(tolerance: Double = 0.01) -> Double {
+        // NEW: Use PortfolioInstitutionCash system
+        let newSystemCash = getTotalCashBalanceFromNewSystem()
+
+        // LEGACY: For backward compatibility during migration
         let portfolioCash = cashBalanceSafe
         let transactions = (transactions?.allObjects as? [Transaction]) ?? []
         let institutions = Set(transactions.compactMap { $0.institution })
-        let institutionCash = institutions.reduce(0) { partial, institution in
+        let oldSystemCash = institutions.reduce(0) { partial, institution in
             partial + institution.cashBalanceSafe
         }
 
-        if abs(portfolioCash - institutionCash) <= tolerance {
+        // Prefer new system if it has data, otherwise fall back to old system
+        if newSystemCash != 0 {
+            return newSystemCash
+        }
+
+        // Legacy logic for backward compatibility
+        if abs(portfolioCash - oldSystemCash) <= tolerance {
             return portfolioCash
         }
 
-        if institutionCash != 0 {
-            return institutionCash
+        if oldSystemCash != 0 {
+            return oldSystemCash
         }
 
         return portfolioCash
+    }
+
+    private func getTotalCashBalanceFromNewSystem() -> Double {
+        guard let context = self.managedObjectContext else { return 0.0 }
+
+        let request: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: "PortfolioInstitutionCash")
+        request.predicate = NSPredicate(format: "portfolio == %@", self)
+
+        guard let cashRecords = try? context.fetch(request) else { return 0.0 }
+
+        return cashRecords.reduce(0.0) { total, record in
+            let balance = (record.value(forKey: "cashBalance") as? Double) ?? 0.0
+            return total + balance
+        }
     }
 }

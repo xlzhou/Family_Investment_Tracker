@@ -10,10 +10,11 @@ struct BackupPackage: Codable {
     let transactions: [BackupTransaction]
     let institutions: [BackupInstitution]
     let insurances: [BackupInsurance]
+    let portfolioInstitutionCash: [BackupPortfolioInstitutionCash]
     let dashboardCurrencyCode: String?
 
     private enum CodingKeys: String, CodingKey {
-        case version, generatedAt, portfolios, holdings, assets, transactions, institutions, insurances, dashboardCurrencyCode
+        case version, generatedAt, portfolios, holdings, assets, transactions, institutions, insurances, portfolioInstitutionCash, dashboardCurrencyCode
     }
 
     init(version: Int,
@@ -24,6 +25,7 @@ struct BackupPackage: Codable {
          transactions: [BackupTransaction],
          institutions: [BackupInstitution],
          insurances: [BackupInsurance],
+         portfolioInstitutionCash: [BackupPortfolioInstitutionCash],
          dashboardCurrencyCode: String?) {
         self.version = version
         self.generatedAt = generatedAt
@@ -33,6 +35,7 @@ struct BackupPackage: Codable {
         self.transactions = transactions
         self.institutions = institutions
         self.insurances = insurances
+        self.portfolioInstitutionCash = portfolioInstitutionCash
         self.dashboardCurrencyCode = dashboardCurrencyCode
     }
 
@@ -46,6 +49,7 @@ struct BackupPackage: Codable {
         transactions = try container.decode([BackupTransaction].self, forKey: .transactions)
         institutions = try container.decode([BackupInstitution].self, forKey: .institutions)
         insurances = try container.decodeIfPresent([BackupInsurance].self, forKey: .insurances) ?? []
+        portfolioInstitutionCash = try container.decodeIfPresent([BackupPortfolioInstitutionCash].self, forKey: .portfolioInstitutionCash) ?? []
         dashboardCurrencyCode = try container.decodeIfPresent(String.self, forKey: .dashboardCurrencyCode)
     }
 
@@ -59,6 +63,7 @@ struct BackupPackage: Codable {
         try container.encode(transactions, forKey: .transactions)
         try container.encode(institutions, forKey: .institutions)
         try container.encode(insurances, forKey: .insurances)
+        try container.encode(portfolioInstitutionCash, forKey: .portfolioInstitutionCash)
         try container.encodeIfPresent(dashboardCurrencyCode, forKey: .dashboardCurrencyCode)
     }
 }
@@ -322,6 +327,15 @@ struct BackupInstitution: Codable {
     let cashBalance: Double?
 }
 
+struct BackupPortfolioInstitutionCash: Codable {
+    let id: UUID
+    let portfolioID: UUID
+    let institutionID: UUID
+    let cashBalance: Double
+    let createdAt: Date?
+    let updatedAt: Date?
+}
+
 final class BackupService {
     static let shared = BackupService()
     private init() {}
@@ -342,12 +356,14 @@ final class BackupService {
             let assetFetch: NSFetchRequest<Asset> = Asset.fetchRequest()
             let transactionFetch: NSFetchRequest<Transaction> = Transaction.fetchRequest()
             let institutionFetch: NSFetchRequest<Institution> = Institution.fetchRequest()
+            let portfolioInstitutionCashFetch: NSFetchRequest<PortfolioInstitutionCash> = PortfolioInstitutionCash.fetchRequest()
             
             let portfolios = try context.fetch(portfolioFetch)
             let holdings = try context.fetch(holdingFetch)
             let assets = try context.fetch(assetFetch)
             let transactions = try context.fetch(transactionFetch)
             let institutions = try context.fetch(institutionFetch)
+            let portfolioInstitutionCashRecords = try context.fetch(portfolioInstitutionCashFetch)
             
             portfolios.forEach { updatedObjects = ensureIdentifier(for: $0) || updatedObjects }
             holdings.forEach { updatedObjects = ensureIdentifier(for: $0) || updatedObjects }
@@ -480,6 +496,16 @@ final class BackupService {
                         beneficiaries: beneficiaries
                     )
                 },
+                portfolioInstitutionCash: portfolioInstitutionCashRecords.map { cashRecord in
+                    BackupPortfolioInstitutionCash(
+                        id: (cashRecord.value(forKey: "id") as? UUID) ?? UUID(),
+                        portfolioID: (cashRecord.value(forKey: "portfolio") as? Portfolio)?.id ?? UUID(),
+                        institutionID: (cashRecord.value(forKey: "institution") as? Institution)?.id ?? UUID(),
+                        cashBalance: (cashRecord.value(forKey: "cashBalance") as? Double) ?? 0.0,
+                        createdAt: cashRecord.value(forKey: "createdAt") as? Date,
+                        updatedAt: cashRecord.value(forKey: "updatedAt") as? Date
+                    )
+                },
                 dashboardCurrencyCode: DashboardSettingsService.shared.dashboardCurrency.rawValue
             )
         }
@@ -571,6 +597,20 @@ final class BackupService {
                 }
                 if let assetID = holdingData.assetID {
                     holding.asset = assetsDict[assetID]
+                }
+            }
+
+            for cashData in package.portfolioInstitutionCash {
+                let cashRecord = PortfolioInstitutionCash(context: context)
+                cashRecord.setValue(cashData.id, forKey: "id")
+                cashRecord.setValue(cashData.cashBalance, forKey: "cashBalance")
+                cashRecord.setValue(cashData.createdAt, forKey: "createdAt")
+                cashRecord.setValue(cashData.updatedAt, forKey: "updatedAt")
+                if let portfolio = portfoliosDict[cashData.portfolioID] {
+                    cashRecord.setValue(portfolio, forKey: "portfolio")
+                }
+                if let institution = institutionsDict[cashData.institutionID] {
+                    cashRecord.setValue(institution, forKey: "institution")
                 }
             }
 
@@ -666,7 +706,7 @@ final class BackupService {
     }
     
     private func clearExistingData(in context: NSManagedObjectContext) throws {
-        let entityNames = ["Transaction", "Holding", "Insurance", "Beneficiary", "Portfolio", "Asset", "Institution"]
+        let entityNames = ["Transaction", "Holding", "Insurance", "Beneficiary", "PortfolioInstitutionCash", "Portfolio", "Asset", "Institution"]
         for name in entityNames {
             let fetch = NSFetchRequest<NSFetchRequestResult>(entityName: name)
             let objects = try context.fetch(fetch)

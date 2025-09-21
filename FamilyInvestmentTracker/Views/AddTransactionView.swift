@@ -947,7 +947,7 @@ struct AddTransactionView: View {
                 }
                 let requiredFundsTransactionCurrency = isStructuredProductBuy ? (structuredProductInvestmentAmount + fees + tax) : (quantity * price + fees + tax)
                 let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
-                var availableFunds = institution.cashBalanceSafe
+                var availableFunds = institution.getCashBalance(for: portfolio)
                 if let existingTransaction,
                    existingTransactionType == .buy,
                    existingTransaction.institution == institution {
@@ -973,7 +973,7 @@ struct AddTransactionView: View {
                 }
                 let premiumAmount = max(0, insurancePaymentRawAmount())
                 let requiredFunds = max(0, convertToPortfolioCurrency(premiumAmount, from: selectedCurrency))
-                var availableFunds = paymentInstitution.cashBalanceSafe
+                var availableFunds = paymentInstitution.getCashBalance(for: portfolio)
                 if let existingTransaction,
                    existingTransactionType == .insurance {
                     let previousInstitutionName = existingTransaction.value(forKey: "paymentInstitutionName") as? String ?? existingTransaction.institution?.name
@@ -998,9 +998,9 @@ struct AddTransactionView: View {
                     let withdrawalAmount = abs(amount)
                     let netWithdrawal = withdrawalAmount + fees + tax  // fees and tax add to the withdrawal cost
                     let convertedWithdrawal = convertToPortfolioCurrency(netWithdrawal, from: selectedCurrency)
-                    if institution.cashBalanceSafe < convertedWithdrawal {
+                    if institution.getCashBalance(for: portfolio) < convertedWithdrawal {
                         let institutionName = institution.name ?? "this institution"
-                        let currentBalance = currencyService.formatAmount(institution.cashBalanceSafe, in: portfolioCurrency)
+                        let currentBalance = currencyService.formatAmount(institution.getCashBalance(for: portfolio), in: portfolioCurrency)
                         let requiredAmount = currencyService.formatAmount(convertedWithdrawal, in: portfolioCurrency)
                         failWithMessage("Not enough cash in \(institutionName) for this withdrawal. Current balance: \(currentBalance), Required: \(requiredAmount).")
                         return
@@ -1100,7 +1100,7 @@ struct AddTransactionView: View {
                     let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
                     if convertedPremium > 0, let paymentInstitution = resolvedPaymentInstitution {
                         portfolio.addToCash(-convertedPremium)
-                        paymentInstitution.cashBalanceSafe -= convertedPremium
+                        paymentInstitution.addToCashBalance(for: portfolio, delta: -convertedPremium)
                         transaction.setValue(true, forKey: "paymentDeducted")
                         transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
                         transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
@@ -1128,7 +1128,7 @@ struct AddTransactionView: View {
 
                     // Always update institution cash for deposits since our dashboard shows institution cash totals
                     if let institution = institutionForTransaction {
-                        institution.cashBalanceSafe += convertedNetCash
+                        institution.addToCashBalance(for: portfolio, delta: convertedNetCash)
                     }
                     portfolio.addToCash(convertedNetCash)
                 case .dividend:
@@ -1137,7 +1137,7 @@ struct AddTransactionView: View {
 
                     // Update institution cash if available, otherwise portfolio cash
                     if let institution = institutionForTransaction {
-                        institution.cashBalanceSafe += convertedNetCash
+                        institution.addToCashBalance(for: portfolio, delta: convertedNetCash)
                     } else {
                         portfolio.addToCash(convertedNetCash)
                     }
@@ -1157,7 +1157,7 @@ struct AddTransactionView: View {
 
                     // Update institution cash if available, otherwise portfolio cash
                     if let institution = institutionForTransaction {
-                        institution.cashBalanceSafe += convertedNetCash
+                        institution.addToCashBalance(for: portfolio, delta: convertedNetCash)
                     } else {
                         portfolio.addToCash(convertedNetCash)
                     }
@@ -1200,7 +1200,7 @@ struct AddTransactionView: View {
 
                     // Update institution cash if available, otherwise portfolio cash
                     if let institution = institutionForTransaction {
-                        institution.cashBalanceSafe += convertedProceeds
+                        institution.addToCashBalance(for: portfolio, delta: convertedProceeds)
                     } else {
                         portfolio.addToCash(convertedProceeds)
                     }
@@ -1211,7 +1211,7 @@ struct AddTransactionView: View {
 
                 if cashDisciplineEnabled {
                     if let institution = institutionForTransaction {
-                        institution.cashBalanceSafe -= requiredFunds
+                        institution.addToCashBalance(for: portfolio, delta: -requiredFunds)
                     } else {
                         portfolio.addToCash(-requiredFunds)
                     }
@@ -1359,7 +1359,7 @@ struct AddTransactionView: View {
             newInstitution.id = UUID()
             newInstitution.name = name
             newInstitution.createdAt = Date()
-            newInstitution.cashBalanceSafe = 0
+            newInstitution.setCashBalance(for: portfolio, amount: 0)
             return (newInstitution, true)
         }
     }

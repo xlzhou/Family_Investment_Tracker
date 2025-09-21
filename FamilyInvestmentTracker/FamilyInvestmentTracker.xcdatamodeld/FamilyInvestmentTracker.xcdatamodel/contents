@@ -7,6 +7,7 @@
         <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Transaction" inverseName="institution" inverseEntity="Transaction"/>
         <relationship name="assetAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="institution" inverseEntity="InstitutionAssetAvailability"/>
+        <relationship name="portfolioCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCash" inverseName="institution" inverseEntity="PortfolioInstitutionCash"/>
     </entity>
     <entity name="Asset" representedClassName="Asset" syncable="YES" codeGenerationType="class">
         <attribute name="assetType" optional="YES" attributeType="String"/>
@@ -46,6 +47,7 @@
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Holding" inverseName="portfolio" inverseEntity="Holding"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Transaction" inverseName="portfolio" inverseEntity="Transaction"/>
+        <relationship name="institutionCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCash" inverseName="portfolio" inverseEntity="PortfolioInstitutionCash"/>
     </entity>
     <entity name="Transaction" representedClassName="Transaction" syncable="YES" codeGenerationType="class">
         <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
@@ -110,5 +112,13 @@
         <attribute name="lastTransactionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="assetAvailabilities" inverseEntity="Institution"/>
         <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="institutionAvailabilities" inverseEntity="Asset"/>
+    </entity>
+    <entity name="PortfolioInstitutionCash" representedClassName="PortfolioInstitutionCash" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="institutionCashBalances" inverseEntity="Portfolio"/>
+        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="portfolioCashBalances" inverseEntity="Institution"/>
     </entity>
 </model>
