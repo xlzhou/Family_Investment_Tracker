@@ -1406,6 +1406,11 @@ struct AddTransactionView: View {
         request.predicate = NSPredicate(format: "symbol == %@", assetSymbol.uppercased())
         
         if let existingAsset = try? viewContext.fetch(request).first {
+            existingAsset.assetType = selectedAssetType.rawValue
+            if !assetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existingAsset.name = assetName
+            }
+            existingAsset.symbol = assetSymbol.uppercased()
             return existingAsset
         } else {
             let newAsset = Asset(context: viewContext)

@@ -10,25 +10,27 @@ struct TransactionsView: View {
     @State private var showingDeleteConfirmation = false
     @State private var transactionToDelete: Transaction?
     @State private var showingRealizedPnL = false
+    @State private var selectedAssetType: AssetType? = nil
+    @State private var selectedInstitutionID: NSManagedObjectID? = nil
+    @State private var sortOption: TransactionSortOption = .dateDescending
     
     private var filteredTransactions: [Transaction] {
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-        ensureTransactionIdentifiersIfNeeded(for: transactions)
-        let sorted = transactions.sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
-        
+        var transactions = allTransactions
+
+        // Apply base filter
         switch selectedFilter {
         case .all:
-            return sorted
+            break
         case .buy:
-            return sorted.filter { $0.type == TransactionType.buy.rawValue }
+            transactions = transactions.filter { $0.type == TransactionType.buy.rawValue }
         case .sell:
-            return sorted.filter { $0.type == TransactionType.sell.rawValue }
+            transactions = transactions.filter { $0.type == TransactionType.sell.rawValue }
         case .dividend:
-            return sorted.filter { $0.type == TransactionType.dividend.rawValue }
+            transactions = transactions.filter { $0.type == TransactionType.dividend.rawValue }
         case .interest:
-            return sorted.filter { $0.type == TransactionType.interest.rawValue }
+            transactions = transactions.filter { $0.type == TransactionType.interest.rawValue }
         case .deposit:
-            return sorted.filter { t in
+            transactions = transactions.filter { t in
                 let tType = TransactionType(rawValue: t.type ?? "")
                 let fees = t.fees
                 let tax = t.tax
@@ -44,8 +46,38 @@ struct TransactionsView: View {
                 }
             }
         case .insurance:
-            return sorted.filter { $0.type == TransactionType.insurance.rawValue }
+            transactions = transactions.filter { $0.type == TransactionType.insurance.rawValue }
         }
+
+        // Asset type filter
+        if let type = selectedAssetType {
+            transactions = transactions.filter { transaction in
+                guard let assetTypeRaw = transaction.asset?.assetType else { return false }
+                return assetTypeRaw == type.rawValue
+            }
+        }
+
+        // Institution filter
+        if let institutionID = selectedInstitutionID,
+           let institution = try? viewContext.existingObject(with: institutionID) as? Institution {
+            transactions = transactions.filter { transaction in
+                if let txnInstitution = transaction.institution {
+                    return txnInstitution.objectID == institution.objectID
+                }
+                if let asset = transaction.asset {
+                    return InstitutionAssetService.shared.isAssetAvailableAt(asset: asset, institution: institution, context: viewContext)
+                }
+                return false
+            }
+        }
+
+        return sortTransactions(transactions)
+    }
+
+    private var allTransactions: [Transaction] {
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        ensureTransactionIdentifiersIfNeeded(for: transactions)
+        return transactions
     }
     
     var body: some View {
@@ -58,7 +90,12 @@ struct TransactionsView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding()
-            
+
+            if !allTransactions.isEmpty {
+                filterBar
+                    .padding(.bottom, 8)
+            }
+
             // Transactions List
             if filteredTransactions.isEmpty {
                 VStack(spacing: 20) {
@@ -186,6 +223,133 @@ struct TransactionsView: View {
         }
     }
 
+}
+
+private extension TransactionsView {
+    enum TransactionSortOption: String, CaseIterable {
+        case dateDescending
+        case dateAscending
+        case netAmountDescending
+        case netAmountAscending
+
+        var displayName: String {
+            switch self {
+            case .dateDescending: return "Date ▾"
+            case .dateAscending: return "Date ▴"
+            case .netAmountDescending: return "Net Amount ▾"
+            case .netAmountAscending: return "Net Amount ▴"
+            }
+        }
+    }
+
+    var filterBar: some View {
+        HStack(spacing: 12) {
+            Menu {
+                Button("All Asset Types") { selectedAssetType = nil }
+                ForEach(availableAssetTypes, id: \.self) { type in
+                    Button(type.displayName) { selectedAssetType = type }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                    Text(selectedAssetType?.displayName ?? "All Types")
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            Menu {
+                Button("All Institutions") { selectedInstitutionID = nil }
+                ForEach(availableInstitutions, id: \.objectID) { institution in
+                    Button(institution.name ?? "Unknown") { selectedInstitutionID = institution.objectID }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "building.columns")
+                    Text(selectedInstitutionLabel)
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            Menu {
+                ForEach(TransactionSortOption.allCases, id: \.self) { option in
+                    Button(option.displayName) { sortOption = option }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.up.arrow.down")
+                    Text(sortOption.displayName)
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            if selectedAssetType != nil || selectedInstitutionID != nil || sortOption != .dateDescending {
+                Button("Clear") {
+                    selectedAssetType = nil
+                    selectedInstitutionID = nil
+                    sortOption = .dateDescending
+                }
+                .font(.caption)
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal)
+    }
+
+    var availableAssetTypes: [AssetType] {
+        let types = allTransactions.compactMap { txn -> AssetType? in
+            guard let typeRaw = txn.asset?.assetType else { return nil }
+            return AssetType(rawValue: typeRaw)
+        }
+        return Array(Set(types)).sorted { $0.displayName < $1.displayName }
+    }
+
+    var availableInstitutions: [Institution] {
+        var seen = Set<NSManagedObjectID>()
+        var results: [Institution] = []
+
+        for transaction in allTransactions {
+            if let institution = transaction.institution, seen.insert(institution.objectID).inserted {
+                results.append(institution)
+            }
+        }
+
+        return results.sorted { ($0.name ?? "") < ($1.name ?? "") }
+    }
+
+    var selectedInstitutionLabel: String {
+        guard let institutionID = selectedInstitutionID,
+              let institution = try? viewContext.existingObject(with: institutionID) as? Institution else {
+            return "All Institutions"
+        }
+        return institution.name ?? "All Institutions"
+    }
+
+    func sortTransactions(_ transactions: [Transaction]) -> [Transaction] {
+        switch sortOption {
+        case .dateDescending:
+            return transactions.sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
+        case .dateAscending:
+            return transactions.sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
+        case .netAmountDescending:
+            return transactions.sorted { netValue(for: $0) > netValue(for: $1) }
+        case .netAmountAscending:
+            return transactions.sorted { netValue(for: $0) < netValue(for: $1) }
+        }
+    }
+
+    func netValue(for transaction: Transaction) -> Double {
+        transaction.amount - transaction.fees - transaction.tax
+    }
 }
 
 struct TransactionRowView: View {
