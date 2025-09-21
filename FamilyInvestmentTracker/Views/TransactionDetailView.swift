@@ -73,13 +73,13 @@ struct TransactionDetailView: View {
                         }
                     }
                     HStack {
-                        Text("Gross Amount")
+                        Text("Trade Amount")
                         Spacer()
                         Text(Formatters.currency(transaction.amount, symbol: currency.symbol))
                             .foregroundColor(.secondary)
                     }
                     HStack {
-                        Text("Net Amount")
+                        Text("Net Cash Flow")
                         Spacer()
                         Text(Formatters.currency(netValue, symbol: currency.symbol))
                             .foregroundColor(.primary)
