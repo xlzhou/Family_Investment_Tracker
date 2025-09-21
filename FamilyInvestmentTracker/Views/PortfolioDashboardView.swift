@@ -19,12 +19,13 @@ struct PortfolioDashboardView: View {
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             // Header with portfolio value
             PortfolioHeaderView(portfolio: portfolio)
             
             // Quick Stats
             QuickStatsView(portfolio: portfolio, showingCashBreakdown: $showingCashBreakdown)
+                .padding(.top, -8)
             
             // Tab Selection
             Picker("View", selection: $selectedTab) {
@@ -34,6 +35,7 @@ struct PortfolioDashboardView: View {
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
+            .padding(.top, -8)
             
             // Tab Content
             Group {
