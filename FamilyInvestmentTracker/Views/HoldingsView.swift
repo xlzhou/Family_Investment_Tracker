@@ -6,6 +6,8 @@ struct HoldingsView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest private var holdingsFetch: FetchedResults<Holding>
+    @State private var selectedAssetType: AssetType? = nil
+    @State private var selectedInstitutionID: NSManagedObjectID? = nil
 
     init(portfolio: Portfolio) {
         self.portfolio = portfolio
@@ -18,7 +20,10 @@ struct HoldingsView: View {
 
     var body: some View {
         VStack {
-            let filteredHoldings = holdingsFetch.filter { $0.quantity > 0 || ($0.asset?.assetType == AssetType.insurance.rawValue) }
+            if !allHoldings.isEmpty {
+                filterBar
+                    .padding(.horizontal)
+            }
 
             if filteredHoldings.isEmpty {
                 VStack(spacing: 20) {
@@ -48,6 +53,114 @@ struct HoldingsView: View {
                 .listStyle(PlainListStyle())
             }
         }
+    }
+}
+
+private extension HoldingsView {
+    var allHoldings: [Holding] {
+        holdingsFetch.filter { $0.quantity > 0 || ($0.asset?.assetType == AssetType.insurance.rawValue) }
+    }
+
+    var filteredHoldings: [Holding] {
+        allHoldings.filter { holding in
+            guard let asset = holding.asset else { return false }
+
+            let matchesType: Bool
+            if let type = selectedAssetType {
+                matchesType = asset.assetType == type.rawValue
+            } else {
+                matchesType = true
+            }
+
+            let matchesInstitution: Bool
+            if let institutionID = selectedInstitutionID,
+               let institution = try? viewContext.existingObject(with: institutionID) as? Institution {
+                matchesInstitution = InstitutionAssetService.shared.isAssetAvailableAt(asset: asset, institution: institution, context: viewContext)
+            } else {
+                matchesInstitution = true
+            }
+
+            return matchesType && matchesInstitution
+        }
+    }
+
+    var availableAssetTypes: [AssetType] {
+        let types = allHoldings.compactMap { holding -> AssetType? in
+            guard let typeRaw = holding.asset?.assetType else { return nil }
+            return AssetType(rawValue: typeRaw)
+        }
+        return Array(Set(types)).sorted { $0.displayName < $1.displayName }
+    }
+
+    var availableInstitutions: [Institution] {
+        var seen = Set<NSManagedObjectID>()
+        var results: [Institution] = []
+
+        for holding in allHoldings {
+            guard let asset = holding.asset else { continue }
+            let institutions = InstitutionAssetService.shared.getInstitutionsOffering(asset: asset, context: viewContext)
+            for institution in institutions {
+                if seen.insert(institution.objectID).inserted {
+                    results.append(institution)
+                }
+            }
+        }
+
+        return results.sorted { ($0.name ?? "") < ($1.name ?? "") }
+    }
+
+    var filterBar: some View {
+        HStack(spacing: 12) {
+            Menu {
+                Button("All Asset Types") { selectedAssetType = nil }
+                ForEach(availableAssetTypes, id: \.self) { type in
+                    Button(type.displayName) { selectedAssetType = type }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                    Text(selectedAssetType?.displayName ?? "All Types")
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            Menu {
+                Button("All Institutions") { selectedInstitutionID = nil }
+                ForEach(availableInstitutions, id: \.objectID) { institution in
+                    Button(institution.name ?? "Unknown") { selectedInstitutionID = institution.objectID }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "building.columns")
+                    Text(selectedInstitutionLabel)
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            if selectedAssetType != nil || selectedInstitutionID != nil {
+                Button("Clear") {
+                    selectedAssetType = nil
+                    selectedInstitutionID = nil
+                }
+                .font(.caption)
+            }
+
+            Spacer()
+        }
+    }
+
+    var selectedInstitutionLabel: String {
+        guard let institutionID = selectedInstitutionID,
+              let institution = try? viewContext.existingObject(with: institutionID) as? Institution else {
+            return "All Institutions"
+        }
+        return institution.name ?? "All Institutions"
     }
 }
 

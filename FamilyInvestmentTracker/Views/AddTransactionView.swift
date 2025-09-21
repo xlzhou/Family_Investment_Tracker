@@ -625,8 +625,23 @@ struct AddTransactionView: View {
                                 .keyboardType(.decimalPad)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .frame(width: 120)
+                                .onChange(of: singlePremium) { _, _ in
+                                    calculateTotalPremium()
+                                }
                             Text(selectedCurrency.symbol)
                                 .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Payment Term")
+                            Spacer()
+                            TextField("0", value: $premiumPaymentTerm, format: .number)
+                                .keyboardType(.numberPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 80)
+                                .onChange(of: premiumPaymentTerm) { _, _ in
+                                    calculateTotalPremium()
+                                }
                         }
 
                         HStack {
@@ -638,15 +653,6 @@ struct AddTransactionView: View {
                                 .frame(width: 120)
                             Text(selectedCurrency.symbol)
                                 .foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            Text("Payment Term (Years)")
-                            Spacer()
-                            TextField("0", value: $premiumPaymentTerm, format: .number)
-                                .keyboardType(.numberPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 80)
                         }
 
                         Picker("Payment Status", selection: $premiumPaymentStatus) {
@@ -1575,6 +1581,12 @@ private extension AddTransactionView {
             return totalPremium
         }
         return singlePremium
+    }
+
+    func calculateTotalPremium() {
+        if premiumPaymentTerm > 0 && singlePremium > 0 {
+            totalPremium = singlePremium * Double(premiumPaymentTerm)
+        }
     }
 
     func maintainInstitutionAssetRelationship(institution: Institution, asset: Asset, transactionDate: Date) {

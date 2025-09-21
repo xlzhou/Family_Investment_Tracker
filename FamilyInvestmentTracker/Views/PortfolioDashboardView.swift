@@ -44,6 +44,7 @@ struct PortfolioDashboardView: View {
                     HoldingsView(portfolio: portfolio)
                 case 1:
                     TransactionsView(portfolio: portfolio)
+                        .padding(.top, -18)
                 case 2:
                     AnalyticsView(portfolio: portfolio)
                 default:

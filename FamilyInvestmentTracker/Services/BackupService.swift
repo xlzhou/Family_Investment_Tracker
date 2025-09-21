@@ -372,7 +372,7 @@ final class BackupService {
                         createdAt: portfolio.createdAt,
                         updatedAt: portfolio.updatedAt,
                         mainCurrency: portfolio.mainCurrency,
-                        cashBalance: portfolio.cashBalance,
+                        cashBalance: portfolio.resolvedCashBalance(),
                         totalValue: portfolio.totalValue,
                         enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled,
                         ownerID: portfolio.ownerID
@@ -649,6 +649,16 @@ final class BackupService {
                    assetRate != 0 {
                     transaction.setValue(assetRate, forKey: "interestRate")
                 }
+            }
+
+            // Recalculate portfolio cash balances from institutions to ensure consistency
+            for portfolio in portfoliosDict.values {
+                let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+                let institutions = Set(transactions.compactMap { $0.institution })
+                let institutionCashTotal = institutions.reduce(0) { partial, institution in
+                    partial + institution.cashBalanceSafe
+                }
+                portfolio.cashBalanceSafe = institutionCashTotal
             }
 
             try context.save()
