@@ -21,6 +21,7 @@ struct SettingsView: View {
     @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
     @State private var displayName: String = ""
     @State private var selectedDashboardCurrency: Currency = .usd
+    @StateObject private var currencyService = CurrencyService.shared
     
     var body: some View {
         NavigationView {
@@ -214,6 +215,89 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
+                }
+
+                // Currency Exchange Rates Section
+                Section(header: Text("Currency Exchange Rates"), footer: Text("Real-time exchange rates are fetched from Frankfurter API and cached locally for offline use.")) {
+                    HStack {
+                        Image(systemName: "dollarsign.circle.fill")
+                            .foregroundColor(.green)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Exchange Rates")
+                                .font(.headline)
+
+                            if currencyService.isLoading {
+                                Text("Updating...")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            } else if currencyService.lastUpdateDate != nil {
+                                Text("Updated \(currencyService.getRateAge() ?? "recently")")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("No data")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+
+                            if let errorMessage = currencyService.errorMessage {
+                                Text(errorMessage)
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                    .lineLimit(2)
+                            }
+                        }
+
+                        Spacer()
+
+                        Button(action: {
+                            currencyService.refreshRates()
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundColor(.blue)
+                        }
+                        .disabled(currencyService.isLoading)
+                    }
+
+                    // Display all exchange rates organized by base currency
+                    if !currencyService.exchangeRates.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(Currency.allCases, id: \.self) { baseCurrency in
+                                if let rates = currencyService.exchangeRates[baseCurrency.rawValue] {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("From \(baseCurrency.rawValue)")
+                                            .font(.caption)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.primary)
+
+                                        LazyVGrid(columns: [
+                                            GridItem(.flexible()),
+                                            GridItem(.flexible())
+                                        ], spacing: 4) {
+                                            ForEach(Currency.allCases.filter { $0 != baseCurrency }, id: \.self) { targetCurrency in
+                                                if let rate = rates[targetCurrency.rawValue] {
+                                                    HStack {
+                                                        Text("1 \(baseCurrency.symbol) → \(String(format: "%.3f", rate)) \(targetCurrency.symbol)")
+                                                            .font(.caption2)
+                                                            .foregroundColor(.secondary)
+                                                        Spacer()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .padding(.vertical, 2)
+
+                                    if baseCurrency != Currency.allCases.last {
+                                        Divider()
+                                            .padding(.vertical, 2)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
                 }
                 
                 // Security Section

@@ -1,18 +1,126 @@
 import Foundation
+import Combine
 
 class CurrencyService: ObservableObject {
     static let shared = CurrencyService()
-    
+
     @Published var exchangeRates: [String: [String: Double]] = [:]
     @Published var lastUpdateDate: Date?
-    
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+
+    private let apiURL = "https://api.frankfurter.app/latest"
+    private let cacheKey = "CurrencyService.ExchangeRates"
+    private let lastUpdateKey = "CurrencyService.LastUpdate"
+    private let cacheExpiryHours: TimeInterval = 1
+    private var cancellables = Set<AnyCancellable>()
+
     private init() {
-        loadDefaultRates()
+        loadCachedRates()
+        if shouldUpdateRates() {
+            fetchLatestRates()
+        }
     }
     
+    func fetchLatestRates() {
+        guard !isLoading else { return }
+
+        isLoading = true
+        errorMessage = nil
+
+        let supportedCurrencies = Currency.allCases.map { $0.rawValue }.joined(separator: ",")
+
+        guard let url = URL(string: "\(apiURL)?to=\(supportedCurrencies)") else {
+            handleFetchError("Invalid API URL")
+            return
+        }
+
+        URLSession.shared.dataTaskPublisher(for: url)
+            .map(\.data)
+            .decode(type: ExchangeRateResponse.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    self?.isLoading = false
+                    if case .failure(let error) = completion {
+                        self?.handleFetchError(error.localizedDescription)
+                    }
+                },
+                receiveValue: { [weak self] response in
+                    self?.processExchangeRateResponse(response)
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    private func processExchangeRateResponse(_ response: ExchangeRateResponse) {
+        let baseRates = response.rates
+        let baseCurrency = response.base
+
+        var newRates: [String: [String: Double]] = [:]
+
+        for fromCurrency in Currency.allCases {
+            var currencyRates: [String: Double] = [:]
+
+            for toCurrency in Currency.allCases {
+                if fromCurrency == toCurrency {
+                    currencyRates[toCurrency.rawValue] = 1.0
+                } else if fromCurrency.rawValue == baseCurrency {
+                    currencyRates[toCurrency.rawValue] = baseRates[toCurrency.rawValue] ?? 1.0
+                } else if toCurrency.rawValue == baseCurrency {
+                    if let fromRate = baseRates[fromCurrency.rawValue] {
+                        currencyRates[toCurrency.rawValue] = 1.0 / fromRate
+                    }
+                } else {
+                    if let fromRate = baseRates[fromCurrency.rawValue],
+                       let toRate = baseRates[toCurrency.rawValue] {
+                        currencyRates[toCurrency.rawValue] = toRate / fromRate
+                    }
+                }
+            }
+
+            newRates[fromCurrency.rawValue] = currencyRates
+        }
+
+        exchangeRates = newRates
+        lastUpdateDate = Date()
+        cacheRates()
+    }
+
+    private func loadCachedRates() {
+        if let cachedData = UserDefaults.standard.data(forKey: cacheKey),
+           let cachedRates = try? JSONDecoder().decode([String: [String: Double]].self, from: cachedData) {
+            exchangeRates = cachedRates
+        } else {
+            loadDefaultRates()
+        }
+
+        if let cachedDate = UserDefaults.standard.object(forKey: lastUpdateKey) as? Date {
+            lastUpdateDate = cachedDate
+        }
+    }
+
+    private func cacheRates() {
+        if let encodedData = try? JSONEncoder().encode(exchangeRates) {
+            UserDefaults.standard.set(encodedData, forKey: cacheKey)
+        }
+        UserDefaults.standard.set(lastUpdateDate, forKey: lastUpdateKey)
+    }
+
+    private func shouldUpdateRates() -> Bool {
+        guard let lastUpdate = lastUpdateDate else { return true }
+        let hoursSinceUpdate = Date().timeIntervalSince(lastUpdate) / 3600
+        return hoursSinceUpdate >= cacheExpiryHours
+    }
+
+    private func handleFetchError(_ message: String) {
+        errorMessage = message
+        if exchangeRates.isEmpty {
+            loadDefaultRates()
+        }
+    }
+
     private func loadDefaultRates() {
-        // Default exchange rates (these would normally come from an API)
-        // Base currency rates relative to USD
         exchangeRates = [
             "USD": [
                 "USD": 1.0,
@@ -100,12 +208,37 @@ class CurrencyService: ObservableObject {
     
     func getExchangeRate(from: Currency, to: Currency) -> Double {
         guard from != to else { return 1.0 }
-        
+
         if let rates = exchangeRates[from.rawValue],
            let rate = rates[to.rawValue] {
             return rate
         }
-        
+
         return 1.0
     }
+
+    func refreshRates() {
+        fetchLatestRates()
+    }
+
+    func getRateAge() -> String? {
+        guard let lastUpdate = lastUpdateDate else { return nil }
+
+        let timeInterval = Date().timeIntervalSince(lastUpdate)
+        let hours = Int(timeInterval / 3600)
+        let minutes = Int((timeInterval.truncatingRemainder(dividingBy: 3600)) / 60)
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m ago"
+        } else {
+            return "\(minutes)m ago"
+        }
+    }
+}
+
+struct ExchangeRateResponse: Codable {
+    let amount: Double
+    let base: String
+    let date: String
+    let rates: [String: Double]
 }
