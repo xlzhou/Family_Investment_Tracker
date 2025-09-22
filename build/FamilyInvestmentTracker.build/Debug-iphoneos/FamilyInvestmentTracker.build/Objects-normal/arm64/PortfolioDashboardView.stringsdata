@@ -1,0 +1,184 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/PortfolioDashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "View",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Holdings",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "Transactions",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Analytics",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share Portfolio",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "Share %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invite family members to collaborate on this portfolio. You'll be able to choose who has access in the next step.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Sharing",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 229
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Value",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Holdings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 286
+        }
+      },
+      {
+        "comment": "",
+        "key": "Transactions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash Holdings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Cash Holdings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash balances will appear here when you make deposit transactions.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 430
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash by Institution",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total cash is calculated by summing all institution cash balances.",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 468
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last updated recently",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 447
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Cash",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 470
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 492
+        }
+      }
+    ]
+  },
+  "version": 1
+}

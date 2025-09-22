@@ -1,0 +1,368 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Restore Complete",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Profile",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "This name will be shown to family members when you share portfolios.",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "iCloud Sync",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Securely sync your portfolio data across all your devices using iCloud.",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Data Export",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export your portfolio data for backup or analysis.",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "Backup & Restore",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create a full JSON backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "App Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dashboard",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose the currency used for totals in the Investment Portfolios view.",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "Currency Exchange Rates",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "Real-time exchange rates are fetched from Frankfurter API and cached locally for offline use.",
+        "location": {
+          "startingColumn": 79,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "Security",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display Name",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your name",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "iCloud Sync",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enabled",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "Available",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last Sync",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Never",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Now",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Portfolio Data",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "Creating Backup...",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Full Backup",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restoring Backup...",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore From Backup",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "1.0.0",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "Build",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "1",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "Summary Currency",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "Exchange Rates",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updating...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updated %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "No data",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "From %@",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "1 %@ → %@ %@",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign Out",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 348
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your data has been restored successfully.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 350
+        }
+      }
+    ]
+  },
+  "version": 1
+}

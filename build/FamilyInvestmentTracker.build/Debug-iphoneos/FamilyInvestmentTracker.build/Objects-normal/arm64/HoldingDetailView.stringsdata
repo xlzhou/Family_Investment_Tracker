@@ -1,0 +1,416 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/HoldingDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Asset Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "Holdings Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Performance",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price Information",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 389
+        }
+      },
+      {
+        "comment": "",
+        "key": "Symbol",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash Value",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Investment Amount",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maturity Date",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Linked Assets",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 203
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price Source",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-fetched from Yahoo Finance",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Value",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 240
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quantity",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 251
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price Source",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-fetched from Yahoo Finance",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "Average Cost Basis",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 298
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Value",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 310
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cost Basis",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unrealized Gain/Loss",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 338
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 339
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Dividends",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 358
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 359
+        }
+      },
+      {
+        "comment": "",
+        "key": "Realized Gain/Loss",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last Updated",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 391
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update Price",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 497
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update Current Price",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "Asset Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 458
+        }
+      },
+      {
+        "comment": "",
+        "key": "Note: This will manually set the price. To enable automatic price fetching, turn on 'Auto-fetch price' when creating or editing transactions for this asset.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 486
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 449
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 443
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 444
+        }
+      },
+      {
+        "comment": "",
+        "key": "Symbol",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 467
+        }
+      },
+      {
+        "comment": "",
+        "key": "Previous Price",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 475
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 501
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 507
+        }
+      },
+      {
+        "comment": "",
+        "key": "No preview data available",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 538
+        }
+      }
+    ]
+  },
+  "version": 1
+}

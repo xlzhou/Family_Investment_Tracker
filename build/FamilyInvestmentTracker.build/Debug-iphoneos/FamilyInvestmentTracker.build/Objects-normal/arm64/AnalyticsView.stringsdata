@@ -1,0 +1,144 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/AnalyticsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Performance Summary",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Asset Allocation",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "No assets to display",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "By Asset Type",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%% • %@",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "By Institution",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%% • %@",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "Portfolio Performance (30 Days)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dividend History (12 Months)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 368
+        }
+      },
+      {
+        "comment": "",
+        "key": "Month",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dividends",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 375
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -9,7 +9,7 @@ class CurrencyService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let apiURL = "https://api.frankfurter.app/latest"
+    private let apiBaseURL = "https://query1.finance.yahoo.com/v8/finance/chart"
     private let cacheKey = "CurrencyService.ExchangeRates"
     private let lastUpdateKey = "CurrencyService.LastUpdate"
     private let cacheExpiryHours: TimeInterval = 1
@@ -28,35 +28,51 @@ class CurrencyService: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        let supportedCurrencies = Currency.allCases.map { $0.rawValue }.joined(separator: ",")
+        let currencies = Currency.allCases
+        let baseCurrency = "USD"
+        var fetchedRates: [String: Double] = [:]
+        let group = DispatchGroup()
 
-        guard let url = URL(string: "\(apiURL)?to=\(supportedCurrencies)") else {
-            handleFetchError("Invalid API URL")
-            return
+        for currency in currencies {
+            if currency.rawValue == baseCurrency {
+                fetchedRates[currency.rawValue] = 1.0
+                continue
+            }
+
+            group.enter()
+            let symbol = "\(baseCurrency)\(currency.rawValue)=X"
+            guard let url = URL(string: "\(apiBaseURL)/\(symbol)") else {
+                group.leave()
+                continue
+            }
+
+            URLSession.shared.dataTaskPublisher(for: url)
+                .map(\.data)
+                .decode(type: YahooFinanceResponse.self, decoder: JSONDecoder())
+                .receive(on: DispatchQueue.main)
+                .sink(
+                    receiveCompletion: { completion in
+                        if case .failure(let error) = completion {
+                            print("Error fetching \(symbol): \(error)")
+                        }
+                        group.leave()
+                    },
+                    receiveValue: { response in
+                        if let rate = response.chart.result.first?.meta.regularMarketPrice {
+                            fetchedRates[currency.rawValue] = rate
+                        }
+                    }
+                )
+                .store(in: &cancellables)
         }
 
-        URLSession.shared.dataTaskPublisher(for: url)
-            .map(\.data)
-            .decode(type: ExchangeRateResponse.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    self?.isLoading = false
-                    if case .failure(let error) = completion {
-                        self?.handleFetchError(error.localizedDescription)
-                    }
-                },
-                receiveValue: { [weak self] response in
-                    self?.processExchangeRateResponse(response)
-                }
-            )
-            .store(in: &cancellables)
+        group.notify(queue: .main) { [weak self] in
+            self?.isLoading = false
+            self?.processYahooFinanceRates(fetchedRates, baseCurrency: baseCurrency)
+        }
     }
 
-    private func processExchangeRateResponse(_ response: ExchangeRateResponse) {
-        let baseRates = response.rates
-        let baseCurrency = response.base
-
+    private func processYahooFinanceRates(_ baseRates: [String: Double], baseCurrency: String) {
         var newRates: [String: [String: Double]] = [:]
 
         for fromCurrency in Currency.allCases {
@@ -236,9 +252,19 @@ class CurrencyService: ObservableObject {
     }
 }
 
-struct ExchangeRateResponse: Codable {
-    let amount: Double
-    let base: String
-    let date: String
-    let rates: [String: Double]
+struct YahooFinanceResponse: Codable {
+    let chart: ChartData
+}
+
+struct ChartData: Codable {
+    let result: [ResultData]
+}
+
+struct ResultData: Codable {
+    let meta: MetaData
+}
+
+struct MetaData: Codable {
+    let regularMarketPrice: Double
+    let symbol: String
 }

@@ -1,0 +1,80 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/RealizedPnLView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Realized P&L",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date Range",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Summary",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "By Symbol",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "Transactions",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "From",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "To",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "No realized gains, dividends, or interest in this period.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Realized P&L",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 76
+        }
+      }
+    ]
+  },
+  "version": 1
+}

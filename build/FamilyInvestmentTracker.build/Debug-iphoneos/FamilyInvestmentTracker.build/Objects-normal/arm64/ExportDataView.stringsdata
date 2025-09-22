@@ -1,0 +1,144 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/ExportDataView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Export Data",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Format",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Portfolios",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose which portfolios to include in the export.",
+        "location": {
+          "startingColumn": 77,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Information",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Format",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ • %lld transactions",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select All",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deselect All",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Selected Portfolios",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Transactions",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "File Format",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Exporting...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Data",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 143
+        }
+      }
+    ]
+  },
+  "version": 1
+}

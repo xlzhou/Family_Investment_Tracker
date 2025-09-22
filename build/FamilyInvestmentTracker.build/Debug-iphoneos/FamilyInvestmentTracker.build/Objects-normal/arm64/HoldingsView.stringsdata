@@ -1,0 +1,264 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/HoldingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "No Holdings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start by adding your first transaction",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "All Asset Types",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "All Institutions",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Linked Assets: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 416
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash Value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Type",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insurance Policy",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 307
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policyholder",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Owner",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Death Benefit",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insurance",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "Investment Amount",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 335
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 346
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shares",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 371
+        }
+      },
+      {
+        "comment": "",
+        "key": "Avg Cost",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 393
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Dividends:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 423
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update Cash Value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 512
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update Cash Value",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 482
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Cash Value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 473
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Type",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 484
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insurance Policy",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 486
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policyholder",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Owner",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 493
+        }
+      },
+      {
+        "comment": "",
+        "key": "Previous Cash Value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 498
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 516
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 522
+        }
+      }
+    ]
+  },
+  "version": 1
+}

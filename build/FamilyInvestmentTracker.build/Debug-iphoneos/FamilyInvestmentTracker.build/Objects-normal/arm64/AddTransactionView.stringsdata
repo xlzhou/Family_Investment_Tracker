@@ -1,0 +1,880 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/AddTransactionView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Cash Requirement",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 846
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Transaction",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 752
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Transaction",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 752
+        }
+      },
+      {
+        "comment": "",
+        "key": "Transaction Type",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "Currency",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trading Institution",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 311
+        }
+      },
+      {
+        "comment": "",
+        "key": "Asset Information",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 361
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sell Security",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dividend Source",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 397
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select the security that generated this dividend.",
+        "location": {
+          "startingColumn": 75,
+          "startingLine": 397
+        }
+      },
+      {
+        "comment": "",
+        "key": "Transaction Details",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insurance Details",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 560
+        }
+      },
+      {
+        "comment": "",
+        "key": "Financial Details",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 584
+        }
+      },
+      {
+        "comment": "",
+        "key": "Premium Details",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 620
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Features",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 671
+        }
+      },
+      {
+        "comment": "",
+        "key": "Important Dates",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 690
+        }
+      },
+      {
+        "comment": "",
+        "key": "Beneficiaries",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 706
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Currency",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 302
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add an institution to enable payment selection.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 344
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Institution",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 348
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution (e.g., Interactive Brokers)",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 317
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type new institution",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Institution",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Payment Institution",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "Asset Type",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 362
+        }
+      },
+      {
+        "comment": "",
+        "key": "Symbol (e.g., AAPL)",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 368
+        }
+      },
+      {
+        "comment": "",
+        "key": "Asset Name",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 372
+        }
+      },
+      {
+        "comment": "",
+        "key": "Security",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 380
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select institution first",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 388
+        }
+      },
+      {
+        "comment": "",
+        "key": "Security",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 398
+        }
+      },
+      {
+        "comment": "",
+        "key": "None",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 411
+        }
+      },
+      {
+        "comment": "",
+        "key": "Symbol",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "Linked Assets",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Maturity Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maturity Date",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-fetch price from Yahoo Finance",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 494
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-fetch price from Yahoo Finance",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes (optional)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 553
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 422
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 428
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 424
+        }
+      },
+      {
+        "comment": "",
+        "key": "Investment Amount",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 438
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 447
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 453
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 449
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash Value",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 473
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 483
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 485
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quantity",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 497
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 499
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price per Share",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 506
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 508
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Value",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 517
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fees",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 529
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 531
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 542
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 544
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Symbol",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 561
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insurance Type",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 566
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policyholder",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 573
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insured Person",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 576
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact Number",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 579
+        }
+      },
+      {
+        "comment": "",
+        "key": "Life Insurance",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 567
+        }
+      },
+      {
+        "comment": "",
+        "key": "Critical Illness Insurance",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 568
+        }
+      },
+      {
+        "comment": "",
+        "key": "Accident Insurance",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 569
+        }
+      },
+      {
+        "comment": "",
+        "key": "Basic Insured Amount",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 586
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 588
+        }
+      },
+      {
+        "comment": "",
+        "key": "Additional Payment",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 597
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 599
+        }
+      },
+      {
+        "comment": "",
+        "key": "Death Benefit",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 608
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 610
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Status",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 658
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Type",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 664
+        }
+      },
+      {
+        "comment": "",
+        "key": "Single Premium",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 622
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 624
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Term",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 636
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 638
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Premium",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 648
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 650
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paid",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 659
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paying",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 660
+        }
+      },
+      {
+        "comment": "",
+        "key": "Lump Sum",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 665
+        }
+      },
+      {
+        "comment": "",
+        "key": "Installment",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 666
+        }
+      },
+      {
+        "comment": "",
+        "key": "Participating Policy",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 672
+        }
+      },
+      {
+        "comment": "",
+        "key": "Has Supplementary Insurance",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 673
+        }
+      },
+      {
+        "comment": "",
+        "key": "Can Withdraw Premiums",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 674
+        }
+      },
+      {
+        "comment": "",
+        "key": "Max Withdrawal %",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 678
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 684
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 680
+        }
+      },
+      {
+        "comment": "",
+        "key": "Coverage Expiration",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 691
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maturity Benefit Redemption",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 692
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimated Maturity Benefit",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 695
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 697
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 717
+        }
+      },
+      {
+        "comment": "",
+        "key": "Beneficiary Name",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 709
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 712
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Beneficiary",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 735
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Percentage:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 742
+        }
+      },
+      {
+        "comment": "",
+        "key": "%.1f%%",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 744
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 756
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 762
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 847
+        }
+      }
+    ]
+  },
+  "version": 1
+}
