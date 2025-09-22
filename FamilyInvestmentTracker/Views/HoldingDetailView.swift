@@ -152,9 +152,14 @@ struct HoldingDetailView: View {
                 Section(header: Text("Holdings Information")) {
                     if isInsurance {
                         HStack {
-                            Text("Cash Value")
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Cash Value")
+                                Text("(\(displayCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
                             Spacer()
-                            Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0))
+                            Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: displayCurrency.symbol))
                                 .fontWeight(.medium)
                             Button(action: {
                                 editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
