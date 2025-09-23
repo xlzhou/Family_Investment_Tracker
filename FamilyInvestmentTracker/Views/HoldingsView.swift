@@ -454,13 +454,42 @@ struct CashValueEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var error: String?
 
-    private var currencySymbol: String {
+    private var originalTransactionCurrency: Currency {
+        guard let asset = holding.asset else {
+            return portfolioMainCurrency
+        }
+
+        // Get the original transaction currency for insurance assets
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        let insuranceTransactions = transactions.filter {
+            $0.portfolio?.objectID == holding.portfolio?.objectID &&
+            $0.type == TransactionType.insurance.rawValue
+        }
+
+        // Get the first (oldest) insurance transaction's currency
+        if let firstTransaction = insuranceTransactions.sorted(by: {
+            ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast)
+        }).first,
+           let currencyCode = firstTransaction.currency,
+           let currency = Currency(rawValue: currencyCode) {
+            return currency
+        }
+
+        // Fallback to portfolio main currency if no insurance transaction found
+        return portfolioMainCurrency
+    }
+
+    private var portfolioMainCurrency: Currency {
         guard let portfolio = holding.portfolio,
               let code = portfolio.mainCurrency,
               let currency = Currency(rawValue: code) else {
-            return Currency.usd.symbol
+            return Currency.usd
         }
-        return currency.symbol
+        return currency
+    }
+
+    private var currencySymbol: String {
+        return originalTransactionCurrency.symbol
     }
 
     var body: some View {
@@ -468,7 +497,12 @@ struct CashValueEditorView: View {
             Form {
                 Section(header: Text("Update Cash Value")) {
                     HStack {
-                        Text("Current Cash Value")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Current Cash Value")
+                            Text("(\(originalTransactionCurrency.displayName))")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                         Spacer()
                         TextField("0.00", value: $editingCashValue, format: .number)
                             .keyboardType(.decimalPad)

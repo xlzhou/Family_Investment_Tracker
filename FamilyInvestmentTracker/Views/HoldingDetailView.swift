@@ -87,6 +87,11 @@ struct HoldingDetailView: View {
     }
 
     private var displayCurrency: Currency {
+        // For insurance assets, always use the original transaction currency
+        if isInsurance {
+            return insuranceCashValueCurrency
+        }
+
         // Get all buy transactions for this asset
         let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
         let buyTransactions = transactions.filter { $0.type == TransactionType.buy.rawValue }
@@ -106,6 +111,27 @@ struct HoldingDetailView: View {
         }
 
         // If multiple currencies, use portfolio main currency
+        return portfolioMainCurrency
+    }
+
+    private var insuranceCashValueCurrency: Currency {
+        // Get the original transaction currency for insurance assets
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        let insuranceTransactions = transactions.filter {
+            $0.portfolio?.objectID == holding.portfolio?.objectID &&
+            $0.type == TransactionType.insurance.rawValue
+        }
+
+        // Get the first (oldest) insurance transaction's currency
+        if let firstTransaction = insuranceTransactions.sorted(by: {
+            ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast)
+        }).first,
+           let currencyCode = firstTransaction.currency,
+           let currency = Currency(rawValue: currencyCode) {
+            return currency
+        }
+
+        // Fallback to portfolio main currency if no insurance transaction found
         return portfolioMainCurrency
     }
 
