@@ -376,6 +376,8 @@ struct PortfolioSettingsView: View {
 
 private extension PortfolioSettingsView {
     func applyCurrencyChange(from oldCurrency: Currency, to newCurrency: Currency) {
+        print("🔄 Currency change: \(oldCurrency.rawValue) → \(newCurrency.rawValue)")
+
         let convert: (Double) -> Double = { amount in
             currencyService.convertAmount(amount, from: oldCurrency, to: newCurrency)
         }
@@ -417,6 +419,18 @@ private extension PortfolioSettingsView {
         let relatedInstitutions = Set(transactions.compactMap { $0.institution })
         for institution in relatedInstitutions {
             institution.cashBalanceSafe = convert(institution.cashBalanceSafe)
+        }
+
+        // Convert PortfolioInstitutionCash records - this was the missing piece!
+        if let portfolioInstitutionCashBalances = portfolio.institutionCashBalances?.allObjects as? [PortfolioInstitutionCash] {
+            print("💰 Converting \(portfolioInstitutionCashBalances.count) portfolio-institution cash balances")
+            for cashBalance in portfolioInstitutionCashBalances {
+                let oldAmount = cashBalance.cashBalance
+                let newAmount = convert(oldAmount)
+                print("  • \(cashBalance.institution?.name ?? "Unknown"): \(oldAmount) → \(newAmount)")
+                cashBalance.cashBalance = newAmount
+                cashBalance.updatedAt = Date()
+            }
         }
     }
 
