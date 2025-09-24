@@ -26,7 +26,7 @@ struct PortfolioListView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text("Total Value: " + Formatters.currency(totalPortfolioValue, symbol: dashboardSettings.dashboardCurrency.symbol))
+                        Text("Total Value: " + CurrencyService.shared.formatAmountWithFullCurrency(totalPortfolioValue, in: dashboardSettings.dashboardCurrency))
                             .font(.headline)
                             .foregroundColor(.secondary)
                     }
@@ -226,7 +226,7 @@ struct PortfolioCardView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text(Formatters.currency(currentValue, symbol: currencySymbol))
+                Text(CurrencyService.shared.formatAmountWithFullCurrency(currentValue, in: portfolioCurrency))
                     .font(.title3)
                     .fontWeight(.medium)
             }

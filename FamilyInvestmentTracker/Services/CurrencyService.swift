@@ -214,12 +214,27 @@ class CurrencyService: ObservableObject {
         formatter.groupingSeparator = ","
         formatter.minimumFractionDigits = 2
         formatter.maximumFractionDigits = 2
-        
+
         if let formattedNumber = formatter.string(from: NSNumber(value: amount)) {
             return "\(currency.symbol)\(formattedNumber)"
         }
-        
+
         return "\(currency.symbol)\(String(format: "%.2f", amount))"
+    }
+
+    func formatAmountWithFullCurrency(_ amount: Double, in currency: Currency) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.groupingSeparator = ","
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+
+        if let formattedNumber = formatter.string(from: NSNumber(value: amount)) {
+            return "\(currency.code) \(currency.symbol)\(formattedNumber)"
+        }
+
+        return "\(currency.code) \(currency.symbol)\(String(format: "%.2f", amount))"
     }
     
     func getExchangeRate(from: Currency, to: Currency) -> Double {

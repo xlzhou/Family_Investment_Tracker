@@ -273,8 +273,8 @@ struct PortfolioHeaderView: View {
             Text("Total Value")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            
-            Text(currencyService.formatAmount(totalValueInMainCurrency, in: mainCurrency))
+
+            Text(currencyService.formatAmountWithFullCurrency(totalValueInMainCurrency, in: mainCurrency))
                 .font(.largeTitle)
                 .fontWeight(.bold)
             
