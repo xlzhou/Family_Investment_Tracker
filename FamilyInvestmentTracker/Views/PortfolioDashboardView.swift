@@ -17,16 +17,17 @@ struct PortfolioDashboardView: View {
     @State private var showingCashBreakdown = false
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
+    @State private var isRefreshing = false
     
     var body: some View {
         VStack(spacing: 16) {
             // Header with portfolio value
             PortfolioHeaderView(portfolio: portfolio)
-            
+
             // Quick Stats
             QuickStatsView(portfolio: portfolio, showingCashBreakdown: $showingCashBreakdown)
                 .padding(.top, -8)
-            
+
             // Tab Selection
             Picker("View", selection: $selectedTab) {
                 Text("Holdings").tag(0)
@@ -36,19 +37,18 @@ struct PortfolioDashboardView: View {
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
             .padding(.top, -8)
-            
+
             // Tab Content
             Group {
                 switch selectedTab {
                 case 0:
-                    HoldingsView(portfolio: portfolio)
+                    RefreshableHoldingsView(portfolio: portfolio, onRefresh: performCompleteRefresh)
                 case 1:
-                    TransactionsView(portfolio: portfolio)
-                        .padding(.top, -18)
+                    RefreshableTransactionsView(portfolio: portfolio, onRefresh: performCompleteRefresh)
                 case 2:
-                    AnalyticsView(portfolio: portfolio)
+                    RefreshableAnalyticsView(portfolio: portfolio, onRefresh: performCompleteRefresh)
                 default:
-                    HoldingsView(portfolio: portfolio)
+                    RefreshableHoldingsView(portfolio: portfolio, onRefresh: performCompleteRefresh)
                 }
             }
         }
@@ -168,6 +168,123 @@ struct PortfolioDashboardView: View {
                 }
             }
         }
+    }
+
+    private func performCompleteRefresh() async {
+        print("🔄 Starting complete portfolio refresh...")
+
+        await MainActor.run {
+            isRefreshing = true
+        }
+
+        // Step 2.1: Refresh currency exchange rates
+        await refreshCurrencyRates()
+
+        // Step 2.2: Auto-fetch prices and recalculate holdings values
+        await refreshAssetPricesAndHoldingsValues()
+
+        // Step 2.3: Recalculate P&L, dividends, and cash balances
+        await recalculatePnLDividendsAndCash()
+
+        // Step 2.4: Recalculate total portfolio value
+        await recalculateTotalPortfolioValue()
+
+        print("✅ Portfolio refresh completed successfully")
+
+        await MainActor.run {
+            isRefreshing = false
+        }
+    }
+
+    private func refreshCurrencyRates() async {
+        print("💱 Refreshing currency exchange rates...")
+        // Force refresh currency rates
+        await CurrencyService.shared.refreshExchangeRates()
+    }
+
+    private func refreshAssetPricesAndHoldingsValues() async {
+        print("📈 Refreshing asset prices and holdings values...")
+        await MainActor.run {
+            viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
+        }
+    }
+
+    private func recalculatePnLDividendsAndCash() async {
+        print("🧮 Recalculating P&L, dividends, and cash...")
+        // This will be handled by the price update process, but we can trigger additional recalculation if needed
+        await MainActor.run {
+            // Force UI refresh of calculated values
+            portfolio.objectWillChange.send()
+        }
+    }
+
+    private func recalculateTotalPortfolioValue() async {
+        print("💰 Recalculating total portfolio value...")
+        await MainActor.run {
+            // Calculate total value from all holdings and cash
+            let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+            let totalHoldingsValue = holdings.reduce(0.0) { sum, holding in
+                guard let asset = holding.asset else { return sum }
+                if asset.assetType == AssetType.insurance.rawValue {
+                    let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                    return sum + cashValue
+                }
+                return sum + (holding.quantity * asset.currentPrice)
+            }
+
+            // Calculate total cash balance from all institutions
+            let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+            let institutionSet = Set(transactions.compactMap { $0.institution })
+            let totalCashBalance = institutionSet.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
+
+            portfolio.totalValue = totalHoldingsValue + totalCashBalance
+
+            do {
+                try viewContext.save()
+                print("💾 Total portfolio value updated: \(portfolio.totalValue)")
+            } catch {
+                print("❌ Error saving total portfolio value: \(error)")
+            }
+        }
+    }
+}
+
+// MARK: - Refreshable Wrapper Views
+
+struct RefreshableHoldingsView: View {
+    @ObservedObject var portfolio: Portfolio
+    let onRefresh: () async -> Void
+
+    var body: some View {
+        HoldingsView(portfolio: portfolio)
+            .refreshable {
+                await onRefresh()
+            }
+    }
+}
+
+struct RefreshableTransactionsView: View {
+    @ObservedObject var portfolio: Portfolio
+    let onRefresh: () async -> Void
+
+    var body: some View {
+        TransactionsView(portfolio: portfolio)
+            .padding(.top, -18)
+            .refreshable {
+                await onRefresh()
+            }
+    }
+}
+
+struct RefreshableAnalyticsView: View {
+    @ObservedObject var portfolio: Portfolio
+    let onRefresh: () async -> Void
+
+    var body: some View {
+        AnalyticsView(portfolio: portfolio)
+            .refreshable {
+                await onRefresh()
+            }
     }
 }
 

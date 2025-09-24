@@ -252,6 +252,16 @@ class CurrencyService: ObservableObject {
         fetchLatestRates()
     }
 
+    func refreshExchangeRates() async {
+        await withUnsafeContinuation { continuation in
+            fetchLatestRates()
+            // Wait a bit for the network request to complete
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                continuation.resume()
+            }
+        }
+    }
+
     func getRateAge() -> String? {
         guard let lastUpdate = lastUpdateDate else { return nil }
 
