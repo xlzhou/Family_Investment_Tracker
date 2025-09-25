@@ -511,9 +511,18 @@ struct CashBreakdownViewInline: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
     @StateObject private var currencyService = CurrencyService.shared
+    @State private var editContext: CashBalanceEditContext?
 
     private var mainCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
+
+    private struct CashBalanceEditContext: Identifiable {
+        let institution: Institution
+        let currencyBalance: PortfolioInstitutionCurrencyCash
+        let currency: Currency
+
+        var id: NSManagedObjectID { currencyBalance.objectID }
     }
 
     private var institutionsWithCash: [(Institution, [PortfolioInstitutionCurrencyCash], Double)] {
@@ -618,6 +627,18 @@ struct CashBreakdownViewInline: View {
                                                 .font(.subheadline)
                                                 .fontWeight(.medium)
                                                 .foregroundColor(amount >= 0 ? .primary : .red)
+
+                                            Button {
+                                                editContext = CashBalanceEditContext(
+                                                    institution: institution,
+                                                    currencyBalance: currencyBalance,
+                                                    currency: currency
+                                                )
+                                            } label: {
+                                                Image(systemName: "pencil")
+                                                    .foregroundColor(.blue)
+                                            }
+                                            .buttonStyle(.borderless)
                                         }
                                         .padding(.leading, 16)
                                     }
@@ -655,7 +676,130 @@ struct CashBreakdownViewInline: View {
                     }
                 }
             }
+            .sheet(item: $editContext) { context in
+                CashBalanceEditSheet(
+                    institution: context.institution,
+                    currencyBalance: context.currencyBalance,
+                    currency: context.currency
+                ) {
+                    refreshPortfolioAggregates()
+                }
+            }
         }
+    }
+
+    private func refreshPortfolioAggregates() -> Error? {
+        let totalCash = portfolio.getTotalCashBalanceInMainCurrency()
+        portfolio.cashBalanceSafe = totalCash
+
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        let holdingsValue = holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return sum + cashValue
+            }
+            return sum + (holding.quantity * asset.currentPrice)
+        }
+
+        portfolio.totalValue = holdingsValue + totalCash
+
+        do {
+            try viewContext.save()
+            portfolio.objectWillChange.send()
+            return nil
+        } catch {
+            print("❌ Error saving portfolio aggregates after cash edit: \(error)")
+            return error
+        }
+    }
+}
+
+private struct CashBalanceEditSheet: View {
+    let institution: Institution
+    @ObservedObject var currencyBalance: PortfolioInstitutionCurrencyCash
+    let currency: Currency
+    let onSave: () -> Error?
+
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var amountInput: String
+    @State private var validationMessage: String?
+    @FocusState private var amountFieldFocused: Bool
+
+    init(institution: Institution,
+         currencyBalance: PortfolioInstitutionCurrencyCash,
+         currency: Currency,
+         onSave: @escaping () -> Error?) {
+        self.institution = institution
+        self._currencyBalance = ObservedObject(wrappedValue: currencyBalance)
+        self.currency = currency
+        self.onSave = onSave
+        _amountInput = State(wrappedValue: String(format: "%.2f", currencyBalance.amountSafe))
+    }
+
+    var body: some View {
+        NavigationView {
+            Form {
+                Section(header: Text("Institution")) {
+                    Text(institution.name ?? "Unknown Institution")
+                }
+
+                Section(header: Text("Edit Balance(\(currency.rawValue) \(currency.symbol))".uppercased())) {
+                    TextField("Amount", text: $amountInput)
+                        .keyboardType(.decimalPad)
+                        .focused($amountFieldFocused)
+                }
+
+                if let validationMessage {
+                    Section {
+                        Text(validationMessage)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .navigationTitle("\(currency.displayName) Cash")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        persistChanges()
+                    }
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    amountFieldFocused = true
+                }
+            }
+        }
+    }
+
+    private func persistChanges() {
+        let sanitizedInput = amountInput.replacingOccurrences(of: ",", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let value = Double(sanitizedInput), value.isFinite else {
+            validationMessage = "Please enter a valid number."
+            return
+        }
+
+        let roundedValue = (value * 100).rounded() / 100
+
+        currencyBalance.amountSafe = roundedValue
+
+        if let error = onSave() {
+            validationMessage = "Failed to save changes: \(error.localizedDescription)"
+            return
+        }
+
+        dismiss()
     }
 }
 
