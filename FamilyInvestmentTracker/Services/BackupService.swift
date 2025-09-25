@@ -105,7 +105,6 @@ struct BackupPortfolio: Codable {
     let createdAt: Date?
     let updatedAt: Date?
     let mainCurrency: String?
-    let cashBalance: Double
     let totalValue: Double
     let enforcesCashDiscipline: Bool
     let ownerID: String?
@@ -115,7 +114,6 @@ struct BackupPortfolio: Codable {
          createdAt: Date?,
          updatedAt: Date?,
          mainCurrency: String?,
-         cashBalance: Double,
          totalValue: Double,
          enforcesCashDiscipline: Bool,
          ownerID: String?) {
@@ -124,14 +122,13 @@ struct BackupPortfolio: Codable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.mainCurrency = mainCurrency
-        self.cashBalance = cashBalance
         self.totalValue = totalValue
         self.enforcesCashDiscipline = enforcesCashDiscipline
         self.ownerID = ownerID
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, createdAt, updatedAt, mainCurrency, cashBalance, totalValue, enforcesCashDiscipline, ownerID
+        case id, name, createdAt, updatedAt, mainCurrency, totalValue, enforcesCashDiscipline, ownerID
     }
 
     init(from decoder: Decoder) throws {
@@ -141,7 +138,6 @@ struct BackupPortfolio: Codable {
         createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
         updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt)
         mainCurrency = try container.decodeIfPresent(String.self, forKey: .mainCurrency)
-        cashBalance = try container.decode(Double.self, forKey: .cashBalance)
         totalValue = try container.decode(Double.self, forKey: .totalValue)
         enforcesCashDiscipline = try container.decodeIfPresent(Bool.self, forKey: .enforcesCashDiscipline) ?? true
         ownerID = try container.decodeIfPresent(String.self, forKey: .ownerID)
@@ -154,7 +150,6 @@ struct BackupPortfolio: Codable {
         try container.encodeIfPresent(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
         try container.encodeIfPresent(mainCurrency, forKey: .mainCurrency)
-        try container.encode(cashBalance, forKey: .cashBalance)
         try container.encode(totalValue, forKey: .totalValue)
         try container.encode(enforcesCashDiscipline, forKey: .enforcesCashDiscipline)
         try container.encodeIfPresent(ownerID, forKey: .ownerID)
@@ -380,7 +375,7 @@ final class BackupService {
     static let shared = BackupService()
     private init() {}
     
-    private let backupVersion = 5
+    private let backupVersion = 6
     
     func createBackup(context: NSManagedObjectContext) throws -> URL {
         let encoder = JSONEncoder()
@@ -425,14 +420,13 @@ final class BackupService {
                         BackupPortfolio(
                             id: portfolio.id ?? UUID(),
                             name: portfolio.name,
-                        createdAt: portfolio.createdAt,
-                        updatedAt: portfolio.updatedAt,
-                        mainCurrency: portfolio.mainCurrency,
-                        cashBalance: portfolio.resolvedCashBalance(),
-                        totalValue: portfolio.totalValue,
-                        enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled,
-                        ownerID: portfolio.ownerID
-                    )
+                            createdAt: portfolio.createdAt,
+                            updatedAt: portfolio.updatedAt,
+                            mainCurrency: portfolio.mainCurrency,
+                            totalValue: portfolio.totalValue,
+                            enforcesCashDiscipline: portfolio.enforcesCashDisciplineEnabled,
+                            ownerID: portfolio.ownerID
+                        )
                 },
                 holdings: holdings.map { holding in
                     BackupHolding(
@@ -613,7 +607,6 @@ final class BackupService {
                 portfolio.createdAt = portfolioData.createdAt
                 portfolio.updatedAt = portfolioData.updatedAt
                 portfolio.mainCurrency = portfolioData.mainCurrency
-                portfolio.cashBalance = portfolioData.cashBalance
                 portfolio.totalValue = portfolioData.totalValue
                 portfolio.enforcesCashDisciplineEnabled = portfolioData.enforcesCashDiscipline
                 portfolio.ownerID = portfolioData.ownerID
