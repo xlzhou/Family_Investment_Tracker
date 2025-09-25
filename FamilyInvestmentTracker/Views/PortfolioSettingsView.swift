@@ -62,15 +62,6 @@ struct PortfolioSettingsView: View {
                     }
                     .pickerStyle(MenuPickerStyle())
                     
-                    HStack {
-                        Text("Current Exchange Rates")
-                        Spacer()
-                        Button("View Rates") {
-                            // Future: Show exchange rates view
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    }
                 }
                 
                 Section(

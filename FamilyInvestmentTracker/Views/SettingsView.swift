@@ -22,6 +22,7 @@ struct SettingsView: View {
     @State private var displayName: String = ""
     @State private var selectedDashboardCurrency: Currency = .usd
     @StateObject private var currencyService = CurrencyService.shared
+    @State private var showAllExchangeRates = false
     
     var body: some View {
         NavigationView {
@@ -35,6 +36,105 @@ struct SettingsView: View {
                             .onSubmit {
                                 ownershipService.setUserDisplayName(displayName)
                             }
+                    }
+                }
+               
+                Section(header: Text("Dashboard"), footer: Text("Choose the currency used for totals in the Investment Portfolios view.")) {
+                    Picker("Summary Currency", selection: $selectedDashboardCurrency) {
+                        ForEach(Currency.allCases, id: \.self) { currency in
+                            Text(currency.displayName).tag(currency)
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                }
+
+                // Currency Exchange Rates Section
+                Section(header: Text("Currency Exchange Rates"), footer: Text("Real-time exchange rates are fetched from Yahoo Finance API and cached locally for offline use.")) {
+                    HStack {
+                        Button(action: {
+                            withAnimation {
+                                showAllExchangeRates.toggle()
+                            }
+                        }) {
+                            Image(systemName: showAllExchangeRates ? "minus.circle" : "plus.circle")
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Exchange Rates")
+                                .font(.headline)
+
+                            if currencyService.isLoading {
+                                Text("Updating...")
+                                    .font(.caption)
+                                    .foregroundColor(.blue)
+                            } else if currencyService.lastUpdateDate != nil {
+                                Text("Updated \(currencyService.getRateAge() ?? "recently")")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("No data")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+
+                            if let errorMessage = currencyService.errorMessage {
+                                Text(errorMessage)
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                                    .lineLimit(2)
+                            }
+                        }
+
+                        Spacer()
+
+                        Button(action: {
+                            currencyService.refreshRates()
+                        }) {
+                            Image(systemName: "arrow.clockwise")
+                                .foregroundColor(.blue)
+                        }
+                        .disabled(currencyService.isLoading)
+                    }
+
+                    // Display all exchange rates organized by base currency
+                    if showAllExchangeRates && !currencyService.exchangeRates.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(Currency.allCases, id: \.self) { baseCurrency in
+                                if let rates = currencyService.exchangeRates[baseCurrency.rawValue] {
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("From \(baseCurrency.rawValue)")
+                                            .font(.caption)
+                                            .fontWeight(.semibold)
+                                            .foregroundColor(.primary)
+
+                                        LazyVGrid(columns: [
+                                            GridItem(.flexible()),
+                                            GridItem(.flexible())
+                                        ], spacing: 4) {
+                                            ForEach(Currency.allCases.filter { $0 != baseCurrency }, id: \.self) { targetCurrency in
+                                                if let rate = rates[targetCurrency.rawValue] {
+                                                    HStack {
+                                                        Text("1 \(baseCurrency.symbol) → \(String(format: "%.3f", rate)) \(targetCurrency.symbol)")
+                                                            .font(.caption2)
+                                                            .foregroundColor(.secondary)
+                                                        Spacer()
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .padding(.vertical, 2)
+
+                                    if baseCurrency != Currency.allCases.last {
+                                        Divider()
+                                            .padding(.vertical, 2)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.top, 8)
                     }
                 }
 
@@ -115,27 +215,6 @@ struct SettingsView: View {
                         .disabled(cloudKitService.isSyncing)
                     }
                 }
-                
-                // Data Export Section
-                Section(header: Text("Data Export"), footer: Text("Export your portfolio data for backup or analysis.")) {
-                    Button(action: {
-                        showingExportSheet = true
-                    }) {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.blue)
-                            
-                            Text("Export Portfolio Data")
-                                .foregroundColor(.primary)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                }
 
                 // Backup & Restore Section
                 Section(header: Text("Backup & Restore"), footer: Text("Create a full JSON backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.")) {
@@ -191,6 +270,27 @@ struct SettingsView: View {
                     }
                 }
 
+                // Data Export Section
+                Section(header: Text("Data Export"), footer: Text("Export your portfolio data for backup or analysis.")) {
+                    Button(action: {
+                        showingExportSheet = true
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.blue)
+                            
+                            Text("Export Portfolio Data")
+                                .foregroundColor(.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                }
+ 
                 // App Information Section
                 Section(header: Text("App Information")) {
                     HStack {
@@ -205,98 +305,6 @@ struct SettingsView: View {
                         Spacer()
                         Text("1")
                             .foregroundColor(.secondary)
-                    }
-                }
-
-                Section(header: Text("Dashboard"), footer: Text("Choose the currency used for totals in the Investment Portfolios view.")) {
-                    Picker("Summary Currency", selection: $selectedDashboardCurrency) {
-                        ForEach(Currency.allCases, id: \.self) { currency in
-                            Text(currency.displayName).tag(currency)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-                }
-
-                // Currency Exchange Rates Section
-                Section(header: Text("Currency Exchange Rates"), footer: Text("Real-time exchange rates are fetched from Frankfurter API and cached locally for offline use.")) {
-                    HStack {
-                        Image(systemName: "dollarsign.circle.fill")
-                            .foregroundColor(.green)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Exchange Rates")
-                                .font(.headline)
-
-                            if currencyService.isLoading {
-                                Text("Updating...")
-                                    .font(.caption)
-                                    .foregroundColor(.blue)
-                            } else if currencyService.lastUpdateDate != nil {
-                                Text("Updated \(currencyService.getRateAge() ?? "recently")")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            } else {
-                                Text("No data")
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                            }
-
-                            if let errorMessage = currencyService.errorMessage {
-                                Text(errorMessage)
-                                    .font(.caption)
-                                    .foregroundColor(.red)
-                                    .lineLimit(2)
-                            }
-                        }
-
-                        Spacer()
-
-                        Button(action: {
-                            currencyService.refreshRates()
-                        }) {
-                            Image(systemName: "arrow.clockwise")
-                                .foregroundColor(.blue)
-                        }
-                        .disabled(currencyService.isLoading)
-                    }
-
-                    // Display all exchange rates organized by base currency
-                    if !currencyService.exchangeRates.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(Currency.allCases, id: \.self) { baseCurrency in
-                                if let rates = currencyService.exchangeRates[baseCurrency.rawValue] {
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text("From \(baseCurrency.rawValue)")
-                                            .font(.caption)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.primary)
-
-                                        LazyVGrid(columns: [
-                                            GridItem(.flexible()),
-                                            GridItem(.flexible())
-                                        ], spacing: 4) {
-                                            ForEach(Currency.allCases.filter { $0 != baseCurrency }, id: \.self) { targetCurrency in
-                                                if let rate = rates[targetCurrency.rawValue] {
-                                                    HStack {
-                                                        Text("1 \(baseCurrency.symbol) → \(String(format: "%.3f", rate)) \(targetCurrency.symbol)")
-                                                            .font(.caption2)
-                                                            .foregroundColor(.secondary)
-                                                        Spacer()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    .padding(.vertical, 2)
-
-                                    if baseCurrency != Currency.allCases.last {
-                                        Divider()
-                                            .padding(.vertical, 2)
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.top, 8)
                     }
                 }
                 
