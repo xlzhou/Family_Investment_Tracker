@@ -261,7 +261,7 @@ struct PortfolioSettingsView: View {
     private var isResetDisabled: Bool {
         let hasHoldings = (portfolio.holdings?.count ?? 0) > 0
         let hasTransactions = (portfolio.transactions?.count ?? 0) > 0
-        let hasBalance = portfolio.cashBalanceSafe != 0
+        let hasBalance = abs(portfolio.resolvedCashBalance()) > 0.01
         let hasTotals = portfolio.totalValue != 0
         return !(hasHoldings || hasTransactions || hasBalance || hasTotals)
     }
@@ -337,9 +337,13 @@ struct PortfolioSettingsView: View {
         transactions.forEach(viewContext.delete)
         holdings.forEach(viewContext.delete)
 
-        portfolio.cashBalanceSafe = 0
+        portfolio.cashBalance = 0
         portfolio.totalValue = 0
         portfolio.updatedAt = Date()
+
+        if let currencyBalances = portfolio.currencyCashBalances?.allObjects as? [PortfolioInstitutionCurrencyCash] {
+            currencyBalances.forEach(viewContext.delete)
+        }
 
         do {
             try viewContext.save()
@@ -382,7 +386,7 @@ private extension PortfolioSettingsView {
             currencyService.convertAmount(amount, from: oldCurrency, to: newCurrency)
         }
 
-        portfolio.cashBalanceSafe = convert(portfolio.cashBalanceSafe)
+        portfolio.cashBalance = convert(portfolio.cashBalance)
         portfolio.totalValue = convert(portfolio.totalValue)
 
         if let holdings = portfolio.holdings?.allObjects as? [Holding] {
@@ -416,22 +420,7 @@ private extension PortfolioSettingsView {
             }
         }
 
-        let relatedInstitutions = Set(transactions.compactMap { $0.institution })
-        for institution in relatedInstitutions {
-            institution.cashBalanceSafe = convert(institution.cashBalanceSafe)
-        }
-
-        // Convert PortfolioInstitutionCash records - this was the missing piece!
-        if let portfolioInstitutionCashBalances = portfolio.institutionCashBalances?.allObjects as? [PortfolioInstitutionCash] {
-            print("💰 Converting \(portfolioInstitutionCashBalances.count) portfolio-institution cash balances")
-            for cashBalance in portfolioInstitutionCashBalances {
-                let oldAmount = cashBalance.cashBalance
-                let newAmount = convert(oldAmount)
-                print("  • \(cashBalance.institution?.name ?? "Unknown"): \(oldAmount) → \(newAmount)")
-                cashBalance.cashBalance = newAmount
-                cashBalance.updatedAt = Date()
-            }
-        }
+        portfolio.cashBalance = convert(portfolio.cashBalance)
     }
 
     func convertAssetPriceIfSafe(_ asset: Asset, using convert: (Double) -> Double) {

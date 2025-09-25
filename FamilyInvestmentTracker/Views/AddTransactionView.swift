@@ -1098,9 +1098,9 @@ struct AddTransactionView: View {
                 if cashDisciplineEnabled {
                     let premiumAmount = max(0, insurancePaymentRawAmount())
                     let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
-                    if convertedPremium > 0, let paymentInstitution = resolvedPaymentInstitution {
+                    if premiumAmount > 0, let paymentInstitution = resolvedPaymentInstitution {
                         portfolio.addToCash(-convertedPremium)
-                        paymentInstitution.addToCashBalance(for: portfolio, delta: -convertedPremium)
+                        paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -premiumAmount)
                         transaction.setValue(true, forKey: "paymentDeducted")
                         transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
                         transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
@@ -1125,19 +1125,17 @@ struct AddTransactionView: View {
                 case .deposit:
                     // For deposits, allow negative amounts (withdrawals)
                     let convertedNetCash = convertToPortfolioCurrency(netCash, from: selectedCurrency)
-
-                    // Always update institution cash for deposits since our dashboard shows institution cash totals
                     if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, delta: convertedNetCash)
+                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCash)
                     }
+
                     portfolio.addToCash(convertedNetCash)
                 case .dividend:
-                    // For dividends, ensure non-negative amounts
-                    let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
+                    let netCashInTransactionCurrency = max(0, netCash)
+                    let convertedNetCash = convertToPortfolioCurrency(netCashInTransactionCurrency, from: selectedCurrency)
 
-                    // Update institution cash if available, otherwise portfolio cash
                     if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, delta: convertedNetCash)
+                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCashInTransactionCurrency)
                     } else {
                         portfolio.addToCash(convertedNetCash)
                     }
@@ -1152,12 +1150,11 @@ struct AddTransactionView: View {
                         }
                     }
                 case .interest:
-                    // For interest, ensure non-negative amounts
-                    let convertedNetCash = max(0, convertToPortfolioCurrency(netCash, from: selectedCurrency))
+                    let netCashInTransactionCurrency = max(0, netCash)
+                    let convertedNetCash = convertToPortfolioCurrency(netCashInTransactionCurrency, from: selectedCurrency)
 
-                    // Update institution cash if available, otherwise portfolio cash
                     if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, delta: convertedNetCash)
+                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCashInTransactionCurrency)
                     } else {
                         portfolio.addToCash(convertedNetCash)
                     }
@@ -1198,9 +1195,8 @@ struct AddTransactionView: View {
                 if netProceeds != 0 {
                     let convertedProceeds = convertToPortfolioCurrency(netProceeds, from: selectedCurrency)
 
-                    // Update institution cash if available, otherwise portfolio cash
                     if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, delta: convertedProceeds)
+                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netProceeds)
                     } else {
                         portfolio.addToCash(convertedProceeds)
                     }
@@ -1211,7 +1207,7 @@ struct AddTransactionView: View {
 
                 if cashDisciplineEnabled {
                     if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, delta: -requiredFunds)
+                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -requiredFundsTransactionCurrency)
                     } else {
                         portfolio.addToCash(-requiredFunds)
                     }
@@ -1340,7 +1336,7 @@ struct AddTransactionView: View {
             }
             return partial + (holding.quantity * asset.currentPrice)
         }
-        portfolio.totalValue = totalHoldings + portfolio.cashBalanceSafe
+        portfolio.totalValue = totalHoldings + portfolio.resolvedCashBalance()
         portfolio.updatedAt = Date()
     }
     
@@ -1359,7 +1355,8 @@ struct AddTransactionView: View {
             newInstitution.id = UUID()
             newInstitution.name = name
             newInstitution.createdAt = Date()
-            newInstitution.setCashBalance(for: portfolio, amount: 0)
+            let defaultCurrency = Currency(rawValue: portfolio.mainCurrency ?? Currency.usd.rawValue) ?? .usd
+            newInstitution.setCashBalance(for: portfolio, currency: defaultCurrency, amount: 0)
             return (newInstitution, true)
         }
     }

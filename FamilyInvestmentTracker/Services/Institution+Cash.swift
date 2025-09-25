@@ -2,55 +2,71 @@ import Foundation
 import CoreData
 
 extension Institution {
-    // DEPRECATED: Use getCashBalance(for:) instead
-    // This is kept for backward compatibility during migration
-    var cashBalanceSafe: Double {
-        get { (self.value(forKey: "cashBalance") as? Double) ?? 0.0 }
-        set { self.setValue(newValue, forKey: "cashBalance") }
+    func getAllCurrencyBalances(for portfolio: Portfolio) -> [PortfolioInstitutionCurrencyCash] {
+        guard let context = managedObjectContext else { return [] }
+
+        let request: NSFetchRequest<PortfolioInstitutionCurrencyCash> = PortfolioInstitutionCurrencyCash.fetchRequest()
+        request.predicate = NSPredicate(format: "portfolio == %@ AND institution == %@", portfolio, self)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \PortfolioInstitutionCurrencyCash.currency, ascending: true)]
+
+        return (try? context.fetch(request)) ?? []
     }
 
-    // NEW: Portfolio-aware cash balance methods
     func getCashBalance(for portfolio: Portfolio) -> Double {
-        guard let context = self.managedObjectContext else { return 0.0 }
+        guard let mainCurrencyCode = portfolio.mainCurrency,
+              let mainCurrency = Currency(rawValue: mainCurrencyCode) else { return 0.0 }
 
-        // Fetch PortfolioInstitutionCash record directly
-        let request: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: "PortfolioInstitutionCash")
-        request.predicate = NSPredicate(format: "portfolio == %@ AND institution == %@", portfolio, self)
-        request.fetchLimit = 1
-
-        guard let cashRecord = try? context.fetch(request).first,
-              let balance = cashRecord.value(forKey: "cashBalance") as? Double else {
-            return 0.0
+        return getAllCurrencyBalances(for: portfolio).reduce(0) { total, record in
+            guard let currency = Currency(rawValue: record.currencySafe) else { return total }
+            let amount = record.amountSafe
+            let convertedAmount = CurrencyService.shared.convertAmount(amount, from: currency, to: mainCurrency)
+            return total + convertedAmount
         }
-
-        return balance
     }
 
-    func setCashBalance(for portfolio: Portfolio, amount: Double) {
-        guard let context = self.managedObjectContext else { return }
+    func setCashBalance(for portfolio: Portfolio, currency: Currency, amount: Double) {
+        guard let context = managedObjectContext else { return }
 
-        // Find or create PortfolioInstitutionCash record
-        let request: NSFetchRequest<NSManagedObject> = NSFetchRequest(entityName: "PortfolioInstitutionCash")
-        request.predicate = NSPredicate(format: "portfolio == %@ AND institution == %@", portfolio, self)
-        request.fetchLimit = 1
+        let record = findOrCreateCurrencyCashRecord(portfolio: portfolio, currency: currency.rawValue, context: context)
+        record.amountSafe = amount
 
-        let cashRecord: NSManagedObject
-        if let existingRecord = try? context.fetch(request).first {
-            cashRecord = existingRecord
-        } else {
-            cashRecord = NSEntityDescription.insertNewObject(forEntityName: "PortfolioInstitutionCash", into: context)
-            cashRecord.setValue(UUID(), forKey: "id")
-            cashRecord.setValue(portfolio, forKey: "portfolio")
-            cashRecord.setValue(self, forKey: "institution")
-            cashRecord.setValue(Date(), forKey: "createdAt")
+        do {
+            try context.save()
+        } catch {
+            print("❌ Error saving currency cash balance: \(error)")
         }
-
-        cashRecord.setValue(amount, forKey: "cashBalance")
-        cashRecord.setValue(Date(), forKey: "updatedAt")
     }
 
-    func addToCashBalance(for portfolio: Portfolio, delta: Double) {
-        let currentBalance = getCashBalance(for: portfolio)
-        setCashBalance(for: portfolio, amount: currentBalance + delta)
+    func addToCashBalance(for portfolio: Portfolio, currency: Currency, delta: Double) {
+        guard let context = managedObjectContext else { return }
+
+        let record = findOrCreateCurrencyCashRecord(portfolio: portfolio, currency: currency.rawValue, context: context)
+        record.addToAmount(delta)
+
+        do {
+            try context.save()
+        } catch {
+            print("❌ Error saving currency cash balance: \(error)")
+        }
+    }
+
+    private func findOrCreateCurrencyCashRecord(portfolio: Portfolio, currency: String, context: NSManagedObjectContext) -> PortfolioInstitutionCurrencyCash {
+        let request: NSFetchRequest<PortfolioInstitutionCurrencyCash> = PortfolioInstitutionCurrencyCash.fetchRequest()
+        request.predicate = NSPredicate(format: "portfolio == %@ AND institution == %@ AND currency == %@", portfolio, self, currency)
+        request.fetchLimit = 1
+
+        if let existing = try? context.fetch(request).first {
+            return existing
+        }
+
+        let record = PortfolioInstitutionCurrencyCash(context: context)
+        record.id = UUID()
+        record.portfolio = portfolio
+        record.institution = self
+        record.currency = currency
+        record.amount = 0
+        record.createdAt = Date()
+        record.updatedAt = Date()
+        return record
     }
 }

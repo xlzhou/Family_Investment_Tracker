@@ -178,7 +178,7 @@ struct TransactionsView: View {
             do {
                 try viewContext.save()
             } catch {
-                print("Error deleting transaction: \(error)")
+                print("❌ Error deleting transaction: \(error)")
             }
         }
     }

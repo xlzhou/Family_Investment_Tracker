@@ -232,7 +232,7 @@ struct PortfolioDashboardView: View {
                 return sum + (holding.quantity * asset.currentPrice)
             }
 
-            // Calculate total cash balance from all institutions
+            // Calculate total cash balance using new per-currency system
             let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
             let institutionSet = Set(transactions.compactMap { $0.institution })
             let totalCashBalance = institutionSet.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
@@ -516,18 +516,35 @@ struct CashBreakdownViewInline: View {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
 
-    private var institutionsWithCash: [Institution] {
+    private var institutionsWithCash: [(Institution, [PortfolioInstitutionCurrencyCash], Double)] {
         // Get all institutions that have transactions in this portfolio
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
         let institutionSet = Set(transactions.compactMap { $0.institution })
 
-        // Filter to only show institutions with non-zero cash balance
-        return institutionSet.filter { $0.getCashBalance(for: portfolio) != 0 }
-            .sorted { ($0.name ?? "") < ($1.name ?? "") }
+        return institutionSet.compactMap { institution in
+            let currencyBalances = institution.getAllCurrencyBalances(for: portfolio)
+
+            let nonZeroBalances = currencyBalances.filter {
+                let amount = ($0.value(forKey: "amount") as? Double) ?? 0.0
+                return amount != 0.0  // Show both positive and negative balances
+            }
+
+            guard !nonZeroBalances.isEmpty else {
+                return nil
+            }
+
+            // Calculate total in main currency
+            let totalInMainCurrency = institution.getCashBalance(for: portfolio)
+
+            return (institution, nonZeroBalances, totalInMainCurrency)
+        }
+        .sorted { $0.0.name ?? "" < $1.0.name ?? "" }
     }
 
     private var totalCash: Double {
-        institutionsWithCash.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
+        institutionsWithCash.reduce(0) { partial, element in
+            partial + element.2
+        }
     }
 
     var body: some View {
@@ -552,30 +569,57 @@ struct CashBreakdownViewInline: View {
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
-                    // Cash breakdown list
+                    // Cash breakdown list with per-currency details
                     List {
-                        Section(header: Text("Cash by Institution")) {
-                            ForEach(institutionsWithCash, id: \.objectID) { institution in
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(institution.name ?? "Unknown Institution")
-                                            .font(.headline)
+                        Section(header: Text("Cash by Institution & Currency")) {
+                            ForEach(institutionsWithCash, id: \.0.objectID) { institutionData in
+                                let (institution, currencyBalances, totalInMainCurrency) = institutionData
 
-                                        Text("Last updated recently")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    // Institution header
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(institution.name ?? "Unknown Institution")
+                                                .font(.headline)
+                                            Text("\(currencyBalances.count) " + (currencyBalances.count == 1 ? "currency" : "currencies"))
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        Spacer()
+
+                                        VStack(alignment: .trailing, spacing: 2) {
+                                            Text(currencyService.formatAmountWithFullCurrency(totalInMainCurrency, in: mainCurrency))
+                                                .font(.headline)
+                                                .foregroundColor(totalInMainCurrency >= 0 ? .primary : .red)
+                                            Text("Total")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
                                     }
 
-                                    Spacer()
+                                    // Currency breakdown
+                                    ForEach(currencyBalances.sorted(by: {
+                                        let currency1 = ($0.value(forKey: "currency") as? String) ?? ""
+                                        let currency2 = ($1.value(forKey: "currency") as? String) ?? ""
+                                        return currency1 < currency2
+                                    }), id: \.objectID) { currencyBalance in
+                                        let currency = Currency(rawValue: (currencyBalance.value(forKey: "currency") as? String) ?? "USD") ?? .usd
+                                        let amount = (currencyBalance.value(forKey: "amount") as? Double) ?? 0.0
 
-                                    VStack(alignment: .trailing, spacing: 2) {
-                                        Text(currencyService.formatAmount(institution.getCashBalance(for: portfolio), in: mainCurrency))
-                                            .font(.headline)
-                                            .foregroundColor(institution.getCashBalance(for: portfolio) >= 0 ? .primary : .red)
+                                        HStack {
+                                            Text(currency.displayName)
+                                                .font(.subheadline)
+                                                .foregroundColor(.secondary)
 
-                                        Text(mainCurrency.displayName)
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
+                                            Spacer()
+
+                                            Text(currencyService.formatAmountWithFullCurrency(amount, in: currency))
+                                                .font(.subheadline)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(amount >= 0 ? .primary : .red)
+                                        }
+                                        .padding(.leading, 16)
                                     }
                                 }
                                 .padding(.vertical, 4)

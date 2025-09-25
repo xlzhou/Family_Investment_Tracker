@@ -1,14 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22222" systemVersion="22G120" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
-    <entity name="Institution" representedClassName="Institution" syncable="YES" codeGenerationType="class">
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Transaction" inverseName="institution" inverseEntity="Transaction"/>
-        <relationship name="assetAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="institution" inverseEntity="InstitutionAssetAvailability"/>
-        <relationship name="portfolioCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCash" inverseName="institution" inverseEntity="PortfolioInstitutionCash"/>
-    </entity>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="24G90" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
     <entity name="Asset" representedClassName="Asset" syncable="YES" codeGenerationType="class">
         <attribute name="assetType" optional="YES" attributeType="String"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -16,109 +7,118 @@
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="interestRate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="lastPriceUpdate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="linkedAssets" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="symbol" optional="YES" attributeType="String"/>
         <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Holding" inverseName="asset" inverseEntity="Holding"/>
-        <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Transaction" inverseName="asset" inverseEntity="Transaction"/>
-        <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Insurance" inverseName="asset" inverseEntity="Insurance"/>
         <relationship name="institutionAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="asset" inverseEntity="InstitutionAssetAvailability"/>
+        <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Insurance" inverseName="asset" inverseEntity="Insurance"/>
+        <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Transaction" inverseName="asset" inverseEntity="Transaction"/>
+    </entity>
+    <entity name="Beneficiary" representedClassName="Beneficiary" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="percentage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Insurance" inverseName="beneficiaries" inverseEntity="Insurance"/>
     </entity>
     <entity name="Holding" representedClassName="Holding" syncable="YES" codeGenerationType="class">
         <attribute name="averageCostBasis" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="cashValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="quantity" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="realizedGainLoss" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="totalDividends" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="cashValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="holdings" inverseEntity="Asset"/>
         <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="holdings" inverseEntity="Portfolio"/>
     </entity>
-    <entity name="Portfolio" representedClassName="Portfolio" syncable="YES" codeGenerationType="class">
+    <entity name="Institution" representedClassName="Institution" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="assetAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="institution" inverseEntity="InstitutionAssetAvailability"/>
+        <relationship name="portfolioCurrencyCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCurrencyCash" inverseName="institution" inverseEntity="PortfolioInstitutionCurrencyCash"/>
+        <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Transaction" inverseName="institution" inverseEntity="Transaction"/>
+    </entity>
+    <entity name="InstitutionAssetAvailability" representedClassName="InstitutionAssetAvailability" syncable="YES" codeGenerationType="class">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="lastTransactionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="institutionAvailabilities" inverseEntity="Asset"/>
+        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="assetAvailabilities" inverseEntity="Institution"/>
+    </entity>
+    <entity name="Insurance" representedClassName="Insurance" syncable="YES" codeGenerationType="class">
+        <attribute name="additionalPaymentAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="basicInsuredAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="canWithdrawPremiums" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="contactNumber" optional="YES" attributeType="String"/>
+        <attribute name="coverageExpirationDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="deathBenefit" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="estimatedMaturityBenefit" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="hasSupplementaryInsurance" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="insuranceType" optional="YES" attributeType="String"/>
+        <attribute name="insuredPerson" optional="YES" attributeType="String"/>
+        <attribute name="isParticipating" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="maturityBenefitRedemptionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="maxWithdrawalPercentage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="policyholder" optional="YES" attributeType="String"/>
+        <attribute name="premiumPaymentStatus" optional="YES" attributeType="String"/>
+        <attribute name="premiumPaymentTerm" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="premiumPaymentType" optional="YES" attributeType="String"/>
+        <attribute name="singlePremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="totalPremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="insurance" inverseEntity="Asset"/>
+        <relationship name="beneficiaries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Beneficiary" inverseName="insurance" inverseEntity="Beneficiary"/>
+    </entity>
+    <entity name="Portfolio" representedClassName="Portfolio" syncable="YES" codeGenerationType="class">
+        <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="enforcesCashDiscipline" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="mainCurrency" optional="YES" attributeType="String" defaultValueString="USD"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="ownerID" optional="YES" attributeType="String"/>
-        <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="enforcesCashDiscipline" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="totalValue" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="currencyCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCurrencyCash" inverseName="portfolio" inverseEntity="PortfolioInstitutionCurrencyCash"/>
         <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Holding" inverseName="portfolio" inverseEntity="Holding"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Transaction" inverseName="portfolio" inverseEntity="Transaction"/>
-        <relationship name="institutionCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCash" inverseName="portfolio" inverseEntity="PortfolioInstitutionCash"/>
+    </entity>
+    <entity name="PortfolioInstitutionCurrencyCash" representedClassName="PortfolioInstitutionCurrencyCash" syncable="YES" codeGenerationType="class">
+        <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="currency" optional="YES" attributeType="String" defaultValueString="USD"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="portfolioCurrencyCashBalances" inverseEntity="Institution"/>
+        <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="currencyCashBalances" inverseEntity="Portfolio"/>
     </entity>
     <entity name="Transaction" representedClassName="Transaction" syncable="YES" codeGenerationType="class">
         <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="autoFetchPrice" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="currency" optional="YES" attributeType="String" defaultValueString="USD"/>
         <attribute name="fees" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="transactionCode" optional="YES" attributeType="String"/>
+        <attribute name="interestRate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="maturityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
-        <attribute name="price" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="quantity" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="paymentDeducted" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="paymentDeductedAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="paymentInstitutionName" optional="YES" attributeType="String"/>
+        <attribute name="price" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="quantity" optional="YES" attributeType="Double" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="realizedGain" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="maturityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="interestRate" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tax" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="tradingInstitution" optional="YES" attributeType="String"/>
+        <attribute name="transactionCode" optional="YES" attributeType="String"/>
         <attribute name="transactionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="type" optional="YES" attributeType="String"/>
-        <attribute name="autoFetchPrice" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="transactions" inverseEntity="Asset"/>
         <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="transactions" inverseEntity="Institution"/>
         <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="transactions" inverseEntity="Portfolio"/>
-    </entity>
-    <entity name="Insurance" representedClassName="Insurance" syncable="YES" codeGenerationType="class">
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="insuranceType" optional="YES" attributeType="String"/>
-        <attribute name="policyholder" optional="YES" attributeType="String"/>
-        <attribute name="insuredPerson" optional="YES" attributeType="String"/>
-        <attribute name="basicInsuredAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="additionalPaymentAmount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="deathBenefit" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="isParticipating" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="hasSupplementaryInsurance" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="premiumPaymentTerm" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="premiumPaymentStatus" optional="YES" attributeType="String"/>
-        <attribute name="premiumPaymentType" optional="YES" attributeType="String"/>
-        <attribute name="singlePremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="totalPremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="coverageExpirationDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="maturityBenefitRedemptionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="estimatedMaturityBenefit" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="canWithdrawPremiums" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
-        <attribute name="maxWithdrawalPercentage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="contactNumber" optional="YES" attributeType="String"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="beneficiaries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Beneficiary" inverseName="insurance" inverseEntity="Beneficiary"/>
-        <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="insurance" inverseEntity="Asset"/>
-    </entity>
-    <entity name="Beneficiary" representedClassName="Beneficiary" syncable="YES" codeGenerationType="class">
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="percentage" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Insurance" inverseName="beneficiaries" inverseEntity="Insurance"/>
-    </entity>
-    <entity name="InstitutionAssetAvailability" representedClassName="InstitutionAssetAvailability" syncable="YES" codeGenerationType="class">
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="lastTransactionDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="assetAvailabilities" inverseEntity="Institution"/>
-        <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="institutionAvailabilities" inverseEntity="Asset"/>
-    </entity>
-    <entity name="PortfolioInstitutionCash" representedClassName="PortfolioInstitutionCash" syncable="YES" codeGenerationType="class">
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="cashBalance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="institutionCashBalances" inverseEntity="Portfolio"/>
-        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="portfolioCashBalances" inverseEntity="Institution"/>
     </entity>
 </model>

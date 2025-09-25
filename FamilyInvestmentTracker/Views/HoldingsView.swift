@@ -581,7 +581,7 @@ struct CashValueEditorView: View {
                 }
                 return sum + (holding.quantity * asset.currentPrice)
             }
-            portfolio.totalValue = holdingsValue + portfolio.cashBalanceSafe
+            portfolio.totalValue = holdingsValue + portfolio.resolvedCashBalance()
             portfolio.updatedAt = Date()
         }
 

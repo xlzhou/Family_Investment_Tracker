@@ -89,7 +89,7 @@ class ExportService: ObservableObject {
                 Cost Basis: \(Formatters.currency(performance.costBasis))
                 Unrealized P&L: \(Formatters.currency(performance.unrealizedGainLoss))
                 Total Dividends: \(Formatters.currency(performance.totalDividends))
-                Cash Balance: \(Formatters.currency(portfolio.cashBalanceSafe))
+                Cash Balance: \(Formatters.currency(portfolio.resolvedCashBalance()))
                 """
                 
                 yPosition = drawText(

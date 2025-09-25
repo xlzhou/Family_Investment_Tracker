@@ -5,7 +5,15 @@ struct TransactionImpactService {
     private static let currencyService = CurrencyService.shared
     
     static func reverse(_ transaction: Transaction, in portfolio: Portfolio, context: NSManagedObjectContext) {
-        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else { return }
+        // Defensive check for transaction validity
+        guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else {
+            return
+        }
+
+        // Defensive check for Core Data consistency
+        guard !transaction.isDeleted, !portfolio.isDeleted else {
+            return
+        }
         let portfolioCurrency = currency(for: portfolio)
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
@@ -19,7 +27,7 @@ struct TransactionImpactService {
             case .deposit:
                 portfolio.addToCash(-netCash)
                 if let institution = institution {
-                    institution.cashBalanceSafe -= netCash
+                    institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalNetCash)
                 }
             case .insurance:
                 cleanupInsuranceArtifacts(for: transaction, in: portfolio, context: context)
@@ -43,7 +51,7 @@ struct TransactionImpactService {
                     if netProceeds != 0 {
                         portfolio.addToCash(-netProceeds)
                         if cashDisciplineEnabled, let institution = institution {
-                            institution.cashBalanceSafe -= netProceeds
+                            institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalProceeds)
                         }
                     }
                 } else if transactionType == .buy {
@@ -52,7 +60,7 @@ struct TransactionImpactService {
                     if cashDisciplineEnabled {
                         portfolio.addToCash(cost)
                         if let institution = institution {
-                            institution.cashBalanceSafe += cost
+                            institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: originalCost)
                         }
                     }
                 } else if transactionType == .insurance {
@@ -60,7 +68,7 @@ struct TransactionImpactService {
                 }
             }
         }
-        
+
         recomputePortfolioTotals(for: portfolio)
     }
     
@@ -74,7 +82,7 @@ struct TransactionImpactService {
             }
             return partial + (holding.quantity * asset.currentPrice)
         }
-        let cashBalance = portfolio.cashBalanceSafe
+        let cashBalance = portfolio.getTotalCashBalanceInMainCurrency()
         portfolio.totalValue = totalHoldings + cashBalance
         portfolio.updatedAt = Date()
     }
@@ -128,7 +136,10 @@ struct TransactionImpactService {
                 portfolio.addToCash(amount)
                 if let name = transaction.value(forKey: "paymentInstitutionName") as? String,
                    let paymentInstitution = findInstitution(named: name, context: context) {
-                    paymentInstitution.cashBalanceSafe += amount
+                    let portfolioCurrency = currency(for: portfolio)
+                    let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+                    let originalAmount = currencyService.convertAmount(amount, from: portfolioCurrency, to: transactionCurrency)
+                    paymentInstitution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: originalAmount)
                 }
             }
             transaction.setValue(false, forKey: "paymentDeducted")

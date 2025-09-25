@@ -17,6 +17,7 @@
 		54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */ = {isa = PBXBuildFile; fileRef = A597C86D50F2403B90A1C9D7 /* TransactionType.swift */; };
 		560258E959B6429D904DAB71 /* TransactionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C99186756F54D068D8536E8 /* TransactionDetailView.swift */; };
 		58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */; };
+		A0900C7229C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0900C7129C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift */; };
 		5FAF03082FDC46558F9413C4 /* PortfolioDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */; };
 		672CA89D46D34C8AA97BE10F /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B3A9F2F8FDE4A6C8B9E0E09 /* Persistence.swift */; };
 		7E3696D6D0B044F798ED84F2 /* AddTransactionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A3E21BE5A3A416AA00B47A0 /* AddTransactionView.swift */; };
@@ -87,6 +88,7 @@
 		E71634042E7BA470007ACEFC /* FamilyInvestmentTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FamilyInvestmentTracker.entitlements; sourceTree = "<group>"; };
 		E7C3DCEF2E7E881900FC092A /* InstitutionAssetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstitutionAssetService.swift; sourceTree = "<group>"; };
 		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };
+		A0900C7129C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PortfolioInstitutionCurrencyCash+Extensions.swift"; sourceTree = "<group>"; };
 		F630DE14897845C18BB21F5D /* FamilyInvestmentTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FamilyInvestmentTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F74CA0BB7B14D5CF69491037 /* Transaction+RealizedGain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+RealizedGain.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -167,6 +169,7 @@
 				395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */,
 				F74CA0BB7B14D5CF69491037 /* Transaction+RealizedGain.swift */,
 				EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */,
+				A0900C7129C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -302,6 +305,7 @@
 				560258E959B6429D904DAB71 /* TransactionDetailView.swift in Sources */,
 				54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */,
 				58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */,
+				A0900C7229C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift in Sources */,
 				E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */,
 				842B620D08FA0D905EF77BE2 /* Transaction+RealizedGain.swift in Sources */,
 				FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */,
