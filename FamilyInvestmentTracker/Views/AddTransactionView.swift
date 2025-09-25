@@ -43,6 +43,8 @@ struct AddTransactionView: View {
     @State private var structuredProductLinkedAssets = ""
     @State private var structuredProductInvestmentAmount: Double = 0
     @State private var structuredProductInterestRate: Double = 0
+    // Interest-specific selection
+    @State private var selectedInterestSource: InterestSourceSelection = .demand
 
     // Insurance-specific fields
     @State private var insuranceType = "Life Insurance"
@@ -151,6 +153,22 @@ struct AddTransactionView: View {
         let initialStructuredInvestment = isEditingStructuredProduct ? (transactionToEdit?.amount ?? (transactionToEdit?.price ?? 0)) : 0
         _structuredProductLinkedAssets = State(initialValue: initialStructuredLinkedAssets)
         _structuredProductInterestRate = State(initialValue: initialStructuredInterestRate)
+
+        if initialType == .interest {
+            let demandSymbol = DepositCategory.demand.assetSymbol.lowercased()
+            let isDemandAsset = transactionToEdit?.asset?.symbol?.lowercased() == demandSymbol ||
+                transactionToEdit?.asset?.name?.lowercased() == demandSymbol
+
+            if isDemandAsset {
+                _selectedInterestSource = State(initialValue: .demand)
+            } else if let institution = transactionToEdit?.institution {
+                _selectedInterestSource = State(initialValue: .fixedDeposit(institution.objectID))
+            } else {
+                _selectedInterestSource = State(initialValue: .demand)
+            }
+        } else {
+            _selectedInterestSource = State(initialValue: .demand)
+        }
         _structuredProductInvestmentAmount = State(initialValue: initialStructuredInvestment)
 
         if initialType == .dividend {
@@ -400,6 +418,18 @@ struct AddTransactionView: View {
                             ForEach(dividendSourceAssets, id: \.objectID) { asset in
                                 Text(asset.symbol ?? asset.name ?? "Unknown")
                                     .tag(Optional(asset.objectID))
+                            }
+                        }
+                        .pickerStyle(MenuPickerStyle())
+                    }
+                }
+
+                if selectedTransactionType == .interest {
+                    Section(header: Text("Interest Source"), footer: Text("Select the deposit account that generated this interest.")) {
+                        Picker("Source", selection: $selectedInterestSource) {
+                            ForEach(interestSourceOptions) { option in
+                                Text(option.title)
+                                    .tag(option.selection)
                             }
                         }
                         .pickerStyle(MenuPickerStyle())
@@ -771,9 +801,20 @@ struct AddTransactionView: View {
             case .dividend:
                 if selectedDividendAssetID == nil { selectedDividendAssetID = dividendSourceAssets.first?.objectID }
                 selectedSellAssetID = nil
+                selectedInterestSource = .demand
             case .sell:
                 if selectedSellAssetID == nil { selectedSellAssetID = sellSourceAssets.first?.objectID }
                 selectedDividendAssetID = nil
+                selectedInterestSource = .demand
+            case .interest:
+                if let firstSelection = interestSourceOptions.first?.selection {
+                    selectedInterestSource = firstSelection
+                } else {
+                    selectedInterestSource = .demand
+                }
+                selectedDividendAssetID = nil
+                selectedSellAssetID = nil
+                selectedPaymentInstitution = nil
             case .insurance:
                 // Initialize with one beneficiary if empty
                 if beneficiaries.isEmpty {
@@ -784,10 +825,12 @@ struct AddTransactionView: View {
                 }
                 selectedDividendAssetID = nil
                 selectedSellAssetID = nil
+                selectedInterestSource = .demand
             default:
                 selectedDividendAssetID = nil
                 selectedSellAssetID = nil
                 selectedPaymentInstitution = nil
+                selectedInterestSource = .demand
             }
 
             if newValue == .deposit && selectedDepositCategory != .fixed {
@@ -857,8 +900,11 @@ struct AddTransactionView: View {
     private var isFormValid: Bool {
         let hasValidInstitution = selectedInstitution != nil || !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         switch selectedTransactionType {
-        case .dividend, .interest:
+        case .dividend:
             return amount > 0 && hasValidInstitution
+        case .interest:
+            let hasSource = interestSourceOptions.contains { $0.selection == selectedInterestSource }
+            return amount > 0 && hasValidInstitution && hasSource
         case .sell:
             let hasSelection = selectedSellAssetID != nil && hasValidInstitution
             if isStructuredProductSell {
@@ -1158,6 +1204,35 @@ struct AddTransactionView: View {
                     } else {
                         portfolio.addToCash(convertedNetCash)
                     }
+
+                    if let option = interestSourceOption(for: selectedInterestSource) ?? interestSourceOptions.first {
+                        switch option.selection {
+                        case .demand:
+                            if let assetID = option.assetID,
+                               let demandAsset = try? viewContext.existingObject(with: assetID) as? Asset {
+                                transaction.asset = demandAsset
+                            } else {
+                                let demandAsset = findOrCreateDepositAsset(for: .demand, existingAsset: previousAsset)
+                                transaction.asset = demandAsset
+                            }
+                        case .fixedDeposit(let institutionID):
+                            let depositAsset: Asset?
+                            if let assetID = option.assetID,
+                               let resolvedAsset = try? viewContext.existingObject(with: assetID) as? Asset {
+                                depositAsset = resolvedAsset
+                            } else {
+                                depositAsset = findOrCreateDepositAsset(for: .fixed, existingAsset: previousAsset)
+                            }
+
+                            if let depositAsset {
+                                transaction.asset = depositAsset
+
+                                if let institution = try? viewContext.existingObject(with: institutionID) as? Institution {
+                                    maintainInstitutionAssetRelationship(institution: institution, asset: depositAsset, transactionDate: transactionDate)
+                                }
+                            }
+                        }
+                    }
                 default:
                     break
                 }
@@ -1291,6 +1366,75 @@ struct AddTransactionView: View {
         return unique.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
     }
 
+    private var interestSourceOptions: [InterestSourceOption] {
+        let demandAssetID = fetchDepositAsset(for: .demand)?.objectID
+        let demandTitle = DepositCategory.demand.displayTitle
+        var options: [InterestSourceOption] = [
+            InterestSourceOption(
+                selection: .demand,
+                title: demandTitle,
+                assetID: demandAssetID,
+                institutionID: nil
+            )
+        ]
+
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let fixedSymbol = DepositCategory.fixed.assetSymbol.lowercased()
+        let fixedName = DepositCategory.fixed.assetName.lowercased()
+
+        var seenInstitutions = Set<NSManagedObjectID>()
+        var fixedOptions: [InterestSourceOption] = []
+
+        for transaction in transactions {
+            guard transaction.type == TransactionType.deposit.rawValue,
+                  let asset = transaction.asset,
+                  let institution = transaction.institution else { continue }
+
+            let symbolMatches = asset.symbol?.lowercased() == fixedSymbol
+            let nameMatches = asset.name?.lowercased() == fixedName
+            guard symbolMatches || nameMatches else { continue }
+
+            let institutionID = institution.objectID
+            if seenInstitutions.contains(institutionID) { continue }
+            seenInstitutions.insert(institutionID)
+
+            let displayName = (institution.name?.isEmpty == false) ? (institution.name ?? "Unknown Institution") : "Unknown Institution"
+
+            fixedOptions.append(
+                InterestSourceOption(
+                    selection: .fixedDeposit(institutionID),
+                    title: displayName,
+                    assetID: asset.objectID,
+                    institutionID: institutionID
+                )
+            )
+        }
+
+        if selectedTransactionType == .interest,
+           let editingInstitution = transactionToEdit?.institution {
+            let institutionID = editingInstitution.objectID
+            if !seenInstitutions.contains(institutionID) {
+                let displayName = (editingInstitution.name?.isEmpty == false) ? (editingInstitution.name ?? "Unknown Institution") : "Unknown Institution"
+                fixedOptions.append(
+                    InterestSourceOption(
+                        selection: .fixedDeposit(institutionID),
+                        title: displayName,
+                        assetID: transactionToEdit?.asset?.objectID,
+                        institutionID: institutionID
+                    )
+                )
+            }
+        }
+
+        fixedOptions.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+        options.append(contentsOf: fixedOptions)
+        return options
+    }
+
+    private func interestSourceOption(for selection: InterestSourceSelection) -> InterestSourceOption? {
+        interestSourceOptions.first { $0.selection == selection }
+    }
+
     private var sellSourceAssets: [Asset] {
         // If no institution is selected, return empty array to disable security selection
         guard let institution = selectedInstitution ??
@@ -1322,6 +1466,13 @@ struct AddTransactionView: View {
     private func findExistingInstitution(name: String) -> Institution? {
         let request: NSFetchRequest<Institution> = Institution.fetchRequest()
         request.predicate = NSPredicate(format: "name ==[c] %@", name.trimmingCharacters(in: .whitespacesAndNewlines))
+        request.fetchLimit = 1
+        return try? viewContext.fetch(request).first
+    }
+
+    private func fetchDepositAsset(for category: DepositCategory) -> Asset? {
+        let request: NSFetchRequest<Asset> = Asset.fetchRequest()
+        request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, category.assetSymbol)
         request.fetchLimit = 1
         return try? viewContext.fetch(request).first
     }
@@ -1569,6 +1720,29 @@ enum DepositCategory: String, CaseIterable {
         }
         return DepositCategory(rawValue: normalized)
     }
+}
+
+fileprivate enum InterestSourceSelection: Hashable {
+    case demand
+    case fixedDeposit(NSManagedObjectID)
+
+    var identifier: String {
+        switch self {
+        case .demand:
+            return "demand"
+        case .fixedDeposit(let objectID):
+            return "fixed-\(objectID.uriRepresentation().absoluteString)"
+        }
+    }
+}
+
+fileprivate struct InterestSourceOption: Identifiable, Hashable {
+    let selection: InterestSourceSelection
+    let title: String
+    let assetID: NSManagedObjectID?
+    let institutionID: NSManagedObjectID?
+
+    var id: String { selection.identifier }
 }
 
 private extension AddTransactionView {

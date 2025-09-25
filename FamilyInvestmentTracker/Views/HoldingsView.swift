@@ -273,7 +273,7 @@ struct HoldingRowView: View {
                                 editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                                 showingCashValueEditor = true
                             }) {
-                                Image(systemName: "pencil.circle")
+                                Image(systemName: "pencil")
                                     .foregroundColor(.blue)
                                     .font(.caption)
                             }
@@ -362,7 +362,7 @@ struct HoldingRowView: View {
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             Image(systemName: "pencil")
-                                .foregroundColor(.orange)
+                                .foregroundColor(.blue)
                                 .font(.caption2)
                         }
                     }
@@ -404,7 +404,7 @@ struct HoldingRowView: View {
                                     .font(.caption2)
                             } else {
                                 Image(systemName: "pencil")
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.blue)
                                     .font(.caption2)
                             }
                         }

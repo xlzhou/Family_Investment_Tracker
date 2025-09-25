@@ -191,7 +191,7 @@ struct HoldingDetailView: View {
                                 editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                                 showingCashValueEditor = true
                             }) {
-                                Image(systemName: "pencil.circle")
+                                Image(systemName: "pencil")
                                     .foregroundColor(.blue)
                             }
                         }
@@ -249,7 +249,7 @@ struct HoldingDetailView: View {
                                         editingPrice = displayPrice
                                         showingPriceEditor = true
                                     }) {
-                                        Image(systemName: "pencil.circle")
+                                        Image(systemName: "pencil")
                                             .foregroundColor(.blue)
                                     }
                                 }
@@ -306,7 +306,7 @@ struct HoldingDetailView: View {
                                         editingPrice = displayPrice
                                         showingPriceEditor = true
                                     }) {
-                                        Image(systemName: "pencil.circle")
+                                        Image(systemName: "pencil")
                                             .foregroundColor(.blue)
                                     }
                                 }
