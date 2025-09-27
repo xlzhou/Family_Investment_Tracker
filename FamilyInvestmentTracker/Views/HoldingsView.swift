@@ -399,9 +399,16 @@ struct HoldingRowView: View {
                                 .fontWeight(.medium)
 
                             if hasAutoFetchEnabled {
+                                let marketOffline = MarketDataService.shared.isOfflineMode
+                                let currencyOffline = CurrencyService.shared.isOfflineMode
+                                let isOffline = marketOffline || currencyOffline
                                 Image(systemName: "globe")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(isOffline ? .red : .blue)
                                     .font(.caption2)
+                                    .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("NetworkStatusChanged"))) { _ in
+                                        print("🔍 HoldingsView: Received network status change notification")
+                                        // Force SwiftUI to re-evaluate the color
+                                    }
                             } else {
                                 Image(systemName: "pencil")
                                     .foregroundColor(.blue)

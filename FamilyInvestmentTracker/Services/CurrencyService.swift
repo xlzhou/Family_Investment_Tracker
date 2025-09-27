@@ -8,17 +8,37 @@ class CurrencyService: ObservableObject {
     @Published var lastUpdateDate: Date?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var isOfflineMode = false
 
     private let apiBaseURL = "https://query1.finance.yahoo.com/v8/finance/chart"
     private let cacheKey = "CurrencyService.ExchangeRates"
     private let lastUpdateKey = "CurrencyService.LastUpdate"
     private let cacheExpiryHours: TimeInterval = 1
+    private let networkTimeoutSeconds: TimeInterval = 10
     private var cancellables = Set<AnyCancellable>()
+    private var lastConnectivityCheck: Date?
+    private let connectivityCheckInterval: TimeInterval = 10 // 10 seconds minimum between checks
 
     private init() {
         loadCachedRates()
         if shouldUpdateRates() {
             fetchLatestRates()
+        }
+        // Start with offline mode detection based on cache age
+        updateOfflineModeBasedOnCacheAge()
+    }
+
+    private func updateOfflineModeBasedOnCacheAge() {
+        guard let lastUpdate = lastUpdateDate else {
+            isOfflineMode = true
+            return
+        }
+
+        let hoursSinceUpdate = Date().timeIntervalSince(lastUpdate) / 3600
+        // If data is more than 24 hours old, assume we might be offline until proven otherwise
+        if hoursSinceUpdate > 24 {
+            isOfflineMode = true
+            print("🔍 CurrencyService: Setting isOfflineMode = true (cache is \(Int(hoursSinceUpdate)) hours old)")
         }
     }
     
@@ -46,20 +66,24 @@ class CurrencyService: ObservableObject {
                 continue
             }
 
-            URLSession.shared.dataTaskPublisher(for: url)
+            var request = URLRequest(url: url)
+            request.timeoutInterval = networkTimeoutSeconds
+
+            URLSession.shared.dataTaskPublisher(for: request)
                 .map(\.data)
                 .decode(type: YahooFinanceResponse.self, decoder: JSONDecoder())
                 .receive(on: DispatchQueue.main)
                 .sink(
                     receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            print("Error fetching \(symbol): \(error)")
+                        if case .failure = completion {
+                            // Handle network errors silently
                         }
                         group.leave()
                     },
-                    receiveValue: { response in
-                        if let rate = response.chart.result.first?.meta.regularMarketPrice {
+                    receiveValue: { [weak self] response in
+                        if let rate = response.chart.result.first?.meta.regularMarketPrice, rate > 0 {
                             fetchedRates[currency.rawValue] = rate
+                            self?.isOfflineMode = false
                         }
                     }
                 )
@@ -68,7 +92,25 @@ class CurrencyService: ObservableObject {
 
         group.notify(queue: .main) { [weak self] in
             self?.isLoading = false
-            self?.processYahooFinanceRates(fetchedRates, baseCurrency: baseCurrency)
+
+            // Validate that we have sufficient data - we need more than just USD=1.0
+            let validRates = fetchedRates.filter { $0.key != "USD" && $0.value > 0 }
+            let hasValidData = validRates.count >= 2 // Need at least 2 non-USD rates
+
+            if fetchedRates.isEmpty || !hasValidData {
+                self?.isOfflineMode = true
+                print("🔍 CurrencyService: Setting isOfflineMode = true")
+                if self?.exchangeRates.isEmpty == true {
+                    self?.loadDefaultRates()
+                    self?.errorMessage = "Network unavailable. Using default exchange rates."
+                } else {
+                    self?.errorMessage = "Network returned incomplete data. Using cached exchange rates from \(self?.getRateAge() ?? "earlier")."
+                }
+            } else {
+                self?.isOfflineMode = false
+                print("🔍 CurrencyService: Setting isOfflineMode = false")
+                self?.processYahooFinanceRates(fetchedRates, baseCurrency: baseCurrency)
+            }
         }
     }
 
@@ -101,6 +143,7 @@ class CurrencyService: ObservableObject {
         exchangeRates = newRates
         lastUpdateDate = Date()
         cacheRates()
+        errorMessage = nil
     }
 
     private func loadCachedRates() {
@@ -127,6 +170,17 @@ class CurrencyService: ObservableObject {
         guard let lastUpdate = lastUpdateDate else { return true }
         let hoursSinceUpdate = Date().timeIntervalSince(lastUpdate) / 3600
         return hoursSinceUpdate >= cacheExpiryHours
+    }
+
+    private func handleNetworkError(_ error: Error) {
+        isOfflineMode = true
+
+        if exchangeRates.isEmpty {
+            loadDefaultRates()
+            errorMessage = "Network unavailable. Using default exchange rates."
+        } else {
+            errorMessage = "Network unavailable. Using cached exchange rates from \(getRateAge() ?? "earlier")."
+        }
     }
 
     private func handleFetchError(_ message: String) {
@@ -250,6 +304,60 @@ class CurrencyService: ObservableObject {
 
     func refreshRates() {
         fetchLatestRates()
+    }
+
+    // Lightweight connectivity check - just tries to fetch one small currency rate
+    func checkConnectivityAsync() {
+        guard !isLoading else { return }
+
+        // Throttle connectivity checks
+        if let lastCheck = lastConnectivityCheck,
+           Date().timeIntervalSince(lastCheck) < connectivityCheckInterval {
+            print("🔍 CurrencyService: Skipping connectivity check (too recent)")
+            return
+        }
+
+        lastConnectivityCheck = Date()
+        print("🔍 CurrencyService: Checking connectivity...")
+        let symbol = "USDCNY=X" // Use one common currency pair
+        guard let url = URL(string: "\(apiBaseURL)/\(symbol)") else { return }
+
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5 // Quick timeout for connectivity check
+
+        URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: YahooFinanceResponse.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure = completion {
+                        let wasOffline = self?.isOfflineMode ?? false
+                        self?.isOfflineMode = true
+                        print("🔍 CurrencyService: Connectivity check failed - setting offline mode")
+                        if !wasOffline {
+                            NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)
+                        }
+                    }
+                },
+                receiveValue: { [weak self] response in
+                    let wasOffline = self?.isOfflineMode ?? true
+                    if response.chart.result.first?.meta.regularMarketPrice != nil {
+                        self?.isOfflineMode = false
+                        print("🔍 CurrencyService: Connectivity check passed - setting online mode")
+                        if wasOffline {
+                            NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)
+                        }
+                    } else {
+                        self?.isOfflineMode = true
+                        print("🔍 CurrencyService: Connectivity check returned invalid data - setting offline mode")
+                        if !wasOffline {
+                            NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)
+                        }
+                    }
+                }
+            )
+            .store(in: &cancellables)
     }
 
     func refreshExchangeRates() async {

@@ -15,6 +15,7 @@ struct HoldingDetailView: View {
     @State private var error: String?
 
     private let currencyService = CurrencyService.shared
+    private let marketDataService = MarketDataService.shared
 
     private var isInsurance: Bool {
         asset.assetType == "Insurance"
@@ -147,6 +148,17 @@ struct HoldingDetailView: View {
         return holding.quantity * displayPrice
     }
 
+    private func refreshAssetPrice() async {
+        // Only refresh if this asset has auto-fetch enabled
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        let hasAutoFetch = transactions.contains { $0.autoFetchPrice }
+
+        guard hasAutoFetch else {
+            return
+        }
+        await marketDataService.updateMarketPrices(for: [asset], in: viewContext)
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -241,9 +253,18 @@ struct HoldingDetailView: View {
                                     .fontWeight(.medium)
 
                                 if hasAutoFetchEnabled {
+                                    let marketOffline = MarketDataService.shared.isOfflineMode
+                                    let currencyOffline = CurrencyService.shared.isOfflineMode
+                                    let isOffline = marketOffline || currencyOffline
                                     Image(systemName: "globe")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(isOffline ? .red : .blue)
                                         .font(.caption)
+                                        .onAppear {
+                                            // Trigger actual price updates for this asset
+                                            Task {
+                                                await refreshAssetPrice()
+                                            }
+                                        }
                                 } else {
                                     Button(action: {
                                         editingPrice = displayPrice
@@ -260,9 +281,14 @@ struct HoldingDetailView: View {
                             HStack {
                                 Text("Price Source")
                                 Spacer()
-                                Text("Auto-fetched from Yahoo Finance")
+                                let marketOffline = MarketDataService.shared.isOfflineMode
+                                let currencyOffline = CurrencyService.shared.isOfflineMode
+                                let isOffline = marketOffline || currencyOffline
+                                Text(isOffline ?
+                                     "Network returned incomplete data. Using cached data from \(isOffline ? (MarketDataService.shared.getPricesAge() ?? CurrencyService.shared.getRateAge() ?? "earlier") : "now")" :
+                                     "Auto-fetched from Yahoo Finance")
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(isOffline ? .red : .blue)
                             }
                         }
 
@@ -298,9 +324,18 @@ struct HoldingDetailView: View {
                                     .fontWeight(.medium)
 
                                 if hasAutoFetchEnabled {
+                                    let marketOffline = MarketDataService.shared.isOfflineMode
+                                    let currencyOffline = CurrencyService.shared.isOfflineMode
+                                    let isOffline = marketOffline || currencyOffline
                                     Image(systemName: "globe")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(isOffline ? .red : .blue)
                                         .font(.caption)
+                                        .onAppear {
+                                            // Trigger actual price updates for this asset
+                                            Task {
+                                                await refreshAssetPrice()
+                                            }
+                                        }
                                 } else {
                                     Button(action: {
                                         editingPrice = displayPrice
@@ -317,9 +352,14 @@ struct HoldingDetailView: View {
                             HStack {
                                 Text("Price Source")
                                 Spacer()
-                                Text("Auto-fetched from Yahoo Finance")
+                                let marketOffline = MarketDataService.shared.isOfflineMode
+                                let currencyOffline = CurrencyService.shared.isOfflineMode
+                                let isOffline = marketOffline || currencyOffline
+                                Text(isOffline ?
+                                     "Network returned incomplete data. Using cached data from \(isOffline ? (MarketDataService.shared.getPricesAge() ?? CurrencyService.shared.getRateAge() ?? "earlier") : "now")" :
+                                     "Auto-fetched from Yahoo Finance")
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(isOffline ? .red : .blue)
                             }
                         }
 
@@ -564,6 +604,7 @@ struct PriceEditorView: View {
             self.error = "Failed to save price: \(error.localizedDescription)"
         }
     }
+
 }
 
 #Preview {
