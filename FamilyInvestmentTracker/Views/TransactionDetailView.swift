@@ -181,6 +181,15 @@ struct TransactionDetailView: View {
                         Text(Formatters.currency(transaction.tax, symbol: currency.symbol))
                             .foregroundColor(.secondary)
                     }
+                    if transaction.type == TransactionType.buy.rawValue {
+                        HStack {
+                            Text("Settlement Amount")
+                            Spacer()
+                            let settlement = (transaction.quantity * transaction.price) + transaction.fees
+                            Text(Formatters.currency(settlement, symbol: currency.symbol))
+                                .foregroundColor(.secondary)
+                        }
+                    }
                     HStack {
                         Text("Institution")
                         Spacer()

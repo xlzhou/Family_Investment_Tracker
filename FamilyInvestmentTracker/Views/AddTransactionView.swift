@@ -265,6 +265,16 @@ struct AddTransactionView: View {
         selectedTransactionType == .buy && selectedAssetType == .structuredProduct
     }
 
+    private var settlementAmountForDisplay: Double {
+        let baseAmount: Double
+        if isStructuredProductBuy {
+            baseAmount = structuredProductInvestmentAmount
+        } else {
+            baseAmount = quantity * price
+        }
+        return baseAmount + fees
+    }
+
     private var selectedSellAsset: Asset? {
         if let sellID = selectedSellAssetID {
             if let asset = sellSourceAssets.first(where: { $0.objectID == sellID }) {
@@ -564,6 +574,15 @@ struct AddTransactionView: View {
                                 .frame(width: 120)
                             Text(selectedCurrency.symbol)
                                 .foregroundColor(.secondary)
+                        }
+
+                        if selectedTransactionType == .buy {
+                            HStack {
+                                Text("Settlement Amount")
+                                Spacer()
+                                Text(Formatters.currency(settlementAmountForDisplay, symbol: selectedCurrency.symbol))
+                                    .fontWeight(.semibold)
+                            }
                         }
                     }
                     
@@ -992,23 +1011,22 @@ struct AddTransactionView: View {
                     return
                 }
                 let requiredFundsTransactionCurrency = isStructuredProductBuy ? (structuredProductInvestmentAmount + fees + tax) : (quantity * price + fees + tax)
-                let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
-                var availableFunds = institution.getCashBalance(for: portfolio)
+                let transactionCurrency = selectedCurrency
+                let requiredFunds = max(0, requiredFundsTransactionCurrency)
+                var availableFunds = portfolio.getCurrencyBalance(for: institution, currency: transactionCurrency.rawValue)
                 if let existingTransaction,
                    existingTransactionType == .buy,
-                   existingTransaction.institution == institution {
-                    let previousCurrency = Currency(rawValue: existingTransaction.currency ?? selectedCurrency.rawValue) ?? selectedCurrency
-                    let previousCostRaw: Double
-                    if isStructuredProductBuy && existingTransaction.asset?.assetType == AssetType.structuredProduct.rawValue {
-                        previousCostRaw = (existingTransaction.amount) + existingTransaction.fees + existingTransaction.tax
-                    } else {
-                        previousCostRaw = (existingTransaction.quantity * existingTransaction.price) + existingTransaction.fees + existingTransaction.tax
-                    }
-                    let previousCost = convertToPortfolioCurrency(previousCostRaw, from: previousCurrency)
-                    availableFunds += previousCost
+                   existingTransaction.institution?.objectID == institution.objectID {
+                    let previousCurrency = Currency(rawValue: existingTransaction.currency ?? transactionCurrency.rawValue) ?? transactionCurrency
+                    let previousCost = (existingTransaction.quantity * existingTransaction.price) + existingTransaction.fees + existingTransaction.tax
+                    let restoredAmount = currencyService.convertAmount(previousCost, from: previousCurrency, to: transactionCurrency)
+                    availableFunds += restoredAmount
                 }
                 if availableFunds + 1e-6 < requiredFunds {
-                    failWithMessage("Not enough cash in \(institution.name ?? "this institution") to complete this purchase. If you do not want cash to be deducted at the time of purchase, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
+                    let institutionName = institution.name ?? "this institution"
+                    let formattedAvailable = currencyService.formatAmountWithFullCurrency(availableFunds, in: transactionCurrency)
+                    let formattedRequired = currencyService.formatAmountWithFullCurrency(requiredFunds, in: transactionCurrency)
+                    failWithMessage("Not enough cash in \(institutionName) to complete this purchase. Current balance: \(formattedAvailable). Required: \(formattedRequired). If you do not want cash to be deducted at the time of purchase, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
                     return
                 }
             case .insurance:
@@ -1268,19 +1286,23 @@ struct AddTransactionView: View {
             if selectedTransactionType == .sell {
                 let netProceeds = (quantity * price) - fees - tax
                 if netProceeds != 0 {
-                    let convertedProceeds = convertToPortfolioCurrency(netProceeds, from: selectedCurrency)
-
-                    if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netProceeds)
+                    if cashDisciplineEnabled {
+                        // Cash will be adjusted via companion deposit entry
                     } else {
-                        portfolio.addToCash(convertedProceeds)
+                        let convertedProceeds = convertToPortfolioCurrency(netProceeds, from: selectedCurrency)
+                        if let institution = institutionForTransaction {
+                            institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netProceeds)
+                        } else {
+                            portfolio.addToCash(convertedProceeds)
+                        }
                     }
                 }
             } else if selectedTransactionType == .buy {
                 let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
-                let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
-
                 if cashDisciplineEnabled {
+                    // Cash will be adjusted via companion deposit entry
+                } else {
+                    let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
                     if let institution = institutionForTransaction {
                         institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -requiredFundsTransactionCurrency)
                     } else {
@@ -1334,6 +1356,8 @@ struct AddTransactionView: View {
 
             updateInsuranceHolding(for: asset, transaction: transaction)
         }
+
+        manageCashDisciplineCompanion(for: transaction)
 
         recomputePortfolioTotals()
 
@@ -1475,6 +1499,117 @@ struct AddTransactionView: View {
         request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, category.assetSymbol)
         request.fetchLimit = 1
         return try? viewContext.fetch(request).first
+    }
+
+
+    private func manageCashDisciplineCompanion(for transaction: Transaction) {
+        let epsilon = 1e-6
+        let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
+        guard cashDisciplineEnabled,
+              let typeRaw = transaction.type,
+              let type = TransactionType(rawValue: typeRaw),
+              (type == .buy || type == .sell),
+              let institution = transaction.institution else {
+            removeCashDisciplineCompanion(for: transaction)
+            return
+        }
+
+        let transactionCurrency = Currency(rawValue: transaction.currency ?? selectedCurrency.rawValue) ?? selectedCurrency
+
+        switch type {
+        case .buy:
+            let totalCost = (transaction.quantity * transaction.price) + transaction.fees + transaction.tax
+            if abs(totalCost) < epsilon {
+                removeCashDisciplineCompanion(for: transaction)
+                return
+            }
+            upsertCashDisciplineCompanion(for: transaction, amount: -totalCost, currency: transactionCurrency, institution: institution)
+        case .sell:
+            let netProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
+            if abs(netProceeds) < epsilon {
+                removeCashDisciplineCompanion(for: transaction)
+                return
+            }
+            upsertCashDisciplineCompanion(for: transaction, amount: netProceeds, currency: transactionCurrency, institution: institution)
+        default:
+            removeCashDisciplineCompanion(for: transaction)
+        }
+    }
+
+    private func upsertCashDisciplineCompanion(for transaction: Transaction, amount: Double, currency: Currency, institution: Institution) {
+        let epsilon = 1e-6
+        guard abs(amount) > epsilon else {
+            removeCashDisciplineCompanion(for: transaction)
+            return
+        }
+
+        guard let companionNote = CashDisciplineService.companionNote(for: transaction, companionAmount: amount, currency: currency) else {
+            removeCashDisciplineCompanion(for: transaction)
+            return
+        }
+
+        let existingCompanion = CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext)
+        let depositAsset = findOrCreateDepositAsset(for: .demand, existingAsset: existingCompanion?.asset)
+        let transactionDate = transaction.transactionDate ?? Date()
+
+        if let companion = existingCompanion {
+            TransactionImpactService.reverse(companion, in: portfolio, context: viewContext)
+            companion.transactionDate = transactionDate
+            companion.amount = amount
+            companion.price = amount
+            companion.quantity = 1
+            companion.fees = 0
+            companion.tax = 0
+            companion.currency = currency.rawValue
+            companion.notes = companionNote
+            companion.type = TransactionType.deposit.rawValue
+            companion.autoFetchPrice = false
+            if let name = institution.name, !name.isEmpty {
+                companion.tradingInstitution = name
+            } else {
+                companion.tradingInstitution = nil
+            }
+            companion.institution = institution
+            companion.portfolio = portfolio
+            companion.asset = depositAsset
+            companion.ensureIdentifiers()
+        } else {
+            let companion = Transaction(context: viewContext)
+            companion.transactionDate = transactionDate
+            companion.type = TransactionType.deposit.rawValue
+            companion.currency = currency.rawValue
+            companion.amount = amount
+            companion.price = amount
+            companion.quantity = 1
+            companion.fees = 0
+            companion.tax = 0
+            companion.notes = companionNote
+            companion.autoFetchPrice = false
+            if let name = institution.name, !name.isEmpty {
+                companion.tradingInstitution = name
+            }
+            companion.institution = institution
+            companion.portfolio = portfolio
+            companion.asset = depositAsset
+            companion.createdAt = Date()
+            companion.ensureIdentifiers()
+        }
+
+        maintainInstitutionAssetRelationship(institution: institution, asset: depositAsset, transactionDate: transactionDate)
+        applyCashDisciplineDepositImpact(amount: amount, currency: currency, institution: institution)
+    }
+
+    private func applyCashDisciplineDepositImpact(amount: Double, currency: Currency, institution: Institution) {
+        guard abs(amount) > 1e-6 else { return }
+        let converted = convertToPortfolioCurrency(amount, from: currency)
+        institution.addToCashBalance(for: portfolio, currency: currency, delta: amount)
+        portfolio.addToCash(converted)
+    }
+
+    private func removeCashDisciplineCompanion(for transaction: Transaction) {
+        guard let companion = CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext) else { return }
+        TransactionImpactService.reverse(companion, in: portfolio, context: viewContext)
+        viewContext.delete(companion)
     }
 
     private func recomputePortfolioTotals() {
