@@ -348,7 +348,18 @@ private extension TransactionsView {
     }
 
     func netValue(for transaction: Transaction) -> Double {
-        transaction.amount - transaction.fees - transaction.tax
+        guard let type = TransactionType(rawValue: transaction.type ?? "") else {
+            return transaction.amount - transaction.fees - transaction.tax
+        }
+
+        switch type {
+        case .buy:
+            return transaction.amount + transaction.fees + transaction.tax
+        case .sell:
+            return transaction.amount - transaction.fees - transaction.tax
+        default:
+            return transaction.amount - transaction.fees - transaction.tax
+        }
     }
 }
 
@@ -390,7 +401,18 @@ struct TransactionRowView: View {
     }
 
     private var netValue: Double {
-        return transaction.amount - transaction.fees - transaction.tax
+        guard let type = transactionType else {
+            return transaction.amount - transaction.fees - transaction.tax
+        }
+
+        switch type {
+        case .buy:
+            return transaction.amount + transaction.fees + transaction.tax
+        case .sell:
+            return transaction.amount - transaction.fees - transaction.tax
+        default:
+            return transaction.amount - transaction.fees - transaction.tax
+        }
     }
 
     private var depositSymbolLabel: String? {

@@ -112,7 +112,9 @@ struct TransactionImpactService {
         
         switch transactionType {
         case .buy:
-            let transactionCost = transaction.quantity * priceInPortfolio
+            let feesInPortfolio = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
+            let taxInPortfolio = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)
+            let transactionCost = (transaction.quantity * priceInPortfolio) + feesInPortfolio + taxInPortfolio
             let currentTotalCost = holding.quantity * holding.averageCostBasis
             let newQuantity = holding.quantity - transaction.quantity
             if newQuantity > 0 {
@@ -125,7 +127,11 @@ struct TransactionImpactService {
             }
         case .sell:
             holding.quantity += transaction.quantity
-            let realizedGain = transaction.quantity * (priceInPortfolio - holding.averageCostBasis)
+            let feesInPortfolio = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
+            let taxInPortfolio = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)
+            let grossProceeds = transaction.quantity * priceInPortfolio
+            let totalCost = transaction.quantity * holding.averageCostBasis
+            let realizedGain = (grossProceeds - feesInPortfolio - taxInPortfolio) - totalCost
             holding.realizedGainLoss -= realizedGain
         default:
             break

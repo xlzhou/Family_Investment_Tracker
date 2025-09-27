@@ -78,10 +78,11 @@ struct TransactionDetailView: View {
                         Text(Formatters.currency(transaction.amount, symbol: currency.symbol))
                             .foregroundColor(.secondary)
                     }
+                    let settlementAmount = transaction.amount + transaction.fees + transaction.tax
                     HStack {
-                        Text("Net Cash Flow")
+                        Text("Settlement Amount")
                         Spacer()
-                        Text(Formatters.currency(netValue, symbol: currency.symbol))
+                        Text(Formatters.currency(settlementAmount, symbol: currency.symbol))
                             .foregroundColor(.primary)
                             .fontWeight(.semibold)
                     }
@@ -180,15 +181,6 @@ struct TransactionDetailView: View {
                         Spacer()
                         Text(Formatters.currency(transaction.tax, symbol: currency.symbol))
                             .foregroundColor(.secondary)
-                    }
-                    if transaction.type == TransactionType.buy.rawValue {
-                        HStack {
-                            Text("Settlement Amount")
-                            Spacer()
-                            let settlement = (transaction.quantity * transaction.price) + transaction.fees
-                            Text(Formatters.currency(settlement, symbol: currency.symbol))
-                                .foregroundColor(.secondary)
-                        }
                     }
                     HStack {
                         Text("Institution")

@@ -1745,13 +1745,20 @@ struct AddTransactionView: View {
         switch transactionType {
         case .buy:
             let currentCost = holding.quantity * holding.averageCostBasis
-            let newTotalCost = currentCost + (quantity * priceInPortfolioCurrency)
+            let feesInPortfolio = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
+            let taxInPortfolio = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)
+            let totalCost = (quantity * priceInPortfolioCurrency) + feesInPortfolio + taxInPortfolio
+            let newTotalCost = currentCost + totalCost
             let newTotalQuantity = holding.quantity + quantity
             holding.averageCostBasis = newTotalQuantity > 0 ? newTotalCost / newTotalQuantity : 0
             holding.quantity = newTotalQuantity
-            
+
         case .sell:
-            let realizedGain = quantity * (priceInPortfolioCurrency - holding.averageCostBasis)
+            let grossProceeds = quantity * priceInPortfolioCurrency
+            let feesInPortfolio = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
+            let taxInPortfolio = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)
+            let totalCost = quantity * holding.averageCostBasis
+            let realizedGain = (grossProceeds - feesInPortfolio - taxInPortfolio) - totalCost
             holding.realizedGainLoss += realizedGain
             holding.quantity -= quantity
             if holding.quantity < 0 {
