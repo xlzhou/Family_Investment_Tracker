@@ -16,8 +16,19 @@ struct ContentView: View {
         }
         .environmentObject(authManager)
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            if newPhase == .background || newPhase == .inactive {
-                authManager.logout()
+            switch newPhase {
+            case .background:
+                // App completely backgrounded - start logout timer
+                authManager.handleAppDidEnterBackground()
+            case .inactive:
+                // App covered by system UI (Control Center, AutoFill, etc) - no action
+                // This prevents logout during password AutoFill
+                break
+            case .active:
+                // App returned to foreground - always cancel logout timer
+                authManager.handleAppWillEnterForeground()
+            @unknown default:
+                break
             }
         }
     }

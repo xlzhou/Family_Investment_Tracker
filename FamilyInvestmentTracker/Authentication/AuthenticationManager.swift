@@ -18,6 +18,12 @@ class AuthenticationManager: ObservableObject {
     @Published var lockoutTimeRemaining: TimeInterval = 0
 
     private var lockoutTimer: Timer?
+    private var logoutTimer: Timer?
+    private var lastBackgroundTime: Date?
+
+    // Logout configuration
+    private let logoutDelaySeconds: TimeInterval = 15 // 15 seconds delay before auto-logout
+    private let maxBackgroundTimeMinutes: TimeInterval = 5 // 5 minutes max background time
 
     // Keychain keys
     private let service = "com.familyinvestmenttracker.keychain"
@@ -138,6 +144,67 @@ class AuthenticationManager: ObservableObject {
         authenticationState = .needsAuthentication
         authenticationError = nil
         stopLockoutTimer()
+        stopLogoutTimer()
+    }
+
+    // MARK: - Background/Foreground Management
+
+    func handleAppDidEnterBackground() {
+        lastBackgroundTime = Date()
+
+        // Don't start logout timer during password setup to allow AutoFill
+        guard authenticationState != .needsPasscodeSetup else {
+            print("🔒 Skipping logout timer during password setup")
+            return
+        }
+
+        // Start delayed logout timer
+        startLogoutTimer()
+    }
+
+    func handleAppWillEnterForeground() {
+        // Always stop logout timer when app becomes active
+        stopLogoutTimer()
+
+        // Check if we've been in background too long (only if we have a background time)
+        if let backgroundTime = lastBackgroundTime {
+            let backgroundDuration = Date().timeIntervalSince(backgroundTime)
+            let maxDuration = maxBackgroundTimeMinutes * 60
+
+            if backgroundDuration > maxDuration {
+                print("🔒 App was in background for \(backgroundDuration)s, logging out")
+                logout()
+            } else {
+                print("🔒 App returned within \(backgroundDuration)s, staying logged in")
+            }
+
+            // Only clear background time - don't restart any timers
+            lastBackgroundTime = nil
+        } else {
+            print("🔒 App became active, logout timer stopped")
+        }
+    }
+
+    private func startLogoutTimer() {
+        stopLogoutTimer()
+
+        print("🔒 Starting logout timer for \(logoutDelaySeconds)s")
+        logoutTimer = Timer.scheduledTimer(withTimeInterval: logoutDelaySeconds, repeats: false) { [weak self] _ in
+            print("🔒 Logout timer expired, logging out")
+            self?.logout()
+        }
+    }
+
+    private func stopLogoutTimer() {
+        logoutTimer?.invalidate()
+        logoutTimer = nil
+    }
+
+    func extendSession() {
+        // Reset logout timer when user is actively using the app
+        if logoutTimer != nil {
+            startLogoutTimer()
+        }
     }
     
     func getBiometricType() -> String {

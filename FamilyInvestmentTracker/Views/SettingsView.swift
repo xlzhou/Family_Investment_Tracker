@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var selectedDashboardCurrency: Currency = .usd
     @StateObject private var currencyService = CurrencyService.shared
     @State private var showAllExchangeRates = false
+    @State private var showingChangePassword = false
     
     var body: some View {
         NavigationView {
@@ -311,12 +312,30 @@ struct SettingsView: View {
                 // Security Section
                 Section(header: Text("Security")) {
                     Button(action: {
+                        showingChangePassword = true
+                    }) {
+                        HStack {
+                            Image(systemName: "key.horizontal")
+                                .foregroundColor(.blue)
+
+                            Text("Change Password")
+                                .foregroundColor(.primary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+
+                    Button(action: {
                         authManager.logout()
                     }) {
                         HStack {
                             Image(systemName: "lock.fill")
                                 .foregroundColor(.red)
-                            
+
                             Text("Sign Out")
                                 .foregroundColor(.red)
                         }
@@ -342,6 +361,9 @@ struct SettingsView: View {
             if let backupURL = backupURL {
                 ShareSheet(activityItems: [backupURL])
             }
+        }
+        .sheet(isPresented: $showingChangePassword) {
+            ChangePasswordView()
         }
         .fileImporter(isPresented: $showingRestoreImporter, allowedContentTypes: [.json]) { result in
             switch result {
@@ -417,6 +439,201 @@ struct SettingsView: View {
                     isRestoring = false
                 }
             }
+        }
+    }
+}
+
+struct ChangePasswordView: View {
+    @EnvironmentObject var authManager: AuthenticationManager
+    @Environment(\.dismiss) private var dismiss
+    @State private var currentPassword = ""
+    @State private var newPassword = ""
+    @State private var confirmPassword = ""
+    @State private var error: String?
+    @State private var isChangingPassword = false
+    @State private var step: ChangePasswordStep = .current
+
+    enum ChangePasswordStep {
+        case current, new, confirm
+    }
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 30) {
+                Spacer()
+
+                VStack(spacing: 20) {
+                    Image(systemName: "key.horizontal")
+                        .font(.system(size: 60))
+                        .foregroundColor(.blue)
+
+                    Text("Change Password")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+                    Text(stepDescription)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                Spacer()
+
+                VStack(spacing: 20) {
+                    Group {
+                        switch step {
+                        case .current:
+                            SecureField("Current Password", text: $currentPassword)
+                                .textContentType(.password)
+                        case .new:
+                            VStack(alignment: .leading, spacing: 8) {
+                                SecureField("New Password", text: $newPassword)
+                                    .textContentType(.newPassword)
+                                    .autocapitalization(.none)
+                                    .disableAutocorrection(true)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("• Minimum 8 characters")
+                                        .font(.caption)
+                                        .foregroundColor(newPassword.count >= 8 ? .green : .secondary)
+
+                                    Text("• Letters, numbers, and special characters")
+                                        .font(.caption)
+                                        .foregroundColor(containsRequiredCharacterTypes(newPassword) ? .green : .secondary)
+                                }
+                            }
+                        case .confirm:
+                            SecureField("Confirm New Password", text: $confirmPassword)
+                                .textContentType(.newPassword)
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                        }
+                    }
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                    if let error = error {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    Button(action: handleStepAction) {
+                        HStack {
+                            if isChangingPassword {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                    .foregroundColor(.white)
+                            }
+
+                            Text(stepButtonTitle)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(isStepValid ? Color.blue : Color.gray)
+                        .cornerRadius(12)
+                    }
+                    .disabled(!isStepValid || isChangingPassword)
+                }
+                .padding(.horizontal, 40)
+
+                Spacer()
+            }
+            .navigationTitle("Change Password")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .disabled(isChangingPassword)
+                }
+            }
+        }
+    }
+
+    private var stepDescription: String {
+        switch step {
+        case .current: return "Enter your current password to continue"
+        case .new: return "Create a strong new password"
+        case .confirm: return "Confirm your new password"
+        }
+    }
+
+    private var stepButtonTitle: String {
+        switch step {
+        case .current: return "Continue"
+        case .new: return "Continue"
+        case .confirm: return "Change Password"
+        }
+    }
+
+    private var isStepValid: Bool {
+        switch step {
+        case .current:
+            return currentPassword.count >= 8
+        case .new:
+            return newPassword.count >= 8 && containsRequiredCharacterTypes(newPassword)
+        case .confirm:
+            return confirmPassword == newPassword && !confirmPassword.isEmpty
+        }
+    }
+
+    private func containsRequiredCharacterTypes(_ password: String) -> Bool {
+        let hasLetter = password.contains { $0.isLetter }
+        let hasNumber = password.contains { $0.isNumber }
+        let hasSpecial = password.contains { "!@#$%^&*()_+-=[]{}|;:,.<>?".contains($0) }
+
+        return hasLetter && (hasNumber || hasSpecial)
+    }
+
+    private func handleStepAction() {
+        guard isStepValid && !isChangingPassword else { return }
+
+        switch step {
+        case .current:
+            step = .new
+            error = nil
+
+        case .new:
+            step = .confirm
+            error = nil
+
+        case .confirm:
+            changePassword()
+        }
+    }
+
+    private func changePassword() {
+        guard newPassword == confirmPassword else {
+            error = "Passwords don't match"
+            return
+        }
+
+        guard containsRequiredCharacterTypes(newPassword) && newPassword.count >= 8 else {
+            error = "Password doesn't meet requirements"
+            return
+        }
+
+        isChangingPassword = true
+        error = nil
+
+        // Use the AuthenticationManager's change password method
+        let success = authManager.changeAppPassword(currentPassword: currentPassword, newPassword: newPassword)
+
+        isChangingPassword = false
+
+        if success {
+            dismiss()
+        } else {
+            // Go back to current password step if verification failed
+            step = .current
+            currentPassword = ""
+            newPassword = ""
+            confirmPassword = ""
+            error = authManager.authenticationError ?? "Failed to change password"
         }
     }
 }
