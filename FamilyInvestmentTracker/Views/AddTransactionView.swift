@@ -1115,6 +1115,19 @@ struct AddTransactionView: View {
             transaction.createdAt = Date()
         }
 
+        if selectedTransactionType == .dividend {
+            guard let dividendAssetID = selectedDividendAssetID,
+                  let dividendAsset = try? viewContext.existingObject(with: dividendAssetID) as? Asset else {
+                failWithMessage("Select the asset that generated this dividend.")
+                return
+            }
+
+            if let validationMessage = validateIncomeCurrency(for: dividendAsset, currency: selectedCurrency) {
+                failWithMessage(validationMessage)
+                return
+            }
+        }
+
         let previousAsset = transaction.asset
 
         if transaction.createdAt == nil {
@@ -1195,33 +1208,28 @@ struct AddTransactionView: View {
 
                     portfolio.addToCash(convertedNetCash)
                 case .dividend:
-                    let netCashInTransactionCurrency = max(0, netCash)
-                    let convertedNetCash = convertToPortfolioCurrency(netCashInTransactionCurrency, from: selectedCurrency)
-
-                    if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCashInTransactionCurrency)
-                    } else {
-                        portfolio.addToCash(convertedNetCash)
+                    guard let institution = institutionForTransaction else {
+                        failWithMessage("Select an institution to record dividend income.")
+                        return
                     }
+
+                    institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCash)
 
                     if let assetID = selectedDividendAssetID,
                        let srcAsset = try? viewContext.existingObject(with: assetID) as? Asset {
                         transaction.asset = srcAsset
+                        maintainInstitutionAssetRelationship(institution: institution, asset: srcAsset, transactionDate: transactionDate)
 
-                        // Maintain institution-asset relationship for dividends
-                        if let institution = institutionForTransaction {
-                            maintainInstitutionAssetRelationship(institution: institution, asset: srcAsset, transactionDate: transactionDate)
-                        }
+                        let demandAsset = findOrCreateDepositAsset(for: .demand, existingAsset: nil)
+                        maintainInstitutionAssetRelationship(institution: institution, asset: demandAsset, transactionDate: transactionDate)
                     }
                 case .interest:
-                    let netCashInTransactionCurrency = max(0, netCash)
-                    let convertedNetCash = convertToPortfolioCurrency(netCashInTransactionCurrency, from: selectedCurrency)
-
-                    if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCashInTransactionCurrency)
-                    } else {
-                        portfolio.addToCash(convertedNetCash)
+                    guard let institution = institutionForTransaction else {
+                        failWithMessage("Select an institution to record interest income.")
+                        return
                     }
+
+                    institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCash)
 
                     if let option = interestSourceOption(for: selectedInterestSource) ?? interestSourceOptions.first {
                         switch option.selection {
@@ -1245,8 +1253,8 @@ struct AddTransactionView: View {
                             if let depositAsset {
                                 transaction.asset = depositAsset
 
-                                if let institution = try? viewContext.existingObject(with: institutionID) as? Institution {
-                                    maintainInstitutionAssetRelationship(institution: institution, asset: depositAsset, transactionDate: transactionDate)
+                                if let sourceInstitution = try? viewContext.existingObject(with: institutionID) as? Institution {
+                                    maintainInstitutionAssetRelationship(institution: sourceInstitution, asset: depositAsset, transactionDate: transactionDate)
                                 }
                             }
                         }
@@ -1610,6 +1618,29 @@ struct AddTransactionView: View {
         guard let companion = CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext) else { return }
         TransactionImpactService.reverse(companion, in: portfolio, context: viewContext)
         viewContext.delete(companion)
+    }
+
+    private func validateIncomeCurrency(for asset: Asset, currency: Currency) -> String? {
+        guard let transactions = asset.transactions?.allObjects as? [Transaction] else { return nil }
+        let relevantBuys = transactions.filter { txn in
+            txn.portfolio?.objectID == portfolio.objectID &&
+            txn.type == TransactionType.buy.rawValue
+        }
+
+        let currencyCodes = Set(relevantBuys.compactMap { txn in
+            txn.currency?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        })
+
+        if currencyCodes.count > 1 {
+            return "Dividends and interest can only be recorded for holdings purchased in a single currency. Please consolidate the holding before recording income."
+        }
+
+        if let expectedCode = currencyCodes.first,
+           expectedCode != currency.rawValue {
+            return "Use \(expectedCode) for dividends and interest to match the holding's purchase currency."
+        }
+
+        return nil
     }
 
     private func recomputePortfolioTotals() {

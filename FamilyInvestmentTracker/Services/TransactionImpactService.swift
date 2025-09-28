@@ -38,7 +38,11 @@ struct TransactionImpactService {
             case .insurance:
                 cleanupInsuranceArtifacts(for: transaction, in: portfolio, context: context)
             case .dividend, .interest:
-                portfolio.addToCash(-netCash)
+                if let institution = institution {
+                    institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalNetCash)
+                } else {
+                    portfolio.addToCash(-netCash)
+                }
                 if let asset = transaction.asset,
                    let holding = findHolding(for: asset, portfolio: portfolio, context: context) {
                     let dividendValue = currencyService.convertAmount(transaction.amount, from: transactionCurrency, to: portfolioCurrency)
