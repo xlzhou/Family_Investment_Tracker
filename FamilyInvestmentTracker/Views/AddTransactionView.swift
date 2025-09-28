@@ -100,7 +100,7 @@ struct AddTransactionView: View {
         _amount = State(initialValue: transactionToEdit?.amount ?? 0)
         _tradingInstitution = State(initialValue: transactionToEdit?.tradingInstitution ?? "")
         _selectedInstitution = State(initialValue: transactionToEdit?.institution)
-        let shouldUseCustomInstitution = transactionToEdit?.institution == nil && !(transactionToEdit?.tradingInstitution?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        let shouldUseCustomInstitution = (transactionToEdit?.value(forKey: "institution") as? Institution) == nil && !(transactionToEdit?.tradingInstitution?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
         _showingCustomInstitution = State(initialValue: shouldUseCustomInstitution)
         _tax = State(initialValue: transactionToEdit?.tax ?? 0)
 
@@ -156,11 +156,18 @@ struct AddTransactionView: View {
 
         if initialType == .interest {
             let demandSymbol = DepositCategory.demand.assetSymbol.lowercased()
-            let isDemandAsset = transactionToEdit?.asset?.symbol?.lowercased() == demandSymbol ||
-                transactionToEdit?.asset?.name?.lowercased() == demandSymbol
+            if let asset = transactionToEdit?.asset {
+                let isDemandAsset = asset.symbol?.lowercased() == demandSymbol ||
+                    asset.name?.lowercased() == demandSymbol
 
-            if isDemandAsset {
-                _selectedInterestSource = State(initialValue: .demand)
+                if isDemandAsset {
+                    _selectedInterestSource = State(initialValue: .demand)
+                } else if asset.assetType == AssetType.deposit.rawValue,
+                          let institution = transactionToEdit?.institution {
+                    _selectedInterestSource = State(initialValue: .fixedDeposit(institution.objectID))
+                } else {
+                    _selectedInterestSource = State(initialValue: .security(asset.objectID))
+                }
             } else if let institution = transactionToEdit?.institution {
                 _selectedInterestSource = State(initialValue: .fixedDeposit(institution.objectID))
             } else {
@@ -447,7 +454,7 @@ struct AddTransactionView: View {
                 }
 
                 if selectedTransactionType == .interest {
-                    Section(header: Text("Interest Source"), footer: Text("Select the deposit account that generated this interest.")) {
+                    Section(header: Text("Interest Source"), footer: Text("Select the account or security that generated this interest.")) {
                         Picker("Source", selection: $selectedInterestSource) {
                             ForEach(interestSourceOptions) { option in
                                 Text(option.title)
@@ -887,11 +894,23 @@ struct AddTransactionView: View {
             if selectedTransactionType == .sell {
                 selectedSellAssetID = nil
             }
+
+            if selectedTransactionType == .interest {
+                if let firstSelection = interestSourceOptions.first?.selection {
+                    selectedInterestSource = firstSelection
+                }
+            }
         }
         .onChange(of: tradingInstitution) { _, newValue in
             // Reset selected sell asset when trading institution text changes for sell transactions
             if selectedTransactionType == .sell {
                 selectedSellAssetID = nil
+            }
+
+            if selectedTransactionType == .interest {
+                if let firstSelection = interestSourceOptions.first?.selection {
+                    selectedInterestSource = firstSelection
+                }
             }
         }
         .onChange(of: selectedDepositCategory) { _, newValue in
@@ -1038,7 +1057,7 @@ struct AddTransactionView: View {
                 var availableFunds = portfolio.getCurrencyBalance(for: institution, currency: transactionCurrency.rawValue)
                 if let existingTransaction,
                    existingTransactionType == .buy,
-                   existingTransaction.institution?.objectID == institution.objectID {
+                   (existingTransaction.value(forKey: "institution") as? Institution)?.objectID == institution.objectID {
                     let previousCurrency = Currency(rawValue: existingTransaction.currency ?? transactionCurrency.rawValue) ?? transactionCurrency
                     let previousCost = (existingTransaction.quantity * existingTransaction.price) + existingTransaction.fees + existingTransaction.tax
                     let restoredAmount = currencyService.convertAmount(previousCost, from: previousCurrency, to: transactionCurrency)
@@ -1062,7 +1081,7 @@ struct AddTransactionView: View {
                 var availableFunds = paymentInstitution.getCashBalance(for: portfolio)
                 if let existingTransaction,
                    existingTransactionType == .insurance {
-                    let previousInstitutionName = existingTransaction.value(forKey: "paymentInstitutionName") as? String ?? existingTransaction.institution?.name
+                    let previousInstitutionName = existingTransaction.value(forKey: "paymentInstitutionName") as? String ?? (existingTransaction.value(forKey: "institution") as? Institution)?.name
                     if let previousInstitutionName = previousInstitutionName,
                        let currentName = paymentInstitution.name,
                        previousInstitutionName.caseInsensitiveCompare(currentName) == .orderedSame {
@@ -1251,10 +1270,12 @@ struct AddTransactionView: View {
                         }
 
                         if let holding = holdingForAsset(srcAsset, institution: institution) ?? holdingForAsset(srcAsset, institution: nil) {
-                            if holding.institution == nil {
-                                holding.institution = institution
+                            if currentInstitution(of: holding) == nil {
+                                assignInstitution(institution, to: holding)
                             }
                         }
+
+                        recordIncome(for: srcAsset, netAmount: netCash, transactionCurrency: selectedCurrency, institution: institution)
                     }
                 case .interest:
                     guard let institution = institutionForTransaction else {
@@ -1277,9 +1298,11 @@ struct AddTransactionView: View {
 
                             if let demandAsset = transaction.asset,
                                let holding = holdingForAsset(demandAsset, institution: institution) ?? holdingForAsset(demandAsset, institution: nil) {
-                                if holding.institution == nil {
-                                    holding.institution = institution
+                                if currentInstitution(of: holding) == nil {
+                                    assignInstitution(institution, to: holding)
                                 }
+
+                                recordIncome(for: demandAsset, netAmount: netCash, transactionCurrency: selectedCurrency, institution: institution)
                             }
                         case .fixedDeposit(let institutionID):
                             let depositAsset: Asset?
@@ -1298,10 +1321,30 @@ struct AddTransactionView: View {
                                 }
 
                                 if let holding = holdingForAsset(depositAsset, institution: institution) ?? holdingForAsset(depositAsset, institution: nil) {
-                                    if holding.institution == nil {
-                                        holding.institution = institution
+                                    if currentInstitution(of: holding) == nil {
+                                        assignInstitution(institution, to: holding)
                                     }
                                 }
+
+                                recordIncome(for: depositAsset, netAmount: netCash, transactionCurrency: selectedCurrency, institution: institution)
+                            }
+                        case .security(let assetID):
+                            if let securityAsset = try? viewContext.existingObject(with: assetID) as? Asset {
+                                transaction.asset = securityAsset
+                                maintainInstitutionAssetRelationship(institution: institution, asset: securityAsset, transactionDate: transactionDate)
+
+                                if let message = validateHoldingInstitution(for: securityAsset, institution: institution) {
+                                    failWithMessage(message)
+                                    return
+                                }
+
+                                if let holding = holdingForAsset(securityAsset, institution: institution) ?? holdingForAsset(securityAsset, institution: nil) {
+                                    if currentInstitution(of: holding) == nil {
+                                        assignInstitution(institution, to: holding)
+                                    }
+                                }
+
+                                recordIncome(for: securityAsset, netAmount: netCash, transactionCurrency: selectedCurrency, institution: institution)
                             }
                         }
                     }
@@ -1436,12 +1479,20 @@ struct AddTransactionView: View {
     private var dividendSourceAssets: [Asset] {
         guard let institution = activeInstitutionSelection else { return [] }
 
+        let editingDividendAssetID = (selectedTransactionType == .dividend ? transactionToEdit?.asset?.objectID : nil)
+
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let assets = holdings.compactMap { holding -> Asset? in
             guard holding.quantity > 0 else { return nil }
-            guard let holdingInstitution = holding.institution,
+            guard let holdingInstitution = currentInstitution(of: holding),
                   holdingInstitution.objectID == institution.objectID else { return nil }
-            return holding.asset
+            guard let asset = holding.asset else { return nil }
+            if let assetType = asset.assetType,
+               assetType == AssetType.bond.rawValue,
+               asset.objectID != editingDividendAssetID {
+                return nil
+            }
+            return asset
         }
 
         var seen = Set<NSManagedObjectID>()
@@ -1520,6 +1571,51 @@ struct AddTransactionView: View {
 
         fixedOptions.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         options.append(contentsOf: fixedOptions)
+
+        // Include interest-bearing securities (e.g., bonds) held at this institution
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        let bondAssets = holdings.compactMap { holding -> Asset? in
+            guard holding.quantity > 0 else { return nil }
+            guard let holdingInstitution = currentInstitution(of: holding),
+                  holdingInstitution.objectID == institution.objectID else { return nil }
+            guard holding.asset?.assetType == AssetType.bond.rawValue else { return nil }
+            return holding.asset
+        }
+
+        var seenAssets = Set<NSManagedObjectID>()
+        let securityOptions: [InterestSourceOption] = bondAssets.compactMap { asset in
+            let assetID = asset.objectID
+            if seenAssets.contains(assetID) { return nil }
+            seenAssets.insert(assetID)
+            let displayName = asset.symbol ?? asset.name ?? "Bond"
+            return InterestSourceOption(
+                selection: .security(assetID),
+                title: displayName,
+                assetID: assetID,
+                institutionID: institution.objectID
+            )
+        }.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+
+        options.append(contentsOf: securityOptions)
+
+        if selectedTransactionType == .interest,
+           let editingAsset = transactionToEdit?.asset,
+           editingAsset.assetType == AssetType.bond.rawValue,
+           let editingInstitution = transactionToEdit?.institution {
+            let securitySelection = InterestSourceSelection.security(editingAsset.objectID)
+            if !options.contains(where: { $0.selection == securitySelection }) {
+                let displayName = editingAsset.symbol ?? editingAsset.name ?? "Bond"
+                options.append(
+                    InterestSourceOption(
+                        selection: securitySelection,
+                        title: displayName,
+                        assetID: editingAsset.objectID,
+                        institutionID: editingInstitution.objectID
+                    )
+                )
+            }
+        }
+
         return options
     }
 
@@ -1540,7 +1636,7 @@ struct AddTransactionView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let holdAssets = holdings.compactMap { holding -> Asset? in
             guard holding.quantity > 0 else { return nil }
-            guard let holdingInstitution = holding.institution,
+            guard let holdingInstitution = currentInstitution(of: holding),
                   holdingInstitution.objectID == institution.objectID else { return nil }
             return holding.asset
         }
@@ -1703,9 +1799,15 @@ struct AddTransactionView: View {
     private func holdingForAsset(_ asset: Asset, institution: Institution?) -> Holding? {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         if let institution {
-            return holdings.first { $0.asset?.objectID == asset.objectID && $0.institution?.objectID == institution.objectID }
+            return holdings.first {
+                $0.asset?.objectID == asset.objectID &&
+                currentInstitution(of: $0)?.objectID == institution.objectID
+            }
         } else {
-            return holdings.first { $0.asset?.objectID == asset.objectID && $0.institution == nil }
+            return holdings.first {
+                $0.asset?.objectID == asset.objectID &&
+                currentInstitution(of: $0) == nil
+            }
         }
     }
 
@@ -1717,22 +1819,37 @@ struct AddTransactionView: View {
         if let institution {
             if let conflicting = holdings.first(where: { holding in
                 guard holding.quantity > 0 else { return false }
-                if let holdingInstitution = holding.institution {
+                if let holdingInstitution = currentInstitution(of: holding) {
                     return holdingInstitution.objectID != institution.objectID
                 }
                 return false
             }) {
-                let institutionName = conflicting.institution?.name ?? "another institution"
+                let institutionName = currentInstitution(of: conflicting)?.name ?? "another institution"
                 return "This holding is tracked under \(institutionName). Select that institution to continue."
             }
         } else if let assigned = holdings.first(where: { holding in
-            holding.quantity > 0 && holding.institution != nil
+            holding.quantity > 0 && currentInstitution(of: holding) != nil
         }) {
-            let institutionName = assigned.institution?.name ?? "an institution"
+            let institutionName = currentInstitution(of: assigned)?.name ?? "an institution"
             return "This holding is tracked under \(institutionName). Choose that institution to continue."
         }
 
         return nil
+    }
+
+    private func recordIncome(for asset: Asset, netAmount: Double, transactionCurrency: Currency, institution: Institution?) {
+        guard let holding = holdingForAsset(asset, institution: institution) ?? holdingForAsset(asset, institution: nil) else { return }
+        let incomeInPortfolioCurrency = convertToPortfolioCurrency(netAmount, from: transactionCurrency)
+        holding.totalDividends += incomeInPortfolioCurrency
+        holding.updatedAt = Date()
+    }
+
+    private func currentInstitution(of holding: Holding) -> Institution? {
+        holding.value(forKey: "institution") as? Institution
+    }
+
+    private func assignInstitution(_ institution: Institution?, to holding: Holding) {
+        holding.setValue(institution, forKey: "institution")
     }
 
     private func recomputePortfolioTotals() {
@@ -1847,10 +1964,10 @@ struct AddTransactionView: View {
 
         let holding: Holding
         if let txnInstitution = transactionInstitution {
-            if let matched = existingHoldings.first(where: { $0.institution?.objectID == txnInstitution.objectID }) {
+            if let matched = existingHoldings.first(where: { currentInstitution(of: $0)?.objectID == txnInstitution.objectID }) {
                 holding = matched
-            } else if let unassigned = existingHoldings.first(where: { $0.institution == nil }) {
-                unassigned.institution = txnInstitution
+            } else if let unassigned = existingHoldings.first(where: { currentInstitution(of: $0) == nil }) {
+                assignInstitution(txnInstitution, to: unassigned)
                 holding = unassigned
             } else if let firstExisting = existingHoldings.first {
                 holding = firstExisting
@@ -1863,9 +1980,9 @@ struct AddTransactionView: View {
                 holding.averageCostBasis = 0
                 holding.realizedGainLoss = 0
                 holding.totalDividends = 0
-                holding.institution = txnInstitution
+                assignInstitution(txnInstitution, to: holding)
             }
-        } else if let matched = existingHoldings.first(where: { $0.institution == nil }) {
+        } else if let matched = existingHoldings.first(where: { currentInstitution(of: $0) == nil }) {
             holding = matched
         } else if let firstExisting = existingHoldings.first {
             holding = firstExisting
@@ -1880,8 +1997,8 @@ struct AddTransactionView: View {
             holding.totalDividends = 0
         }
         
-        if holding.institution == nil, let txnInstitution = transactionInstitution {
-            holding.institution = txnInstitution
+        if currentInstitution(of: holding) == nil, let txnInstitution = transactionInstitution {
+            assignInstitution(txnInstitution, to: holding)
         }
         
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
@@ -2018,6 +2135,7 @@ enum DepositCategory: String, CaseIterable {
 fileprivate enum InterestSourceSelection: Hashable {
     case demand
     case fixedDeposit(NSManagedObjectID)
+    case security(NSManagedObjectID)
 
     var identifier: String {
         switch self {
@@ -2025,6 +2143,8 @@ fileprivate enum InterestSourceSelection: Hashable {
             return "demand"
         case .fixedDeposit(let objectID):
             return "fixed-\(objectID.uriRepresentation().absoluteString)"
+        case .security(let objectID):
+            return "security-\(objectID.uriRepresentation().absoluteString)"
         }
     }
 }

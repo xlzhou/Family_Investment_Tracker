@@ -432,7 +432,7 @@ struct TransactionRowView: View {
             return primary
         }
 
-        let fallback = transaction.institution?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fallback = (transaction.value(forKey: "institution") as? Institution)?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let fallback, !fallback.isEmpty {
             return fallback
         }

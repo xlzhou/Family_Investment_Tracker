@@ -36,6 +36,7 @@
 		B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14EA6AA8835A46F9861D6378 /* CurrencyService.swift */; };
 		B5C6D7E8F90123456789ABCD /* TransactionImpactService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4A1B2C3D4E5F60718293A4B /* TransactionImpactService.swift */; };
 		B7F0E1C2D3B4456699AA0012 /* CashDisciplineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F0E1C2D3B4456699AA0011 /* CashDisciplineService.swift */; };
+		B7F0E1C2D3B4456699AA0014 /* Holding+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F0E1C2D3B4456699AA0013 /* Holding+Extensions.swift */; };
 		B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3FD956593F495A808BA082 /* Formatters.swift */; };
 		B8A3BF339CA44DBF8A3D0047 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */; };
 		C4D5E6F7G8H9I0J1K2L3M4N5 /* PortfolioOwnershipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E6F7G8H9I0J1K2L3M4N5O6 /* PortfolioOwnershipService.swift */; };
@@ -88,6 +89,7 @@
 		E3B4F5C6D7A80901E2F3A4B5 /* DashboardSettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardSettingsService.swift; sourceTree = "<group>"; };
 		E4A1B2C3D4E5F60718293A4B /* TransactionImpactService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionImpactService.swift; sourceTree = "<group>"; };
 		A7F0E1C2D3B4456699AA0011 /* CashDisciplineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashDisciplineService.swift; sourceTree = "<group>"; };
+		A7F0E1C2D3B4456699AA0013 /* Holding+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Holding+Extensions.swift"; sourceTree = "<group>"; };
 		E71634042E7BA470007ACEFC /* FamilyInvestmentTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FamilyInvestmentTracker.entitlements; sourceTree = "<group>"; };
 		E7C3DCEF2E7E881900FC092A /* InstitutionAssetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstitutionAssetService.swift; sourceTree = "<group>"; };
 		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };

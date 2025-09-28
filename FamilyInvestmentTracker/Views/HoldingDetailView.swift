@@ -218,7 +218,7 @@ struct HoldingDetailView: View {
                         HStack {
                             Text("Institution")
                             Spacer()
-                            Text(holding.institution?.name ?? "Unassigned")
+                            Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
                                 .foregroundColor(.secondary)
                         }
 
@@ -321,7 +321,7 @@ struct HoldingDetailView: View {
                         HStack {
                             Text("Institution")
                             Spacer()
-                            Text(holding.institution?.name ?? "Unassigned")
+                            Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
                                 .foregroundColor(.secondary)
                         }
 
@@ -437,18 +437,38 @@ struct HoldingDetailView: View {
                             }
                         }
 
-                        if holding.totalDividends > 0 {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Total Dividends")
-                                    Text("(\(portfolioMainCurrency.displayName))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                                Text(Formatters.currency(holding.totalDividends, symbol: portfolioMainCurrency.symbol))
+                        let cumulativeIncome = holding.totalDividends
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Cumulative Income (Dividends/Interest)")
+                                Text("(\(portfolioMainCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text(Formatters.currency(cumulativeIncome, symbol: portfolioMainCurrency.symbol))
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                        }
+
+                        let incomeAdjustedGain = unrealizedGainLoss + cumulativeIncome
+                        let incomeAdjustedPercent = costBasis > 0 ? (incomeAdjustedGain / costBasis) * 100 : 0
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Total Return (with Income)")
+                                Text("(\(portfolioMainCurrency.displayName))")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text(Formatters.signedCurrency(incomeAdjustedGain, symbol: portfolioMainCurrency.symbol))
                                     .fontWeight(.medium)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
+
+                                Text("(" + Formatters.signedPercent(incomeAdjustedPercent) + ")")
+                                    .font(.caption)
+                                    .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
                             }
                         }
 
