@@ -1440,23 +1440,22 @@ struct AddTransactionView: View {
             return []
         }
 
-        // Get assets available at the selected institution
-        let institutionAssets = getAssetsAvailableAt(institution: institution)
-
-        // Filter to only include assets we actually hold at this institution
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-        let holdAssets = holdings.compactMap { holding -> Asset? in
-            guard holding.quantity > 0 else { return nil }
+        var seen = Set<NSManagedObjectID>()
+        var assets: [Asset] = []
+
+        for holding in holdings {
+            guard holding.quantity > 0 else { continue }
             guard let holdingInstitution = currentInstitution(of: holding),
-                  holdingInstitution.objectID == institution.objectID else { return nil }
-            return holding.asset
+                  holdingInstitution.objectID == institution.objectID else { continue }
+            guard let asset = holding.asset else { continue }
+            if !seen.contains(asset.objectID) {
+                seen.insert(asset.objectID)
+                assets.append(asset)
+            }
         }
 
-        let availableHoldAssets = institutionAssets.filter { institutionAsset in
-            holdAssets.contains { $0.objectID == institutionAsset.objectID }
-        }
-
-        return availableHoldAssets.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
+        return assets.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
     }
 
     private var sellQuantityHint: String? {
