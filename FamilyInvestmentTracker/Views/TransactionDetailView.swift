@@ -48,6 +48,17 @@ struct TransactionDetailView: View {
         (transaction.asset?.value(forKey: "linkedAssets") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var settlementAmount: Double {
+        switch transactionTypeEnum {
+        case .some(.buy):
+            return transaction.amount + transaction.fees + transaction.tax
+        case .some(.sell), .some(.deposit), .some(.dividend), .some(.interest), .some(.insurance):
+            return transaction.amount - transaction.fees - transaction.tax
+        case .none:
+            return transaction.amount
+        }
+    }
+
     var body: some View {
         NavigationView {
             Form {
@@ -78,7 +89,6 @@ struct TransactionDetailView: View {
                         Text(Formatters.currency(transaction.amount, symbol: currency.symbol))
                             .foregroundColor(.secondary)
                     }
-                    let settlementAmount = transaction.amount + transaction.fees + transaction.tax
                     HStack {
                         Text("Settlement Amount")
                         Spacer()
