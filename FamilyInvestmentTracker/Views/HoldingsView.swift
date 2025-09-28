@@ -371,7 +371,7 @@ struct HoldingRowView: View {
                         Text("Shares")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(Formatters.decimal(holding.quantity))
+                        Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }

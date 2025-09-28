@@ -31,6 +31,7 @@
         <attribute name="totalDividends" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="holdings" inverseEntity="Asset"/>
+        <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="holdings" inverseEntity="Institution"/>
         <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="holdings" inverseEntity="Portfolio"/>
     </entity>
     <entity name="Institution" representedClassName="Institution" syncable="YES" codeGenerationType="class">
@@ -39,6 +40,7 @@
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="assetAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="institution" inverseEntity="InstitutionAssetAvailability"/>
         <relationship name="portfolioCurrencyCashBalances" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PortfolioInstitutionCurrencyCash" inverseName="institution" inverseEntity="PortfolioInstitutionCurrencyCash"/>
+        <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Holding" inverseName="institution" inverseEntity="Holding"/>
         <relationship name="transactions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Transaction" inverseName="institution" inverseEntity="Transaction"/>
     </entity>
     <entity name="InstitutionAssetAvailability" representedClassName="InstitutionAssetAvailability" syncable="YES" codeGenerationType="class">

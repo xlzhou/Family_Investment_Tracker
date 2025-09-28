@@ -160,6 +160,7 @@ struct BackupHolding: Codable {
     let id: UUID
     let portfolioID: UUID?
     let assetID: UUID?
+    let institutionID: UUID?
     let quantity: Double
     let averageCostBasis: Double
     let totalDividends: Double
@@ -433,6 +434,7 @@ final class BackupService {
                         id: holding.id ?? UUID(),
                         portfolioID: holding.portfolio?.id,
                         assetID: holding.asset?.id,
+                        institutionID: holding.institution?.id,
                         quantity: holding.quantity,
                         averageCostBasis: holding.averageCostBasis,
                         totalDividends: holding.totalDividends,
@@ -629,6 +631,9 @@ final class BackupService {
                 }
                 if let assetID = holdingData.assetID {
                     holding.asset = assetsDict[assetID]
+                }
+                if let institutionID = holdingData.institutionID {
+                    holding.institution = institutionsDict[institutionID]
                 }
             }
 

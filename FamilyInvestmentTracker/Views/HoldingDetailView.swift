@@ -216,6 +216,13 @@ struct HoldingDetailView: View {
                         }
 
                         HStack {
+                            Text("Institution")
+                            Spacer()
+                            Text(holding.institution?.name ?? "Unassigned")
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
                             Text("Interest Rate")
                             Spacer()
                             Text(Formatters.percent(structuredProductInterestRate, fractionDigits: 2))
@@ -307,7 +314,14 @@ struct HoldingDetailView: View {
                         HStack {
                             Text("Quantity")
                             Spacer()
-                            Text(Formatters.decimal(holding.quantity))
+                            Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("Institution")
+                            Spacer()
+                            Text(holding.institution?.name ?? "Unassigned")
                                 .foregroundColor(.secondary)
                         }
 

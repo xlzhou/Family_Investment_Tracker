@@ -536,7 +536,7 @@ struct TransactionRowView: View {
                 if transactionType != .deposit {
                     HStack {
                         if transaction.quantity > 1 {
-                            Text("\(Formatters.decimal(transaction.quantity)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.symbol))")
+                            Text("\(Formatters.decimal(transaction.quantity, fractionDigits: 5)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.symbol))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }

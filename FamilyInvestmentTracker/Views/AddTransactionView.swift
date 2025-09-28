@@ -265,6 +265,18 @@ struct AddTransactionView: View {
         selectedTransactionType == .buy && selectedAssetType == .structuredProduct
     }
 
+    private var activeInstitutionSelection: Institution? {
+        if let institution = selectedInstitution {
+            return institution
+        }
+        if let editingInstitution = transactionToEdit?.institution {
+            return editingInstitution
+        }
+        let trimmed = tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return findExistingInstitution(name: trimmed)
+    }
+
     private var settlementAmountForDisplay: Double {
         let baseAmount: Double
         if isStructuredProductBuy {
@@ -990,13 +1002,23 @@ struct AddTransactionView: View {
             }
 
             let holdingFetch: NSFetchRequest<Holding> = Holding.fetchRequest()
-            holdingFetch.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", sellAsset, portfolio)
+            if let institution = institutionForTransaction {
+                holdingFetch.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@ AND institution == %@", sellAsset, portfolio, institution)
+            } else {
+                holdingFetch.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@ AND institution == nil", sellAsset, portfolio)
+            }
             holdingFetch.fetchLimit = 1
 
             let availableQuantity = (try? viewContext.fetch(holdingFetch).first?.quantity) ?? 0
             let previousQuantity = (existingTransactionType == .sell && existingTransaction?.asset?.objectID == sellAsset.objectID) ? (existingTransaction?.quantity ?? 0) : 0
             if availableQuantity + previousQuantity + 1e-6 < quantity {
                 failWithMessage("Not enough shares available to sell. You currently hold \(Formatters.decimal(availableQuantity + previousQuantity)).")
+                return
+            }
+
+            if let institution = institutionForTransaction,
+               let validationMessage = validateHoldingInstitution(for: sellAsset, institution: institution) {
+                failWithMessage(validationMessage)
                 return
             }
 
@@ -1222,6 +1244,17 @@ struct AddTransactionView: View {
 
                         let demandAsset = findOrCreateDepositAsset(for: .demand, existingAsset: nil)
                         maintainInstitutionAssetRelationship(institution: institution, asset: demandAsset, transactionDate: transactionDate)
+
+                        if let message = validateHoldingInstitution(for: srcAsset, institution: institution) {
+                            failWithMessage(message)
+                            return
+                        }
+
+                        if let holding = holdingForAsset(srcAsset, institution: institution) ?? holdingForAsset(srcAsset, institution: nil) {
+                            if holding.institution == nil {
+                                holding.institution = institution
+                            }
+                        }
                     }
                 case .interest:
                     guard let institution = institutionForTransaction else {
@@ -1241,6 +1274,13 @@ struct AddTransactionView: View {
                                 let demandAsset = findOrCreateDepositAsset(for: .demand, existingAsset: previousAsset)
                                 transaction.asset = demandAsset
                             }
+
+                            if let demandAsset = transaction.asset,
+                               let holding = holdingForAsset(demandAsset, institution: institution) ?? holdingForAsset(demandAsset, institution: nil) {
+                                if holding.institution == nil {
+                                    holding.institution = institution
+                                }
+                            }
                         case .fixedDeposit(let institutionID):
                             let depositAsset: Asset?
                             if let assetID = option.assetID,
@@ -1255,6 +1295,12 @@ struct AddTransactionView: View {
 
                                 if let sourceInstitution = try? viewContext.existingObject(with: institutionID) as? Institution {
                                     maintainInstitutionAssetRelationship(institution: sourceInstitution, asset: depositAsset, transactionDate: transactionDate)
+                                }
+
+                                if let holding = holdingForAsset(depositAsset, institution: institution) ?? holdingForAsset(depositAsset, institution: nil) {
+                                    if holding.institution == nil {
+                                        holding.institution = institution
+                                    }
                                 }
                             }
                         }
@@ -1285,6 +1331,13 @@ struct AddTransactionView: View {
             // Maintain institution-asset relationship for buy/sell transactions
             if let institution = institutionForTransaction {
                 maintainInstitutionAssetRelationship(institution: institution, asset: asset, transactionDate: transactionDate)
+            }
+
+            if selectedTransactionType == .buy {
+                if let message = validateHoldingInstitution(for: asset, institution: institutionForTransaction) {
+                    failWithMessage(message)
+                    return
+                }
             }
 
             if let realizedGain = updateHolding(for: asset, transaction: transaction) {
@@ -1381,24 +1434,30 @@ struct AddTransactionView: View {
     }
 
     private var dividendSourceAssets: [Asset] {
+        guard let institution = activeInstitutionSelection else { return [] }
+
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let assets = holdings.compactMap { holding -> Asset? in
             guard holding.quantity > 0 else { return nil }
+            guard let holdingInstitution = holding.institution,
+                  holdingInstitution.objectID == institution.objectID else { return nil }
             return holding.asset
         }
-        // Deduplicate by objectID
+
         var seen = Set<NSManagedObjectID>()
         var unique: [Asset] = []
-        for a in assets {
-            if !seen.contains(a.objectID) {
-                unique.append(a)
-                seen.insert(a.objectID)
+        for asset in assets {
+            if !seen.contains(asset.objectID) {
+                unique.append(asset)
+                seen.insert(asset.objectID)
             }
         }
         return unique.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
     }
 
     private var interestSourceOptions: [InterestSourceOption] {
+        guard let institution = activeInstitutionSelection else { return [] }
+
         let demandAssetID = fetchDepositAsset(for: .demand)?.objectID
         let demandTitle = DepositCategory.demand.displayTitle
         var options: [InterestSourceOption] = [
@@ -1420,17 +1479,18 @@ struct AddTransactionView: View {
         for transaction in transactions {
             guard transaction.type == TransactionType.deposit.rawValue,
                   let asset = transaction.asset,
-                  let institution = transaction.institution else { continue }
+                  let txnInstitution = transaction.institution,
+                  txnInstitution.objectID == institution.objectID else { continue }
 
             let symbolMatches = asset.symbol?.lowercased() == fixedSymbol
             let nameMatches = asset.name?.lowercased() == fixedName
             guard symbolMatches || nameMatches else { continue }
 
-            let institutionID = institution.objectID
+            let institutionID = txnInstitution.objectID
             if seenInstitutions.contains(institutionID) { continue }
             seenInstitutions.insert(institutionID)
 
-            let displayName = (institution.name?.isEmpty == false) ? (institution.name ?? "Unknown Institution") : "Unknown Institution"
+            let displayName = (txnInstitution.name?.isEmpty == false) ? (txnInstitution.name ?? "Unknown Institution") : "Unknown Institution"
 
             fixedOptions.append(
                 InterestSourceOption(
@@ -1469,27 +1529,24 @@ struct AddTransactionView: View {
 
     private var sellSourceAssets: [Asset] {
         // If no institution is selected, return empty array to disable security selection
-        guard let institution = selectedInstitution ??
-              ((!tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ?
-               findExistingInstitution(name: tradingInstitution) : nil) else {
+        guard let institution = activeInstitutionSelection else {
             return []
         }
 
         // Get assets available at the selected institution
         let institutionAssets = getAssetsAvailableAt(institution: institution)
 
-        // Filter to only include assets we actually hold
+        // Filter to only include assets we actually hold at this institution
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let holdAssets = holdings.compactMap { holding -> Asset? in
             guard holding.quantity > 0 else { return nil }
+            guard let holdingInstitution = holding.institution,
+                  holdingInstitution.objectID == institution.objectID else { return nil }
             return holding.asset
         }
 
-        // Find intersection: assets we hold AND available at this institution
         let availableHoldAssets = institutionAssets.filter { institutionAsset in
-            holdAssets.contains { holdAsset in
-                holdAsset.objectID == institutionAsset.objectID
-            }
+            holdAssets.contains { $0.objectID == institutionAsset.objectID }
         }
 
         return availableHoldAssets.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
@@ -1643,6 +1700,41 @@ struct AddTransactionView: View {
         return nil
     }
 
+    private func holdingForAsset(_ asset: Asset, institution: Institution?) -> Holding? {
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        if let institution {
+            return holdings.first { $0.asset?.objectID == asset.objectID && $0.institution?.objectID == institution.objectID }
+        } else {
+            return holdings.first { $0.asset?.objectID == asset.objectID && $0.institution == nil }
+        }
+    }
+
+    private func validateHoldingInstitution(for asset: Asset, institution: Institution?) -> String? {
+        let holdings = (portfolio.holdings?.allObjects as? [Holding])?.filter { $0.asset?.objectID == asset.objectID } ?? []
+
+        guard !holdings.isEmpty else { return nil }
+
+        if let institution {
+            if let conflicting = holdings.first(where: { holding in
+                guard holding.quantity > 0 else { return false }
+                if let holdingInstitution = holding.institution {
+                    return holdingInstitution.objectID != institution.objectID
+                }
+                return false
+            }) {
+                let institutionName = conflicting.institution?.name ?? "another institution"
+                return "This holding is tracked under \(institutionName). Select that institution to continue."
+            }
+        } else if let assigned = holdings.first(where: { holding in
+            holding.quantity > 0 && holding.institution != nil
+        }) {
+            let institutionName = assigned.institution?.name ?? "an institution"
+            return "This holding is tracked under \(institutionName). Choose that institution to continue."
+        }
+
+        return nil
+    }
+
     private func recomputePortfolioTotals() {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let totalHoldings = holdings.reduce(0.0) { partial, holding in
@@ -1749,10 +1841,34 @@ struct AddTransactionView: View {
     private func updateHolding(for asset: Asset, transaction: Transaction) -> Double? {
         let request: NSFetchRequest<Holding> = Holding.fetchRequest()
         request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
-        
+        let transactionInstitution = transaction.institution
+
+        let existingHoldings = (try? viewContext.fetch(request)) ?? []
+
         let holding: Holding
-        if let existingHolding = try? viewContext.fetch(request).first {
-            holding = existingHolding
+        if let txnInstitution = transactionInstitution {
+            if let matched = existingHoldings.first(where: { $0.institution?.objectID == txnInstitution.objectID }) {
+                holding = matched
+            } else if let unassigned = existingHoldings.first(where: { $0.institution == nil }) {
+                unassigned.institution = txnInstitution
+                holding = unassigned
+            } else if let firstExisting = existingHoldings.first {
+                holding = firstExisting
+            } else {
+                holding = Holding(context: viewContext)
+                holding.id = UUID()
+                holding.asset = asset
+                holding.portfolio = portfolio
+                holding.quantity = 0
+                holding.averageCostBasis = 0
+                holding.realizedGainLoss = 0
+                holding.totalDividends = 0
+                holding.institution = txnInstitution
+            }
+        } else if let matched = existingHoldings.first(where: { $0.institution == nil }) {
+            holding = matched
+        } else if let firstExisting = existingHoldings.first {
+            holding = firstExisting
         } else {
             holding = Holding(context: viewContext)
             holding.id = UUID()
@@ -1762,6 +1878,10 @@ struct AddTransactionView: View {
             holding.averageCostBasis = 0
             holding.realizedGainLoss = 0
             holding.totalDividends = 0
+        }
+        
+        if holding.institution == nil, let txnInstitution = transactionInstitution {
+            holding.institution = txnInstitution
         }
         
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency

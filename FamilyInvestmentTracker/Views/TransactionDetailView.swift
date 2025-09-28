@@ -157,7 +157,7 @@ struct TransactionDetailView: View {
                         HStack {
                             Text("Quantity")
                             Spacer()
-                            Text(Formatters.decimal(transaction.quantity))
+                            Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
                                 .foregroundColor(.secondary)
                         }
                         HStack {
