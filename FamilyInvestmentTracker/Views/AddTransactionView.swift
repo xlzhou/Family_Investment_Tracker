@@ -319,14 +319,14 @@ struct AddTransactionView: View {
     }
 
     private var availableInstitutions: [Institution] {
-        institutions.compactMap { institution in
-            guard let name = institution.name, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                return nil
-            }
-            return institution
+        var results: [Institution] = []
+        for institution in institutions {
+            guard let name = institution.name?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { continue }
+            results.append(institution)
         }
+        return results
     }
-    
+
     private var isEditing: Bool {
         transactionToEdit != nil
     }
@@ -404,41 +404,7 @@ struct AddTransactionView: View {
                 }
                 
                 // Asset Information (Buy) or Sell Source selection
-                if selectedTransactionType == .buy {
-                    Section(header: Text("Asset Information")) {
-                        Picker("Asset Type", selection: $selectedAssetType) {
-                            ForEach(AssetType.allCases.filter { $0 != .deposit && $0 != .insurance }, id: \.self) { type in
-                                Text(type.displayName).tag(type)
-                            }
-                        }
-                
-                        TextField("Symbol (e.g., AAPL)", text: $assetSymbol)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .textInputAutocapitalization(.characters)
-                        
-                        TextField("Asset Name", text: $assetName)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                    }
-                } else if selectedTransactionType == .sell {
-                    let hasInstitution = selectedInstitution != nil || !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                    let footerText = hasInstitution ? "Select the holding you want to sell." : "Select a trading institution first to see available securities."
-
-                    Section(header: Text("Sell Security"), footer: Text(footerText)) {
-                        Picker("Security", selection: $selectedSellAssetID) {
-                            if hasInstitution {
-                                Text("Select...").tag(Optional<NSManagedObjectID>.none)
-                                ForEach(sellSourceAssets, id: \.objectID) { asset in
-                                    Text(asset.symbol ?? asset.name ?? "Unknown")
-                                        .tag(Optional(asset.objectID))
-                                }
-                            } else {
-                                Text("Select institution first").tag(Optional<NSManagedObjectID>.none)
-                            }
-                        }
-                        .pickerStyle(MenuPickerStyle())
-                        .disabled(!hasInstitution)
-                    }
-                }
+                assetInformationSection
                 // Dividend Source (only for dividends)
                 if selectedTransactionType == .dividend {
                     Section(header: Text("Dividend Source"), footer: Text("Select the security that generated this dividend.")) {
@@ -466,162 +432,7 @@ struct AddTransactionView: View {
                 }
                 
                 // Transaction Details
-                Section(header: Text("Transaction Details")) {
-                    DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
-
-                    if selectedTransactionType == .deposit {
-                        Picker("Symbol", selection: $selectedDepositCategory) {
-                            ForEach(DepositCategory.allCases, id: \.self) { category in
-                                Text(category.displayTitle).tag(category)
-                            }
-                        }
-                        .pickerStyle(MenuPickerStyle())
-
-                        HStack {
-                            Text("Interest Rate")
-                            Spacer()
-                            TextField("0", value: $depositInterestRate, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                            Text("%")
-                                .foregroundColor(.secondary)
-                        }
-                    } else if isStructuredProductTransaction {
-                        TextField("Linked Assets", text: $structuredProductLinkedAssets)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-
-                        HStack {
-                            Text("Investment Amount")
-                            Spacer()
-                            TextField("0.00", value: $structuredProductInvestmentAmount, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 140)
-                            Text(selectedCurrency.symbol)
-                                .foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            Text("Interest Rate")
-                            Spacer()
-                            TextField("0", value: $structuredProductInterestRate, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                            Text("%")
-                                .foregroundColor(.secondary)
-                        }
-                    }
-
-                    // Maturity date only for non-insurance transactions
-                    if selectedTransactionType != .insurance {
-                        Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
-                            .disabled(isMaturityToggleDisabled)
-                        if hasMaturityDate {
-                            DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
-                        }
-                    }
-
-                    if isAmountOnly {
-                        if selectedTransactionType == .insurance {
-                            // Cash Value for insurance transactions
-                            HStack {
-                                Text("Cash Value")
-                                Spacer()
-                                TextField("0.00", value: $cashValue, format: .number)
-                                    .keyboardType(.decimalPad)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .frame(width: 120)
-                                Text(selectedCurrency.symbol)
-                                    .foregroundColor(.secondary)
-                            }
-                        } else {
-                            // Amount for other transaction types
-                            HStack {
-                                Text("Amount")
-                                Spacer()
-                                TextField("0.00", value: $amount, format: .number)
-                                    .keyboardType(.decimalPad)
-                                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    .frame(width: 120)
-                                Text(selectedCurrency.symbol)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                    } else if isStructuredProductTransaction {
-                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
-                    } else {
-                        HStack {
-                            Text("Quantity")
-                            Spacer()
-                            TextField("0", value: $quantity, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                        }
-                        
-                        HStack {
-                            Text("Price per Share")
-                            Spacer()
-                            TextField("0.00", value: $price, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                            Text(selectedCurrency.symbol)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack {
-                            Text("Total Value")
-                            Spacer()
-                            Text(Formatters.currency(quantity * price, symbol: selectedCurrency.symbol))
-                                .fontWeight(.medium)
-                        }
-
-                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
-                    }
-                    
-                    // Fees only for non-insurance transactions
-                    if selectedTransactionType != .insurance {
-                        HStack {
-                            Text("Fees")
-                            Spacer()
-                            TextField("0.00", value: $fees, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                            Text(selectedCurrency.symbol)
-                                .foregroundColor(.secondary)
-                        }
-
-                        if selectedTransactionType == .buy {
-                            HStack {
-                                Text("Settlement Amount")
-                                Spacer()
-                                Text(Formatters.currency(settlementAmountForDisplay, symbol: selectedCurrency.symbol))
-                                    .fontWeight(.semibold)
-                            }
-                        }
-                    }
-                    
-                    if requiresTax {
-                        HStack {
-                            Text("Tax")
-                            Spacer()
-                            TextField("0.00", value: $tax, format: .number)
-                                .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 120)
-                            Text(selectedCurrency.symbol)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    
-                    TextField("Notes (optional)", text: $notes, axis: .vertical)
-                        .lineLimit(3...6)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                }
+                transactionDetailsSection
 
                 // Insurance-specific sections
                 if selectedTransactionType == .insurance {
@@ -1646,6 +1457,244 @@ struct AddTransactionView: View {
         }
 
         return availableHoldAssets.sorted { ($0.symbol ?? $0.name ?? "") < ($1.symbol ?? $1.name ?? "") }
+    }
+
+    private var sellQuantityHint: String? {
+        guard selectedTransactionType == .sell,
+              let sellAssetID = selectedSellAssetID,
+              let sellAsset = try? viewContext.existingObject(with: sellAssetID) as? Asset else {
+            return nil
+        }
+
+        let institution = activeInstitutionSelection
+        let holding = holdingForAsset(sellAsset, institution: institution) ?? holdingForAsset(sellAsset, institution: nil)
+        var availableQuantity = holding?.quantity ?? 0
+
+        if let existingTransaction = transactionToEdit,
+           let existingType = TransactionType(rawValue: existingTransaction.type ?? ""),
+           existingType == .sell,
+           existingTransaction.asset?.objectID == sellAsset.objectID {
+
+            let txnInstitution = existingTransaction.value(forKey: "institution") as? Institution
+
+            let matchesInstitution: Bool
+            if let institution {
+                matchesInstitution = txnInstitution?.objectID == institution.objectID
+            } else {
+                matchesInstitution = txnInstitution == nil
+            }
+
+            if matchesInstitution {
+                availableQuantity += existingTransaction.quantity
+            }
+        }
+
+        let formatted = Formatters.decimal(availableQuantity, fractionDigits: 5)
+        return "(max: \(formatted))"
+    }
+
+    @ViewBuilder
+    private var assetInformationSection: some View {
+        if selectedTransactionType == .sell {
+            Section(header: Text("Security to Sell"), footer: Text("Select the security you want to sell.")) {
+                if sellSourceAssets.isEmpty {
+                    Text("No securities available to sell at this institution.")
+                        .foregroundColor(.secondary)
+                        .italic()
+                } else {
+                    Picker("Security", selection: $selectedSellAssetID) {
+                        Text("Select Security").tag(Optional<NSManagedObjectID>.none)
+                        ForEach(sellSourceAssets, id: \.objectID) { asset in
+                            Text(asset.symbol ?? asset.name ?? "Unknown")
+                                .tag(Optional(asset.objectID))
+                        }
+                    }
+                    .pickerStyle(MenuPickerStyle())
+                }
+            }
+        } else if selectedTransactionType != .dividend && selectedTransactionType != .interest && selectedTransactionType != .deposit && selectedTransactionType != .insurance {
+            Section(header: Text("Asset Information")) {
+                Picker("Asset Type", selection: $selectedAssetType) {
+                    ForEach(AssetType.allCases, id: \.self) { type in
+                        Text(type.displayName).tag(type)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+
+                TextField("Symbol (e.g., AAPL)", text: $assetSymbol)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+
+                TextField("Name (optional)", text: $assetName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var transactionDetailsSection: some View {
+        Section(header: Text("Transaction Details")) {
+            DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
+
+            if selectedTransactionType == .deposit {
+                Picker("Symbol", selection: $selectedDepositCategory) {
+                    ForEach(DepositCategory.allCases, id: \.self) { category in
+                        Text(category.displayTitle).tag(category)
+                    }
+                }
+                .pickerStyle(MenuPickerStyle())
+
+                HStack {
+                    Text("Interest Rate")
+                    Spacer()
+                    TextField("0", value: $depositInterestRate, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
+                    Text("%")
+                        .foregroundColor(.secondary)
+                }
+            } else if isStructuredProductTransaction {
+                TextField("Linked Assets", text: $structuredProductLinkedAssets)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                HStack {
+                    Text("Investment Amount")
+                    Spacer()
+                    TextField("0.00", value: $structuredProductInvestmentAmount, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 140)
+                    Text(selectedCurrency.symbol)
+                        .foregroundColor(.secondary)
+                }
+
+                HStack {
+                    Text("Interest Rate")
+                    Spacer()
+                    TextField("0", value: $structuredProductInterestRate, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
+                    Text("%")
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            // Maturity date only for non-insurance transactions
+            if selectedTransactionType != .insurance,
+               selectedTransactionType != .sell,
+               selectedTransactionType != .dividend,
+               selectedTransactionType != .interest {
+                Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
+                    .disabled(isMaturityToggleDisabled)
+                if hasMaturityDate {
+                    DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
+                }
+            }
+
+            if isAmountOnly {
+                if selectedTransactionType == .insurance {
+                    // Cash Value for insurance transactions
+                    HStack {
+                        Text("Cash Value")
+                        Spacer()
+                        TextField("0.00", value: $cashValue, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                        Text(selectedCurrency.symbol)
+                            .foregroundColor(.secondary)
+                    }
+                } else {
+                    // Amount for other transaction types
+                    HStack {
+                        Text("Amount")
+                        Spacer()
+                        TextField("0.00", value: $amount, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                        Text(selectedCurrency.symbol)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            } else if isStructuredProductTransaction {
+                Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
+            } else {
+                HStack {
+                    Text(selectedTransactionType == .sell && sellQuantityHint != nil ? "Quantity \(sellQuantityHint!)" : "Quantity")
+                    Spacer()
+                    TextField("0", value: $quantity, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
+                }
+
+                HStack {
+                    Text("Price per Share")
+                    Spacer()
+                    TextField("0.00", value: $price, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
+                    Text(selectedCurrency.symbol)
+                        .foregroundColor(.secondary)
+                }
+
+                HStack {
+                    Text("Total Value")
+                    Spacer()
+                    Text(Formatters.currency(quantity * price, symbol: selectedCurrency.symbol))
+                        .fontWeight(.medium)
+                }
+
+                if selectedTransactionType == .buy {
+                    Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
+                }
+            }
+
+            // Fees only for non-insurance transactions
+            if selectedTransactionType != .insurance {
+                HStack {
+                    Text("Fees")
+                    Spacer()
+                    TextField("0.00", value: $fees, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
+                    Text(selectedCurrency.symbol)
+                        .foregroundColor(.secondary)
+                }
+
+                if selectedTransactionType == .buy {
+                    HStack {
+                        Text("Settlement Amount")
+                        Spacer()
+                        Text(Formatters.currency(settlementAmountForDisplay, symbol: selectedCurrency.symbol))
+                            .fontWeight(.semibold)
+                    }
+                }
+            }
+
+            if requiresTax {
+                HStack {
+                    Text("Tax")
+                    Spacer()
+                    TextField("0.00", value: $tax, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
+                    Text(selectedCurrency.symbol)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            TextField("Notes (optional)", text: $notes, axis: .vertical)
+                .lineLimit(3...6)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
     }
 
     private func findExistingInstitution(name: String) -> Institution? {
