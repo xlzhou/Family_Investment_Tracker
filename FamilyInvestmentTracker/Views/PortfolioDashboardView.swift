@@ -462,7 +462,7 @@ struct QuickStatsView: View {
             )
             
             StatCardView(
-                title: "Total Dividends",
+                title: "Total Dividends & Interest",
                 value: currencyService.formatAmount(totalDividends, in: mainCurrency),
                 color: .blue
             )
