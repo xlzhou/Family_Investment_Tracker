@@ -264,7 +264,7 @@ struct HoldingRowView: View {
                 
                 VStack(alignment: .trailing, spacing: 4) {
                     HStack {
-                        Text(Formatters.currency(currentValue, symbol: currencySymbol))
+                        Text(Formatters.currency(currentValue, symbol: portfolioCurrency.displayName))
                             .font(.headline)
                             .fontWeight(.semibold)
 
@@ -335,7 +335,7 @@ struct HoldingRowView: View {
                         Text("Investment Amount")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(Formatters.currency(structuredProductInvestmentAmountValue, symbol: currencySymbol))
+                        Text(Formatters.currency(structuredProductInvestmentAmountValue, symbol: portfolioCurrency.displayName))
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
@@ -358,7 +358,7 @@ struct HoldingRowView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         HStack(spacing: 4) {
-                            Text(Formatters.currency(asset.currentPrice, symbol: currencySymbol))
+                            Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             Image(systemName: "pencil")
@@ -382,7 +382,7 @@ struct HoldingRowView: View {
                         Text("Avg Cost")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        Text(Formatters.currency(holding.averageCostBasis, symbol: currencySymbol))
+                        Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioCurrency.displayName, fractionDigits: 3))
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
@@ -394,7 +394,7 @@ struct HoldingRowView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         HStack {
-                            Text(Formatters.currency(asset.currentPrice, symbol: currencySymbol))
+                            Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
 
@@ -433,7 +433,7 @@ struct HoldingRowView: View {
                     
                     Spacer()
                     
-                    Text(Formatters.currency(holding.totalDividends, symbol: currencySymbol))
+                    Text(Formatters.currency(holding.totalDividends, symbol: portfolioCurrency.displayName))
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.blue)
@@ -538,7 +538,7 @@ struct CashValueEditorView: View {
                     HStack {
                         Text("Previous Cash Value")
                         Spacer()
-                        Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: currencySymbol))
+                        Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: originalTransactionCurrency.displayName))
                             .foregroundColor(.secondary)
                     }
                 }

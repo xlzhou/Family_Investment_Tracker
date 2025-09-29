@@ -37,8 +37,8 @@ struct TransactionsView: View {
                 switch tType {
                 case .some(.deposit):
                     return true
-                case .some(.sell):
-                    return (t.quantity * t.price - fees - tax) > 0
+                //case .some(.sell):
+                //    return (t.quantity * t.price - fees - tax) > 0
                 case .some(.dividend), .some(.interest):
                     return (t.amount - fees - tax) > 0
                 default:
@@ -499,7 +499,7 @@ struct TransactionRowView: View {
 
                             Spacer()
 
-                            Text(Formatters.currency(netValue, symbol: transactionCurrency.symbol))
+                            Text(Formatters.currency(netValue, symbol: transactionCurrency.displayName))
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(typeColor)
@@ -536,14 +536,14 @@ struct TransactionRowView: View {
                 if transactionType != .deposit {
                     HStack {
                         if transaction.quantity > 1 {
-                            Text("\(Formatters.decimal(transaction.quantity, fractionDigits: 5)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.symbol))")
+                            Text("\(Formatters.decimal(transaction.quantity, fractionDigits: 5)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.displayName))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
 
                         Spacer()
 
-                        Text(Formatters.currency(netValue, symbol: transactionCurrency.symbol))
+                        Text(Formatters.currency(netValue, symbol: transactionCurrency.displayName))
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundColor(typeColor)

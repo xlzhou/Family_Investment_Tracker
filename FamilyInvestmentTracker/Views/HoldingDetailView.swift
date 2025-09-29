@@ -197,7 +197,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: displayCurrency.symbol))
+                            Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: displayCurrency.displayName))
                                 .fontWeight(.medium)
                             Button(action: {
                                 editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
@@ -211,7 +211,7 @@ struct HoldingDetailView: View {
                         HStack {
                             Text("Investment Amount")
                             Spacer()
-                            Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.symbol))
+                            Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.displayName))
                                 .fontWeight(.medium)
                         }
 
@@ -256,7 +256,7 @@ struct HoldingDetailView: View {
                             }
                             Spacer()
                             HStack {
-                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.symbol))
+                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName))
                                     .fontWeight(.medium)
 
                                 if hasAutoFetchEnabled {
@@ -307,7 +307,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.symbol))
+                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
                                 .foregroundColor(.secondary)
                         }
                     } else {
@@ -334,7 +334,7 @@ struct HoldingDetailView: View {
                             }
                             Spacer()
                             HStack {
-                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.symbol))
+                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName))
                                     .fontWeight(.medium)
 
                                 if hasAutoFetchEnabled {
@@ -385,7 +385,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.symbol))
+                            Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.displayName))
                                 .foregroundColor(.secondary)
                         }
 
@@ -397,7 +397,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.symbol))
+                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
                                 .fontWeight(.semibold)
                         }
                     }
@@ -414,7 +414,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(costBasis, symbol: portfolioMainCurrency.symbol))
+                            Text(Formatters.currency(costBasis, symbol: portfolioMainCurrency.displayName))
                                 .foregroundColor(.secondary)
                         }
 
@@ -446,7 +446,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(cumulativeIncome, symbol: portfolioMainCurrency.symbol))
+                            Text(Formatters.currency(cumulativeIncome, symbol: portfolioMainCurrency.displayName))
                                 .fontWeight(.medium)
                                 .foregroundColor(.blue)
                         }
@@ -583,7 +583,7 @@ struct PriceEditorView: View {
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
-                        Text(Formatters.currency(currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency), symbol: displayCurrency.symbol))
+                        Text(Formatters.currency(currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency), symbol: displayCurrency.displayName))
                             .foregroundColor(.secondary)
                     }
                 }

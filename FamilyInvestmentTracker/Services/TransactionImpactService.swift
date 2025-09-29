@@ -17,7 +17,7 @@ struct TransactionImpactService {
         let portfolioCurrency = currency(for: portfolio)
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
-        let institution = transaction.institution
+        let institution = transaction.value(forKey: "institution") as? Institution
         let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .insurance
         let companionDeposit = CashDisciplineService.findCompanionDeposit(for: transaction, in: context)
         if let companionDeposit {
@@ -130,12 +130,23 @@ struct TransactionImpactService {
                 holding.averageCostBasis = 0
             }
         case .sell:
-            holding.quantity += transaction.quantity
+            let currentQuantity = holding.quantity
+            let currentTotalCost = holding.quantity * holding.averageCostBasis
             let feesInPortfolio = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
             let taxInPortfolio = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)
             let grossProceeds = transaction.quantity * priceInPortfolio
-            let totalCost = transaction.quantity * holding.averageCostBasis
-            let realizedGain = (grossProceeds - feesInPortfolio - taxInPortfolio) - totalCost
+            let realizedGain = transaction.realizedGainAmount
+            let previousTotalCost = grossProceeds - feesInPortfolio - taxInPortfolio - realizedGain
+
+            holding.quantity += transaction.quantity
+
+            let newTotalCost = currentTotalCost + previousTotalCost
+            if holding.quantity > 0 {
+                holding.averageCostBasis = newTotalCost / holding.quantity
+            } else {
+                holding.averageCostBasis = 0
+            }
+
             holding.realizedGainLoss -= realizedGain
         default:
             break
