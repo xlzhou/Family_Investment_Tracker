@@ -445,6 +445,19 @@ struct QuickStatsView: View {
         portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0) { $0 + $1.totalDividends } ?? 0
     }
 
+    private var totalHoldingsValue: Double {
+        // Reuse the same calculation logic from recalculateTotalPortfolioValue
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        return holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return sum + cashValue
+            }
+            return sum + (holding.quantity * asset.currentPrice)
+        }
+    }
+
     private var totalCashFromInstitutions: Double {
         // Get all institutions that have transactions in this portfolio
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
@@ -456,15 +469,9 @@ struct QuickStatsView: View {
     var body: some View {
         HStack(spacing: 15) {
             StatCardView(
-                title: "Unrealized P&L",
-                value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
-                color: totalGainLoss >= 0 ? .green : .red
-            )
-            
-            StatCardView(
-                title: "Total Dividends & Interest",
-                value: currencyService.formatAmount(totalDividends, in: mainCurrency),
-                color: .blue
+                title: "Total Holdings Value",
+                value: currencyService.formatAmount(totalHoldingsValue, in: mainCurrency),
+                color: totalHoldingsValue >= 0 ? .green : .red
             )
 
             Button(action: {
@@ -473,10 +480,22 @@ struct QuickStatsView: View {
                 StatCardView(
                     title: "Cash",
                     value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
-                    color: .gray
+                    color: totalCashFromInstitutions >= 0 ? .gray : .red
                 )
             }
             .buttonStyle(PlainButtonStyle())
+
+            StatCardView(
+                title: "Unrealized P&L",
+                value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
+                color: totalGainLoss >= 0 ? .green : .red
+            )
+
+            StatCardView(
+                title: "Total Dividends & Interest",
+                value: currencyService.formatAmount(totalDividends, in: mainCurrency),
+                color: totalDividends >= 0 ? .green : .red
+            )
         }
         .padding(.horizontal)
     }

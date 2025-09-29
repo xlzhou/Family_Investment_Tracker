@@ -256,7 +256,7 @@ struct HoldingDetailView: View {
                             }
                             Spacer()
                             HStack {
-                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName))
+                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName, fractionDigits: 6))
                                     .fontWeight(.medium)
 
                                 if hasAutoFetchEnabled {
@@ -334,7 +334,7 @@ struct HoldingDetailView: View {
                             }
                             Spacer()
                             HStack {
-                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName))
+                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName, fractionDigits: 6))
                                     .fontWeight(.medium)
 
                                 if hasAutoFetchEnabled {
@@ -385,7 +385,7 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
-                            Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.displayName))
+                            Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.displayName, fractionDigits: 6))
                                 .foregroundColor(.secondary)
                         }
 
@@ -583,7 +583,7 @@ struct PriceEditorView: View {
                                 .foregroundColor(.secondary)
                         }
                         Spacer()
-                        Text(Formatters.currency(currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency), symbol: displayCurrency.displayName))
+                        Text(Formatters.currency(currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency), symbol: displayCurrency.displayName, fractionDigits: 6))
                             .foregroundColor(.secondary)
                     }
                 }
