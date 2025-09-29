@@ -56,7 +56,7 @@ struct TransactionImpactService {
             if let asset = transaction.asset {
                 reverseHoldingImpact(for: asset, transaction: transaction, transactionType: transactionType, portfolio: portfolio, context: context)
                 if transactionType == .sell {
-                    let originalProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
+                    let originalProceeds = transaction.amount - transaction.fees - transaction.tax
                     let netProceeds = currencyService.convertAmount(originalProceeds, from: transactionCurrency, to: portfolioCurrency)
                     if netProceeds != 0, !handledByCompanion {
                         portfolio.addToCash(-netProceeds)

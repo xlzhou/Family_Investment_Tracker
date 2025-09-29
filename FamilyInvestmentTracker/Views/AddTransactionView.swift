@@ -32,6 +32,7 @@ struct AddTransactionView: View {
     @State private var hasMaturityDate = false
     @State private var maturityDate = Date()
     @State private var autoFetchPrice = true
+    @State private var accruedInterest: Double = 0
     // Dividend-specific: source security
     @State private var selectedDividendAssetID: NSManagedObjectID?
     // Sell-specific: security to sell
@@ -96,6 +97,15 @@ struct AddTransactionView: View {
         _quantity = State(initialValue: transactionToEdit?.quantity ?? 0)
         _price = State(initialValue: transactionToEdit?.price ?? 0)
         _fees = State(initialValue: transactionToEdit?.fees ?? 0)
+
+        // Initialize accrued interest for sell transactions
+        let initialAccruedInterest: Double
+        if let transaction = transactionToEdit, initialType == .sell {
+            initialAccruedInterest = max(0, transaction.amount - (transaction.quantity * transaction.price))
+        } else {
+            initialAccruedInterest = 0
+        }
+        _accruedInterest = State(initialValue: initialAccruedInterest)
         _transactionDate = State(initialValue: transactionToEdit?.transactionDate ?? defaultDate)
         _notes = State(initialValue: transactionToEdit?.notes ?? "")
         _amount = State(initialValue: transactionToEdit?.amount ?? 0)
@@ -1178,7 +1188,7 @@ struct AddTransactionView: View {
         } else {
             transaction.quantity = quantity
             transaction.price = price
-            transaction.amount = quantity * price
+            transaction.amount = selectedTransactionType == .sell ? (quantity * price + accruedInterest) : (quantity * price)
 
             let asset: Asset
             if selectedTransactionType == .sell, let preselectedSellAsset {
@@ -1703,10 +1713,23 @@ struct AddTransactionView: View {
                         .foregroundColor(.secondary)
                 }
 
+                if selectedTransactionType == .sell {
+                    HStack {
+                        Text("Accrued Interest")
+                        Spacer()
+                        TextField("0.00", value: $accruedInterest, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                        Text(selectedCurrency.symbol)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
                 HStack {
                     Text("Total Value")
                     Spacer()
-                    Text(Formatters.currency(quantity * price, symbol: selectedCurrency.symbol))
+                    Text(Formatters.currency(selectedTransactionType == .sell ? (quantity * price + accruedInterest) : (quantity * price), symbol: selectedCurrency.symbol))
                         .fontWeight(.medium)
                 }
 
@@ -1795,7 +1818,7 @@ struct AddTransactionView: View {
             }
             upsertCashDisciplineCompanion(for: transaction, amount: -totalCost, currency: transactionCurrency, institution: institution)
         case .sell:
-            let netProceeds = (transaction.quantity * transaction.price) - transaction.fees - transaction.tax
+            let netProceeds = transaction.amount - transaction.fees - transaction.tax
             if abs(netProceeds) < epsilon {
                 removeCashDisciplineCompanion(for: transaction)
                 return
