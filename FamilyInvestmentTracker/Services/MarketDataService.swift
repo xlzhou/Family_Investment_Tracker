@@ -342,7 +342,7 @@ extension MarketDataService {
         URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             DispatchQueue.main.async {
                 let wasOffline = self?.isOfflineMode ?? true
-                if let error = error {
+                if error != nil {
                     self?.isOfflineMode = true
                     if !wasOffline {
                         NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)

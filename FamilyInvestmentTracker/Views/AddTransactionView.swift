@@ -72,6 +72,7 @@ struct AddTransactionView: View {
 
     private let currencyService = CurrencyService.shared
     @State private var cashDisciplineError: String?
+    @State private var quantityValidationError: String?
 
     init(portfolio: Portfolio, transactionToEdit: Transaction? = nil) {
         self.portfolio = portfolio
@@ -250,6 +251,7 @@ struct AddTransactionView: View {
         _selectedPaymentInstitution = State(initialValue: initialPaymentInstitution)
 
         _cashDisciplineError = State(initialValue: nil)
+        _quantityValidationError = State(initialValue: nil)
     }
     
     private var portfolioCurrency: Currency {
@@ -646,6 +648,9 @@ struct AddTransactionView: View {
             }
         }
         .onChange(of: selectedTransactionType) { _, newValue in
+            // Validate quantity when transaction type changes
+            validateSellQuantity()
+
             switch newValue {
             case .dividend:
                 if selectedDividendAssetID == nil { selectedDividendAssetID = dividendSourceAssets.first?.objectID }
@@ -695,6 +700,8 @@ struct AddTransactionView: View {
             if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
                 selectedPaymentInstitution = selectedInstitution
             }
+            // Validate quantity on initial load
+            validateSellQuantity()
         }
         .onChange(of: selectedInstitution) { _, newValue in
             if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
@@ -740,6 +747,9 @@ struct AddTransactionView: View {
             }
         }
         .onChange(of: selectedSellAssetID) { _, _ in
+            // Validate quantity whenever selected sell asset changes
+            validateSellQuantity()
+
             guard isStructuredProductSell, let asset = selectedSellAsset else { return }
             structuredProductLinkedAssets = asset.value(forKey: "linkedAssets") as? String ?? ""
             structuredProductInterestRate = asset.value(forKey: "interestRate") as? Double ?? 0
@@ -760,6 +770,8 @@ struct AddTransactionView: View {
     
     private var isFormValid: Bool {
         let hasValidInstitution = selectedInstitution != nil || !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasQuantityValidationError = quantityValidationError != nil
+
         switch selectedTransactionType {
         case .dividend:
             return amount > 0 && hasValidInstitution
@@ -769,9 +781,9 @@ struct AddTransactionView: View {
         case .sell:
             let hasSelection = selectedSellAssetID != nil && hasValidInstitution
             if isStructuredProductSell {
-                return hasSelection && structuredProductInvestmentAmount > 0
+                return hasSelection && structuredProductInvestmentAmount > 0 && !hasQuantityValidationError
             }
-            return hasSelection && quantity > 0 && price > 0
+            return hasSelection && quantity > 0 && price > 0 && !hasQuantityValidationError
         case .buy:
             if isStructuredProductBuy {
                 return !assetSymbol.isEmpty && structuredProductInvestmentAmount > 0 && hasValidInstitution
@@ -1459,6 +1471,12 @@ struct AddTransactionView: View {
     }
 
     private var sellQuantityHint: String? {
+        guard let maxQuantity = maxSellQuantity else { return nil }
+        let formatted = Formatters.decimal(maxQuantity, fractionDigits: 5)
+        return "(max: \(formatted))"
+    }
+
+    private var maxSellQuantity: Double? {
         guard selectedTransactionType == .sell,
               let sellAssetID = selectedSellAssetID,
               let sellAsset = try? viewContext.existingObject(with: sellAssetID) as? Asset else {
@@ -1488,8 +1506,26 @@ struct AddTransactionView: View {
             }
         }
 
-        let formatted = Formatters.decimal(availableQuantity, fractionDigits: 5)
-        return "(max: \(formatted))"
+        return availableQuantity
+    }
+
+    private func validateSellQuantity() {
+        guard selectedTransactionType == .sell else {
+            quantityValidationError = nil
+            return
+        }
+
+        guard let maxQuantity = maxSellQuantity else {
+            quantityValidationError = nil
+            return
+        }
+
+        if quantity > maxQuantity {
+            let formatted = Formatters.decimal(maxQuantity, fractionDigits: 5)
+            quantityValidationError = "Quantity cannot exceed \(formatted) shares available"
+        } else {
+            quantityValidationError = nil
+        }
     }
 
     @ViewBuilder
@@ -1622,13 +1658,38 @@ struct AddTransactionView: View {
             } else if isStructuredProductTransaction {
                 Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
             } else {
-                HStack {
-                    Text(selectedTransactionType == .sell && sellQuantityHint != nil ? "Quantity \(sellQuantityHint!)" : "Quantity")
-                    Spacer()
-                    TextField("0", value: $quantity, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(width: 120)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        if selectedTransactionType == .sell && sellQuantityHint != nil {
+                            HStack(spacing: 4) {
+                                Text("Quantity \(sellQuantityHint!)")
+                                Button(">>") {
+                                    if let maxQuantity = maxSellQuantity {
+                                        quantity = maxQuantity
+                                    }
+                                }
+                                .foregroundColor(.blue)
+                                .font(.caption)
+                            }
+                        } else {
+                            Text("Quantity")
+                        }
+                        Spacer()
+                        TextField("0", value: $quantity, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                            .onChange(of: quantity) { _, _ in
+                                validateSellQuantity()
+                            }
+                    }
+
+                    if let error = quantityValidationError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.leading, 4)
+                    }
                 }
 
                 HStack {

@@ -633,6 +633,27 @@ struct PriceEditorView: View {
         do {
             try viewContext.save()
             print("💰 Updated price for \(asset.symbol ?? "Unknown"): \(editingPrice) \(displayCurrency.code) -> \(priceInPortfolioCurrency) \(portfolioMainCurrency.code)")
+
+            if let holdings = asset.holdings?.allObjects as? [Holding] {
+                let impactedPortfolios = Set(holdings.compactMap { $0.portfolio })
+                for portfolio in impactedPortfolios {
+                    let relatedHoldings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+                    let totalHoldingsValue = relatedHoldings.reduce(0.0) { total, holding in
+                        guard let holdingAsset = holding.asset else { return total }
+                        if holdingAsset.assetType == AssetType.insurance.rawValue {
+                            let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                            return total + cashValue
+                        }
+                        return total + (holding.quantity * holdingAsset.currentPrice)
+                    }
+
+                    let totalValue = totalHoldingsValue + portfolio.resolvedCashBalance()
+                    portfolio.totalValue = totalValue
+                    portfolio.updatedAt = Date()
+                    portfolio.objectWillChange.send()
+                }
+            }
+
             dismiss()
         } catch {
             self.error = "Failed to save price: \(error.localizedDescription)"
