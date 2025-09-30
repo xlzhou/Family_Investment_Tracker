@@ -161,7 +161,7 @@ struct AddTransactionView: View {
 
         let initialStructuredLinkedAssets = isEditingStructuredProduct ? (transactionToEdit?.asset?.value(forKey: "linkedAssets") as? String ?? "") : ""
         let initialStructuredInterestRate = isEditingStructuredProduct ? (transactionToEdit?.asset?.value(forKey: "interestRate") as? Double ?? 0) : 0
-        let initialStructuredInvestment = isEditingStructuredProduct ? (transactionToEdit?.amount ?? (transactionToEdit?.price ?? 0)) : 0
+        // For structured products, quantity and price are loaded directly from the transaction
         _structuredProductLinkedAssets = State(initialValue: initialStructuredLinkedAssets)
         _structuredProductInterestRate = State(initialValue: initialStructuredInterestRate)
 
@@ -187,7 +187,7 @@ struct AddTransactionView: View {
         } else {
             _selectedInterestSource = State(initialValue: .demand)
         }
-        _structuredProductInvestmentAmount = State(initialValue: initialStructuredInvestment)
+        // No longer need structuredProductInvestmentAmount - using quantity and price directly
 
         if initialType == .dividend {
             _selectedDividendAssetID = State(initialValue: transactionToEdit?.asset?.objectID)
@@ -297,12 +297,7 @@ struct AddTransactionView: View {
     }
 
     private var settlementAmountForDisplay: Double {
-        let baseAmount: Double
-        if isStructuredProductBuy {
-            baseAmount = structuredProductInvestmentAmount
-        } else {
-            baseAmount = quantity * price
-        }
+        let baseAmount = quantity * price
         return baseAmount + fees
     }
 
@@ -702,8 +697,8 @@ struct AddTransactionView: View {
             }
 
             if newValue == .buy && isStructuredProductBuy {
-                quantity = 1
-                price = structuredProductInvestmentAmount
+                if quantity == 0 { quantity = 1 }
+                if price == 0 { price = 0 }
             }
         }
         .onAppear {
@@ -749,11 +744,10 @@ struct AddTransactionView: View {
         .onChange(of: selectedAssetType) { _, newValue in
             if newValue == .structuredProduct {
                 if quantity == 0 { quantity = 1 }
-                price = structuredProductInvestmentAmount
+                if price == 0 { price = 0 }
             } else if transactionToEdit?.asset?.assetType != AssetType.structuredProduct.rawValue {
                 structuredProductLinkedAssets = ""
                 structuredProductInterestRate = 0
-                structuredProductInvestmentAmount = 0
             }
         }
         .onChange(of: selectedSellAssetID) { _, _ in
@@ -763,9 +757,6 @@ struct AddTransactionView: View {
             guard isStructuredProductSell, let asset = selectedSellAsset else { return }
             structuredProductLinkedAssets = asset.value(forKey: "linkedAssets") as? String ?? ""
             structuredProductInterestRate = asset.value(forKey: "interestRate") as? Double ?? 0
-            if transactionToEdit?.asset?.objectID != asset.objectID || (transactionToEdit == nil) {
-                structuredProductInvestmentAmount = 0
-            }
         }
         .alert("Cash Requirement", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
             Button("OK", role: .cancel) {
@@ -791,12 +782,12 @@ struct AddTransactionView: View {
         case .sell:
             let hasSelection = selectedSellAssetID != nil && hasValidInstitution
             if isStructuredProductSell {
-                return hasSelection && structuredProductInvestmentAmount > 0 && !hasQuantityValidationError
+                return hasSelection && quantity > 0 && price > 0 && !hasQuantityValidationError
             }
             return hasSelection && quantity > 0 && price > 0 && !hasQuantityValidationError
         case .buy:
             if isStructuredProductBuy {
-                return !assetSymbol.isEmpty && structuredProductInvestmentAmount > 0 && hasValidInstitution
+                return !assetSymbol.isEmpty && quantity > 0 && price > 0 && hasValidInstitution
             }
             return !assetSymbol.isEmpty && quantity > 0 && price > 0 && hasValidInstitution
         case .deposit:
@@ -836,10 +827,7 @@ struct AddTransactionView: View {
 
         var preselectedSellAsset: Asset?
 
-        if isStructuredProductBuy {
-            quantity = 1
-            price = structuredProductInvestmentAmount
-        }
+        // For structured products, use the user-entered quantity and price directly
 
         if selectedTransactionType == .sell {
             guard let sellID = selectedSellAssetID,
@@ -848,10 +836,7 @@ struct AddTransactionView: View {
                 return
             }
 
-            if sellAsset.assetType == AssetType.structuredProduct.rawValue {
-                quantity = 1
-                price = structuredProductInvestmentAmount
-            }
+            // For structured products, use the user-entered quantity and price directly
 
             let holdingFetch: NSFetchRequest<Holding> = Holding.fetchRequest()
             if let institution = institutionForTransaction {
@@ -884,7 +869,7 @@ struct AddTransactionView: View {
                     failWithMessage("Select a trading institution before purchasing securities.")
                     return
                 }
-                let requiredFundsTransactionCurrency = isStructuredProductBuy ? (structuredProductInvestmentAmount + fees + tax) : (quantity * price + fees + tax)
+                let requiredFundsTransactionCurrency = (quantity * price + fees + tax)
                 let transactionCurrency = selectedCurrency
                 let requiredFunds = max(0, requiredFundsTransactionCurrency)
                 var availableFunds = portfolio.getCurrencyBalance(for: institution, currency: transactionCurrency.rawValue)
@@ -1605,14 +1590,30 @@ struct AddTransactionView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
                 HStack {
-                    Text("Investment Amount")
+                    Text("Quantity")
                     Spacer()
-                    TextField("0.00", value: $structuredProductInvestmentAmount, format: .number)
+                    TextField("0", value: $quantity, format: .number)
                         .keyboardType(.decimalPad)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(width: 140)
+                        .frame(width: 120)
+                }
+
+                HStack {
+                    Text("Price per Share")
+                    Spacer()
+                    TextField("0.00", value: $price, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 120)
                     Text(selectedCurrency.symbol)
                         .foregroundColor(.secondary)
+                }
+
+                HStack {
+                    Text("Investment Amount")
+                    Spacer()
+                    Text(Formatters.currency(quantity * price, symbol: selectedCurrency.symbol))
+                        .fontWeight(.medium)
                 }
 
                 HStack {
@@ -2057,7 +2058,7 @@ struct AddTransactionView: View {
         asset.setValue(structuredProductInterestRate, forKey: "interestRate")
         let trimmedLinked = structuredProductLinkedAssets.trimmingCharacters(in: .whitespacesAndNewlines)
         asset.setValue(trimmedLinked.isEmpty ? nil : trimmedLinked, forKey: "linkedAssets")
-        let convertedValue = convertToPortfolioCurrency(structuredProductInvestmentAmount, from: selectedCurrency)
+        let convertedValue = convertToPortfolioCurrency(price, from: selectedCurrency)
         asset.currentPrice = convertedValue
         asset.lastPriceUpdate = Date()
     }

@@ -144,9 +144,21 @@ struct TransactionDetailView: View {
                         }
                     } else if isStructuredProduct {
                         HStack {
+                            Text("Quantity")
+                            Spacer()
+                            Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
+                                .foregroundColor(.secondary)
+                        }
+                        HStack {
+                            Text("Price per Share")
+                            Spacer()
+                            Text(Formatters.currency(transaction.price, symbol: currency.symbol, fractionDigits: 6))
+                                .foregroundColor(.secondary)
+                        }
+                        HStack {
                             Text("Investment Amount")
                             Spacer()
-                            Text(Formatters.currency(transaction.amount, symbol: currency.symbol))
+                            Text(Formatters.currency(transaction.quantity * transaction.price, symbol: currency.symbol))
                                 .foregroundColor(.secondary)
                         }
                         HStack {
