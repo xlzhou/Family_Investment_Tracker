@@ -61,6 +61,7 @@ struct AddTransactionView: View {
     @State private var premiumPaymentStatus = "Paid"
     @State private var premiumPaymentType = "Lump Sum"
     @State private var singlePremium: Double = 0
+    @State private var firstDiscountedPremium: Double = 0
     @State private var totalPremium: Double = 0
     @State private var coverageExpirationDate = Date()
     @State private var maturityBenefitRedemptionDate = Date()
@@ -215,6 +216,7 @@ struct AddTransactionView: View {
         _premiumPaymentStatus = State(initialValue: (insuranceObject?.value(forKey: "premiumPaymentStatus") as? String) ?? "Paid")
         _premiumPaymentType = State(initialValue: (insuranceObject?.value(forKey: "premiumPaymentType") as? String) ?? "Lump Sum")
         _singlePremium = State(initialValue: insuranceObject?.value(forKey: "singlePremium") as? Double ?? 0)
+        _firstDiscountedPremium = State(initialValue: insuranceObject?.value(forKey: "firstDiscountedPremium") as? Double ?? 0)
         _totalPremium = State(initialValue: insuranceObject?.value(forKey: "totalPremium") as? Double ?? 0)
         _coverageExpirationDate = State(initialValue: insuranceObject?.value(forKey: "coverageExpirationDate") as? Date ?? defaultDate)
         _maturityBenefitRedemptionDate = State(initialValue: insuranceObject?.value(forKey: "maturityBenefitRedemptionDate") as? Date ?? defaultDate)
@@ -512,6 +514,20 @@ struct AddTransactionView: View {
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .frame(width: 120)
                                 .onChange(of: singlePremium) { _, _ in
+                                    calculateTotalPremium()
+                                }
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                        HStack {
+                            Text("First Discounted Premium")
+                            Spacer()
+                            TextField("0.00", value: $firstDiscountedPremium, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                                .onChange(of: firstDiscountedPremium) { _, _ in
                                     calculateTotalPremium()
                                 }
                             Text(selectedCurrency.symbol)
@@ -894,7 +910,7 @@ struct AddTransactionView: View {
                     failWithMessage("Select a payment institution for this insurance policy.")
                     return
                 }
-                let premiumAmount = max(0, insurancePaymentRawAmount())
+                let premiumAmount = max(0, initialInsurancePaymentAmount())
                 let requiredFunds = max(0, convertToPortfolioCurrency(premiumAmount, from: selectedCurrency))
                 var availableFunds = paymentInstitution.getCashBalance(for: portfolio)
                 if let existingTransaction,
@@ -1020,8 +1036,18 @@ struct AddTransactionView: View {
 
         let resolvedPaymentInstitution = selectedPaymentInstitution ?? institutionForTransaction
         transaction.setValue(resolvedPaymentInstitution?.name, forKey: "paymentInstitutionName")
-        transaction.setValue(false, forKey: "paymentDeducted")
-        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+
+        let hadExistingInsurancePayment = (existingTransactionType == .insurance && existingTransaction != nil)
+        let previousPaymentDeducted = existingTransaction?.value(forKey: "paymentDeducted") as? Bool ?? false
+        let previousPaymentDeductedAmount = existingTransaction?.value(forKey: "paymentDeductedAmount") as? Double ?? 0
+
+        if hadExistingInsurancePayment {
+            transaction.setValue(previousPaymentDeducted, forKey: "paymentDeducted")
+            transaction.setValue(previousPaymentDeductedAmount, forKey: "paymentDeductedAmount")
+        } else {
+            transaction.setValue(false, forKey: "paymentDeducted")
+            transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+        }
         transaction.realizedGainAmount = 0
         transaction.asset = nil
 
@@ -1031,16 +1057,19 @@ struct AddTransactionView: View {
                 transaction.quantity = 1
                 transaction.price = cashValue
 
-                let premiumAmount = max(0, insurancePaymentRawAmount())
-                if cashDisciplineEnabled {
-                    // Companion deposit will handle cash deduction when cash discipline is on.
-                } else if premiumAmount > 0, let paymentInstitution = resolvedPaymentInstitution {
-                    let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
-                    portfolio.addToCash(-convertedPremium)
-                    paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -premiumAmount)
-                    transaction.setValue(true, forKey: "paymentDeducted")
-                    transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
-                    transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
+                let premiumAmount = max(0, initialInsurancePaymentAmount())
+                if premiumAmount > 0, let paymentInstitution = resolvedPaymentInstitution {
+                    if cashDisciplineEnabled {
+                        transaction.setValue(false, forKey: "paymentDeducted")
+                        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+                    } else {
+                        let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
+                        portfolio.addToCash(-convertedPremium)
+                        paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -premiumAmount)
+                        transaction.setValue(true, forKey: "paymentDeducted")
+                        transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
+                        transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
+                    }
                 }
             } else {
                 transaction.amount = amount
@@ -1255,6 +1284,7 @@ struct AddTransactionView: View {
             insurance.setValue(premiumPaymentStatus, forKey: "premiumPaymentStatus")
             insurance.setValue(premiumPaymentType, forKey: "premiumPaymentType")
             insurance.setValue(singlePremium, forKey: "singlePremium")
+            insurance.setValue(firstDiscountedPremium, forKey: "firstDiscountedPremium")
             insurance.setValue(totalPremium, forKey: "totalPremium")
             insurance.setValue(coverageExpirationDate, forKey: "coverageExpirationDate")
             insurance.setValue(maturityBenefitRedemptionDate, forKey: "maturityBenefitRedemptionDate")
@@ -1283,6 +1313,7 @@ struct AddTransactionView: View {
         do {
             try viewContext.save()
             print("✅ Transaction saved successfully: \(transaction.type ?? "Unknown") - \(transaction.amount)")
+
             dismiss()
         } catch {
             print("❌ Error saving transaction: \(error)")
@@ -1835,7 +1866,7 @@ struct AddTransactionView: View {
             }
             upsertCashDisciplineCompanion(for: transaction, amount: netProceeds, currency: transactionCurrency, institution: institution)
         case .insurance:
-            let premiumAmount = insurancePaymentRawAmount()
+            let premiumAmount = initialInsurancePaymentAmount()
             if abs(premiumAmount) < epsilon {
                 removeCashDisciplineCompanion(for: transaction)
                 return
@@ -2333,16 +2364,53 @@ fileprivate struct InterestSourceOption: Identifiable, Hashable {
 
 private extension AddTransactionView {
     func insurancePaymentRawAmount() -> Double {
-        let normalized = premiumPaymentType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if normalized == "lump sum" {
-            return totalPremium
+        initialInsurancePaymentAmount()
+    }
+
+    func initialInsurancePaymentAmount() -> Double {
+        if firstDiscountedPremium > 0 {
+            return firstDiscountedPremium
         }
+
+        let normalized = premiumPaymentType.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        if normalized == "lump sum" {
+            if totalPremium > 0 {
+                return totalPremium
+            }
+            if singlePremium > 0 {
+                let term = max(1, Int(premiumPaymentTerm))
+                return singlePremium * Double(term)
+            }
+            return 0
+        }
+
+        if premiumPaymentTerm <= 1 {
+            if totalPremium > 0 {
+                return totalPremium
+            }
+        }
+
         return singlePremium
     }
 
     func calculateTotalPremium() {
-        if premiumPaymentTerm > 0 && singlePremium > 0 {
-            totalPremium = singlePremium * Double(premiumPaymentTerm)
+        let termCount = max(0, Double(premiumPaymentTerm))
+
+        if termCount <= 0 {
+            if firstDiscountedPremium > 0 {
+                totalPremium = firstDiscountedPremium
+            } else {
+                totalPremium = singlePremium
+            }
+            return
+        }
+
+        if firstDiscountedPremium > 0 {
+            let remainingTermCount = max(0, termCount - 1)
+            totalPremium = firstDiscountedPremium + remainingTermCount * singlePremium
+        } else {
+            totalPremium = singlePremium * termCount
         }
     }
 
