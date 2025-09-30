@@ -556,7 +556,7 @@ struct AddTransactionView: View {
 
                     Section(header: Text("Policy Features")) {
                         Toggle("Participating Policy", isOn: $isParticipating)
-                        Toggle("Has Supplementary Insurance", isOn: $hasSupplementaryInsurance)
+                        Toggle("Rider", isOn: $hasSupplementaryInsurance)
                         Toggle("Can Withdraw Premiums", isOn: $canWithdrawPremiums)
 
                         if canWithdrawPremiums {
@@ -1031,19 +1031,16 @@ struct AddTransactionView: View {
                 transaction.quantity = 1
                 transaction.price = cashValue
 
+                let premiumAmount = max(0, insurancePaymentRawAmount())
                 if cashDisciplineEnabled {
-                    let premiumAmount = max(0, insurancePaymentRawAmount())
+                    // Companion deposit will handle cash deduction when cash discipline is on.
+                } else if premiumAmount > 0, let paymentInstitution = resolvedPaymentInstitution {
                     let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
-                    if premiumAmount > 0, let paymentInstitution = resolvedPaymentInstitution {
-                        portfolio.addToCash(-convertedPremium)
-                        paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -premiumAmount)
-                        transaction.setValue(true, forKey: "paymentDeducted")
-                        transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
-                        transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
-                    } else {
-                        transaction.setValue(false, forKey: "paymentDeducted")
-                        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
-                    }
+                    portfolio.addToCash(-convertedPremium)
+                    paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -premiumAmount)
+                    transaction.setValue(true, forKey: "paymentDeducted")
+                    transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
+                    transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
                 }
             } else {
                 transaction.amount = amount
@@ -1802,13 +1799,25 @@ struct AddTransactionView: View {
         guard cashDisciplineEnabled,
               let typeRaw = transaction.type,
               let type = TransactionType(rawValue: typeRaw),
-              (type == .buy || type == .sell),
-              let institution = transaction.institution else {
+              (type == .buy || type == .sell || type == .insurance) else {
             removeCashDisciplineCompanion(for: transaction)
             return
         }
 
-        let transactionCurrency = Currency(rawValue: transaction.currency ?? selectedCurrency.rawValue) ?? selectedCurrency
+        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+
+        let institution: Institution?
+        switch type {
+        case .insurance:
+            institution = resolvePaymentInstitution(for: transaction)
+        default:
+            institution = transaction.institution
+        }
+
+        guard let institution else {
+            removeCashDisciplineCompanion(for: transaction)
+            return
+        }
 
         switch type {
         case .buy:
@@ -1825,6 +1834,13 @@ struct AddTransactionView: View {
                 return
             }
             upsertCashDisciplineCompanion(for: transaction, amount: netProceeds, currency: transactionCurrency, institution: institution)
+        case .insurance:
+            let premiumAmount = insurancePaymentRawAmount()
+            if abs(premiumAmount) < epsilon {
+                removeCashDisciplineCompanion(for: transaction)
+                return
+            }
+            upsertCashDisciplineCompanion(for: transaction, amount: -premiumAmount, currency: transactionCurrency, institution: institution)
         default:
             removeCashDisciplineCompanion(for: transaction)
         }
@@ -2001,6 +2017,30 @@ struct AddTransactionView: View {
     
     private func convertToPortfolioCurrency(_ amount: Double, from currency: Currency) -> Double {
         currencyService.convertAmount(amount, from: currency, to: portfolioCurrency)
+    }
+
+    private func resolvePaymentInstitution(for transaction: Transaction) -> Institution? {
+        if let selectedPaymentInstitution {
+            return selectedPaymentInstitution
+        }
+
+        if let name = transaction.value(forKey: "paymentInstitutionName") as? String,
+           let resolved = fetchInstitution(named: name) {
+            return resolved
+        }
+
+        return transaction.institution
+    }
+
+    private func fetchInstitution(named name: String) -> Institution? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let request: NSFetchRequest<Institution> = Institution.fetchRequest()
+        request.predicate = NSPredicate(format: "name ==[c] %@", trimmed)
+        request.fetchLimit = 1
+
+        return try? viewContext.fetch(request).first
     }
 
     private func findOrCreateInstitution(name: String) -> (Institution, Bool) {

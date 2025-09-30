@@ -12,6 +12,7 @@ struct TransactionsView: View {
     @State private var showingRealizedPnL = false
     @State private var selectedAssetType: AssetType? = nil
     @State private var selectedInstitutionID: NSManagedObjectID? = nil
+    @State private var selectedYear: Int? = nil
     @State private var sortOption: TransactionSortOption = .dateDescending
     
     private var filteredTransactions: [Transaction] {
@@ -68,6 +69,15 @@ struct TransactionsView: View {
                     return InstitutionAssetService.shared.isAssetAvailableAt(asset: asset, institution: institution, context: viewContext)
                 }
                 return false
+            }
+        }
+
+        // Year filter
+        if let year = selectedYear {
+            transactions = transactions.filter { transaction in
+                guard let date = transaction.transactionDate else { return false }
+                let calendar = Calendar.current
+                return calendar.component(.year, from: date) == year
             }
         }
 
@@ -277,6 +287,22 @@ private extension TransactionsView {
             }
 
             Menu {
+                Button("All Years") { selectedYear = nil }
+                ForEach(availableYears, id: \.self) { year in
+                    Button(String(year)) { selectedYear = year }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "calendar")
+                    Text(selectedYear != nil ? String(selectedYear!) : "All Years")
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            Menu {
                 ForEach(TransactionSortOption.allCases, id: \.self) { option in
                     Button(option.displayName) { sortOption = option }
                 }
@@ -291,10 +317,11 @@ private extension TransactionsView {
                 .cornerRadius(8)
             }
 
-            if selectedAssetType != nil || selectedInstitutionID != nil || sortOption != .dateDescending {
+            if selectedAssetType != nil || selectedInstitutionID != nil || selectedYear != nil || sortOption != .dateDescending {
                 Button("Clear") {
                     selectedAssetType = nil
                     selectedInstitutionID = nil
+                    selectedYear = nil
                     sortOption = .dateDescending
                 }
                 .font(.caption)
@@ -332,6 +359,14 @@ private extension TransactionsView {
             return "All Institutions"
         }
         return institution.name ?? "All Institutions"
+    }
+
+    private var availableYears: [Int] {
+        let years = Set(allTransactions.compactMap { (transaction: Transaction) -> Int? in
+            guard let date = transaction.transactionDate else { return nil }
+            return Calendar.current.component(.year, from: date)
+        })
+        return Array(years).sorted(by: >)
     }
 
     func sortTransactions(_ transactions: [Transaction]) -> [Transaction] {
