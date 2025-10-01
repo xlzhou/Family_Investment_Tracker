@@ -412,7 +412,7 @@ class AuthenticationManager: ObservableObject {
         return status == errSecSuccess
     }
 
-    private func retrieveFromKeychain(key: String) -> Data? {
+    private func retrieveFromKeychain(key: String, retryOnInteractionNotAllowed: Bool = true) -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -423,6 +423,11 @@ class AuthenticationManager: ObservableObject {
 
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+        if status == errSecInteractionNotAllowed && retryOnInteractionNotAllowed {
+            usleep(150_000) // wait 150ms for keychain to become available after unlock
+            return retrieveFromKeychain(key: key, retryOnInteractionNotAllowed: false)
+        }
 
         guard status == errSecSuccess,
               let data = item as? Data else {
