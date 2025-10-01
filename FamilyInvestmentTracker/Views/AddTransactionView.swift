@@ -303,6 +303,11 @@ struct AddTransactionView: View {
         return baseAmount + fees
     }
 
+    private var incomeSettlementAmountForDisplay: Double {
+        let grossAmount = isAmountOnly ? amount : (quantity * price)
+        return grossAmount - fees - tax
+    }
+
     private var selectedSellAsset: Asset? {
         if let sellID = selectedSellAssetID {
             if let asset = sellSourceAssets.first(where: { $0.objectID == sellID }) {
@@ -1232,7 +1237,7 @@ struct AddTransactionView: View {
             }
 
             if selectedTransactionType == .sell {
-                let netProceeds = (quantity * price) - fees - tax
+                let netProceeds = transaction.amount - fees - tax
                 if netProceeds != 0 {
                     if cashDisciplineEnabled {
                         // Cash will be adjusted via companion deposit entry
@@ -1800,6 +1805,15 @@ struct AddTransactionView: View {
                         .frame(width: 120)
                     Text(selectedCurrency.symbol)
                         .foregroundColor(.secondary)
+                }
+            }
+
+            if selectedTransactionType == .dividend || selectedTransactionType == .interest {
+                HStack {
+                    Text("Settlement Amount")
+                    Spacer()
+                    Text(Formatters.currency(incomeSettlementAmountForDisplay, symbol: selectedCurrency.symbol))
+                        .fontWeight(.semibold)
                 }
             }
 

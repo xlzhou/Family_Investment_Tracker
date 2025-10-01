@@ -71,6 +71,7 @@
         <attribute name="premiumPaymentTerm" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="premiumPaymentType" optional="YES" attributeType="String"/>
         <attribute name="singlePremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="firstDiscountedPremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="totalPremium" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="insurance" inverseEntity="Asset"/>
         <relationship name="beneficiaries" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Beneficiary" inverseName="insurance" inverseEntity="Beneficiary"/>

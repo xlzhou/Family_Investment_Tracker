@@ -329,6 +329,7 @@ struct BackupInsurance: Codable {
     let premiumPaymentStatus: String?
     let premiumPaymentType: String?
     let singlePremium: Double
+    let firstDiscountedPremium: Double?
     let totalPremium: Double
     let coverageExpirationDate: Date?
     let maturityBenefitRedemptionDate: Date?
@@ -521,6 +522,7 @@ final class BackupService {
                         premiumPaymentStatus: insurance.value(forKey: "premiumPaymentStatus") as? String,
                         premiumPaymentType: insurance.value(forKey: "premiumPaymentType") as? String,
                         singlePremium: insurance.value(forKey: "singlePremium") as? Double ?? 0,
+                        firstDiscountedPremium: insurance.value(forKey: "firstDiscountedPremium") as? Double,
                         totalPremium: insurance.value(forKey: "totalPremium") as? Double ?? 0,
                         coverageExpirationDate: insurance.value(forKey: "coverageExpirationDate") as? Date,
                         maturityBenefitRedemptionDate: insurance.value(forKey: "maturityBenefitRedemptionDate") as? Date,
@@ -665,6 +667,7 @@ final class BackupService {
                 insurance.setValue(insuranceData.premiumPaymentStatus, forKey: "premiumPaymentStatus")
                 insurance.setValue(insuranceData.premiumPaymentType, forKey: "premiumPaymentType")
                 insurance.setValue(insuranceData.singlePremium, forKey: "singlePremium")
+                insurance.setValue(insuranceData.firstDiscountedPremium ?? 0, forKey: "firstDiscountedPremium")
                 insurance.setValue(insuranceData.totalPremium, forKey: "totalPremium")
                 insurance.setValue(insuranceData.coverageExpirationDate, forKey: "coverageExpirationDate")
                 insurance.setValue(insuranceData.maturityBenefitRedemptionDate, forKey: "maturityBenefitRedemptionDate")

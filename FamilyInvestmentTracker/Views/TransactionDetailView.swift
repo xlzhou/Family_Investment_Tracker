@@ -64,16 +64,6 @@ struct TransactionDetailView: View {
     private var totalPaidPremium: Double {
         guard isInsurance else { return 0 }
 
-        #if DEBUG
-        print("🔍 Paid premium calculation for transaction: \(transaction.id?.uuidString ?? "unknown")")
-        print("🔍 Found \(insurancePaymentDeposits.count) candidate deposit transactions")
-        for deposit in insurancePaymentDeposits {
-            let currencyCode = deposit.currency ?? "unknown"
-            let notes = deposit.notes ?? "<no notes>"
-            print("   • Deposit txn id=\(deposit.id?.uuidString ?? "n/a") amount=\(deposit.amount) currency=\(currencyCode) notes=\(notes)")
-        }
-        #endif
-
         return insurancePaymentDeposits.reduce(0) { runningTotal, txn in
             let depositCurrency = Currency(rawValue: txn.currency ?? currency.rawValue) ?? currency
             let converted = currencyService.convertAmount(abs(txn.amount), from: depositCurrency, to: currency)
@@ -90,15 +80,7 @@ struct TransactionDetailView: View {
         return transactions.filter { txn in
             guard txn.portfolio?.objectID == portfolio.objectID else { return false }
             guard txn.type == TransactionType.deposit.rawValue else { return false }
-            let matched = isInsurancePaymentTransaction(txn, asset: insuranceAsset, originalTransaction: transaction)
-            #if DEBUG
-            if matched {
-                print("✅ Matched insurance payment deposit: id=\(txn.id?.uuidString ?? "n/a") notes=\(txn.notes ?? "<no notes>") amount=\(txn.amount)")
-            } else {
-                print("⚪️ Ignored deposit: id=\(txn.id?.uuidString ?? "n/a") notes=\(txn.notes ?? "<no notes>") amount=\(txn.amount)")
-            }
-            #endif
-            return matched
+            return isInsurancePaymentTransaction(txn, asset: insuranceAsset, originalTransaction: transaction)
         }
     }
 
@@ -110,36 +92,20 @@ struct TransactionDetailView: View {
         if let original = originalTransaction,
            let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
            notesLowercased.hasPrefix(identifier) {
-            #if DEBUG
-            print("✅ Companion note match: \(identifier)")
-            #endif
             return true
         }
 
         if notesLowercased.contains("premium payment") {
-            #if DEBUG
-            print("✅ Notes contain 'premium payment'")
-            #endif
             return true
         }
 
         if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
-            #if DEBUG
-            print("✅ Notes contain asset symbol \(symbol)")
-            #endif
             return true
         }
 
         if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
-            #if DEBUG
-            print("✅ Notes contain asset name \(name)")
-            #endif
             return true
         }
-
-        #if DEBUG
-        print("❌ Deposit did not match insurance payment heuristics")
-        #endif
         return false
     }
 
@@ -277,7 +243,7 @@ struct TransactionDetailView: View {
                                 .foregroundColor(.secondary)
                         }
                         HStack {
-                            Text("Price")
+                            Text(isInsurance ? "Cash Value" : "Price")
                             Spacer()
                             Text(Formatters.currency(transaction.price, symbol: currency.symbol))
                                 .foregroundColor(.secondary)
@@ -571,6 +537,14 @@ struct InsurancePaymentManagementView: View {
         paymentTransactions
     }
 
+    private var displayPaymentHistory: [Transaction] {
+        paymentTransactions.filter { transaction in
+            guard transaction.type == TransactionType.deposit.rawValue else { return true }
+            let notes = transaction.notes ?? ""
+            return !notes.hasPrefix("[CashDiscipline] Linked Transaction")
+        }
+    }
+
     private var insurance: NSManagedObject? {
         insuranceAsset.value(forKey: "insurance") as? NSManagedObject
     }
@@ -665,9 +639,8 @@ struct InsurancePaymentManagementView: View {
     }
 
     private var totalPaidAmount: Double {
-        paymentHistory.reduce(0) { total, transaction in
+        paymentTransactions.reduce(0) { total, transaction in
             guard transaction.type == TransactionType.deposit.rawValue else { return total }
-
             let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
             let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: portfolioCurrency)
             return total + converted
@@ -808,12 +781,12 @@ struct InsurancePaymentManagementView: View {
     @ViewBuilder
     private var paymentHistorySection: some View {
         Section(header: Text("Payment History")) {
-            if paymentHistory.isEmpty {
+            if displayPaymentHistory.isEmpty {
                 Text("No payments recorded")
                     .foregroundColor(.secondary)
                     .italic()
             } else {
-                ForEach(paymentHistory, id: \.objectID) { transaction in
+                ForEach(displayPaymentHistory, id: \.objectID) { transaction in
                     let isInitial = transaction == originalTransaction
                     PaymentHistoryRowView(
                         transaction: transaction,
@@ -1217,7 +1190,6 @@ struct InsurancePaymentEntryView: View {
             try viewContext.save()
             dismiss()
         } catch {
-            print("❌ Error saving insurance payment transaction: \(error)")
             errorMessage = "Failed to save payment: \(error.localizedDescription)"
             showingError = true
             viewContext.rollback()
