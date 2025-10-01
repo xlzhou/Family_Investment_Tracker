@@ -1339,7 +1339,7 @@ struct AddTransactionView: View {
                   holdingInstitution.objectID == institution.objectID else { return nil }
             guard let asset = holding.asset else { return nil }
             if let assetType = asset.assetType,
-               assetType == AssetType.bond.rawValue,
+               (assetType == AssetType.bond.rawValue || assetType == AssetType.structuredProduct.rawValue),
                asset.objectID != editingDividendAssetID {
                 return nil
             }
@@ -1423,22 +1423,25 @@ struct AddTransactionView: View {
         fixedOptions.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         options.append(contentsOf: fixedOptions)
 
-        // Include interest-bearing securities (e.g., bonds) held at this institution
+        // Include interest-bearing securities (e.g., bonds, structured products) held at this institution
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-        let bondAssets = holdings.compactMap { holding -> Asset? in
+        let interestAssetTypes: Set<String> = [AssetType.bond.rawValue, AssetType.structuredProduct.rawValue]
+        let interestAssets = holdings.compactMap { holding -> Asset? in
             guard holding.quantity > 0 else { return nil }
             guard let holdingInstitution = currentInstitution(of: holding),
                   holdingInstitution.objectID == institution.objectID else { return nil }
-            guard holding.asset?.assetType == AssetType.bond.rawValue else { return nil }
-            return holding.asset
+            guard let asset = holding.asset,
+                  let assetType = asset.assetType,
+                  interestAssetTypes.contains(assetType) else { return nil }
+            return asset
         }
 
         var seenAssets = Set<NSManagedObjectID>()
-        let securityOptions: [InterestSourceOption] = bondAssets.compactMap { asset in
+        let securityOptions: [InterestSourceOption] = interestAssets.compactMap { asset in
             let assetID = asset.objectID
             if seenAssets.contains(assetID) { return nil }
             seenAssets.insert(assetID)
-            let displayName = asset.symbol ?? asset.name ?? "Bond"
+            let displayName = asset.symbol ?? asset.name ?? "Security"
             return InterestSourceOption(
                 selection: .security(assetID),
                 title: displayName,
@@ -1451,11 +1454,12 @@ struct AddTransactionView: View {
 
         if selectedTransactionType == .interest,
            let editingAsset = transactionToEdit?.asset,
-           editingAsset.assetType == AssetType.bond.rawValue,
+           let editingAssetType = editingAsset.assetType,
+           interestAssetTypes.contains(editingAssetType),
            let editingInstitution = transactionToEdit?.institution {
             let securitySelection = InterestSourceSelection.security(editingAsset.objectID)
             if !options.contains(where: { $0.selection == securitySelection }) {
-                let displayName = editingAsset.symbol ?? editingAsset.name ?? "Bond"
+                let displayName = editingAsset.symbol ?? editingAsset.name ?? "Security"
                 options.append(
                     InterestSourceOption(
                         selection: securitySelection,
