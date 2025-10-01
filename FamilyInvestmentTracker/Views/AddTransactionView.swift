@@ -2489,6 +2489,43 @@ private extension AddTransactionView {
     }
 }
 
+extension Asset {
+    var resolvedAutoFetchPreference: Bool {
+        let override = value(forKey: "autoFetchPriceEnabled") as? Bool
+        let allTransactions = transactions?.allObjects as? [Transaction] ?? []
+        let transactionDrivenPreference: Bool = {
+            guard !allTransactions.isEmpty else { return true }
+            return allTransactions.contains { $0.autoFetchPrice }
+        }()
+
+        if let override {
+            if override && !transactionDrivenPreference && !allTransactions.isEmpty {
+                // Stored value likely comes from legacy default; honor live transaction setting instead.
+                return transactionDrivenPreference
+            }
+            return override
+        }
+
+        return transactionDrivenPreference
+    }
+
+    func applyAutoFetchPreference(_ enabled: Bool, limitTo portfolio: Portfolio? = nil) {
+        setValue(enabled, forKey: "autoFetchPriceEnabled")
+
+        guard let allTransactions = transactions?.allObjects as? [Transaction] else { return }
+        for transaction in allTransactions {
+            if let portfolio,
+               let transactionPortfolio = transaction.portfolio,
+               transactionPortfolio.objectID != portfolio.objectID {
+                continue
+            }
+            if transaction.autoFetchPrice != enabled {
+                transaction.autoFetchPrice = enabled
+            }
+        }
+    }
+}
+
 #Preview {
     AddTransactionView(portfolio: PersistenceController.preview.container.viewContext.registeredObjects.first(where: { $0 is Portfolio }) as! Portfolio)
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)

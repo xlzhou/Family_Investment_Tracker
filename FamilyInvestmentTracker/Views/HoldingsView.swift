@@ -213,8 +213,7 @@ struct HoldingRowView: View {
     }
     
     private var hasAutoFetchEnabled: Bool {
-        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
-        return transactions.contains { $0.autoFetchPrice }
+        asset.resolvedAutoFetchPreference
     }
 
     private var structuredProductTransactions: [Transaction] {

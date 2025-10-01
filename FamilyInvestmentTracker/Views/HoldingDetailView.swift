@@ -13,9 +13,17 @@ struct HoldingDetailView: View {
     @State private var showingPriceEditor = false
     @State private var showingCashValueEditor = false
     @State private var error: String?
+    @State private var autoFetchToggle: Bool
+    @State private var isUpdatingAutoFetchPreference = false
 
     private let currencyService = CurrencyService.shared
     private let marketDataService = MarketDataService.shared
+
+    init(holding: Holding, asset: Asset) {
+        _holding = ObservedObject(initialValue: holding)
+        _asset = ObservedObject(initialValue: asset)
+        _autoFetchToggle = State(initialValue: asset.resolvedAutoFetchPreference)
+    }
 
     private var isInsurance: Bool {
         asset.assetType == "Insurance"
@@ -26,8 +34,7 @@ struct HoldingDetailView: View {
     }
 
     private var hasAutoFetchEnabled: Bool {
-        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
-        return transactions.contains { $0.autoFetchPrice }
+        autoFetchToggle
     }
 
     private var structuredProductTransactions: [Transaction] {
@@ -149,14 +156,31 @@ struct HoldingDetailView: View {
     }
 
     private func refreshAssetPrice() async {
-        // Only refresh if this asset has auto-fetch enabled
-        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
-        let hasAutoFetch = transactions.contains { $0.autoFetchPrice }
-
-        guard hasAutoFetch else {
-            return
-        }
+        guard autoFetchToggle else { return }
         await marketDataService.updateMarketPrices(for: [asset], in: viewContext)
+    }
+
+    private func updateAutoFetchPreference(_ enabled: Bool) {
+        guard let portfolio = holding.portfolio else { return }
+
+        if isUpdatingAutoFetchPreference { return }
+        isUpdatingAutoFetchPreference = true
+        defer { isUpdatingAutoFetchPreference = false }
+
+        let previousPreference = asset.resolvedAutoFetchPreference
+        asset.applyAutoFetchPreference(enabled, limitTo: portfolio)
+
+        do {
+            try viewContext.save()
+            autoFetchToggle = asset.resolvedAutoFetchPreference
+            if enabled {
+                Task { await refreshAssetPrice() }
+            }
+        } catch {
+            viewContext.rollback()
+            self.error = "Failed to update auto-fetch setting: \(error.localizedDescription)"
+            autoFetchToggle = previousPreference
+        }
     }
 
     var body: some View {
@@ -299,6 +323,13 @@ struct HoldingDetailView: View {
                             }
                         }
 
+                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
+                            .toggleStyle(SwitchToggleStyle())
+                            .onChange(of: autoFetchToggle) { _, newValue in
+                                guard !isUpdatingAutoFetchPreference else { return }
+                                updateAutoFetchPreference(newValue)
+                            }
+
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Total Value")
@@ -376,6 +407,13 @@ struct HoldingDetailView: View {
                                     .foregroundColor(isOffline ? .red : .blue)
                             }
                         }
+
+                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
+                            .toggleStyle(SwitchToggleStyle())
+                            .onChange(of: autoFetchToggle) { _, newValue in
+                                guard !isUpdatingAutoFetchPreference else { return }
+                                updateAutoFetchPreference(newValue)
+                            }
 
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
@@ -588,7 +626,7 @@ struct PriceEditorView: View {
                     }
                 }
 
-                Section(footer: Text("Note: This will manually set the price. To enable automatic price fetching, turn on 'Auto-fetch price' when creating or editing transactions for this asset.")) {
+                Section(footer: Text("Note: This will manually set the price. To enable automatic price fetching, turn on 'Auto-fetch price' when creating or editing transactions or toggle it from the holding detail screen.")) {
                     EmptyView()
                 }
 

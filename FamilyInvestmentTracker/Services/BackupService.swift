@@ -179,6 +179,61 @@ struct BackupAsset: Codable {
     let lastPriceUpdate: Date?
     let interestRate: Double?
     let linkedAssets: String?
+    let autoFetchPriceEnabled: Bool
+
+    private enum CodingKeys: String, CodingKey {
+        case id, symbol, name, assetType, createdAt, currentPrice, lastPriceUpdate, interestRate, linkedAssets, autoFetchPriceEnabled
+    }
+
+    init(id: UUID,
+         symbol: String?,
+         name: String?,
+         assetType: String?,
+         createdAt: Date?,
+         currentPrice: Double,
+         lastPriceUpdate: Date?,
+         interestRate: Double?,
+         linkedAssets: String?,
+         autoFetchPriceEnabled: Bool) {
+        self.id = id
+        self.symbol = symbol
+        self.name = name
+        self.assetType = assetType
+        self.createdAt = createdAt
+        self.currentPrice = currentPrice
+        self.lastPriceUpdate = lastPriceUpdate
+        self.interestRate = interestRate
+        self.linkedAssets = linkedAssets
+        self.autoFetchPriceEnabled = autoFetchPriceEnabled
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        symbol = try container.decodeIfPresent(String.self, forKey: .symbol)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        assetType = try container.decodeIfPresent(String.self, forKey: .assetType)
+        createdAt = try container.decodeIfPresent(Date.self, forKey: .createdAt)
+        currentPrice = try container.decode(Double.self, forKey: .currentPrice)
+        lastPriceUpdate = try container.decodeIfPresent(Date.self, forKey: .lastPriceUpdate)
+        interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate)
+        linkedAssets = try container.decodeIfPresent(String.self, forKey: .linkedAssets)
+        autoFetchPriceEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPriceEnabled) ?? true
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(symbol, forKey: .symbol)
+        try container.encodeIfPresent(name, forKey: .name)
+        try container.encodeIfPresent(assetType, forKey: .assetType)
+        try container.encodeIfPresent(createdAt, forKey: .createdAt)
+        try container.encode(currentPrice, forKey: .currentPrice)
+        try container.encodeIfPresent(lastPriceUpdate, forKey: .lastPriceUpdate)
+        try container.encodeIfPresent(interestRate, forKey: .interestRate)
+        try container.encodeIfPresent(linkedAssets, forKey: .linkedAssets)
+        try container.encode(autoFetchPriceEnabled, forKey: .autoFetchPriceEnabled)
+    }
 }
 
 struct BackupTransaction: Codable {
@@ -454,7 +509,8 @@ final class BackupService {
                         currentPrice: asset.currentPrice,
                         lastPriceUpdate: asset.lastPriceUpdate,
                         interestRate: asset.value(forKey: "interestRate") as? Double,
-                        linkedAssets: asset.value(forKey: "linkedAssets") as? String
+                        linkedAssets: asset.value(forKey: "linkedAssets") as? String,
+                        autoFetchPriceEnabled: (asset.value(forKey: "autoFetchPriceEnabled") as? Bool) ?? true
                     )
                 },
                 transactions: transactions.map { transaction in
@@ -593,6 +649,7 @@ final class BackupService {
                 if let linkedAssets = assetData.linkedAssets {
                     asset.setValue(linkedAssets, forKey: "linkedAssets")
                 }
+                asset.setValue(assetData.autoFetchPriceEnabled, forKey: "autoFetchPriceEnabled")
                 assetsDict[assetData.id] = asset
             }
             
