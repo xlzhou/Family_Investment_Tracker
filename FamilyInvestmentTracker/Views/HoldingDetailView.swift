@@ -33,6 +33,67 @@ struct HoldingDetailView: View {
         asset.assetType == AssetType.structuredProduct.rawValue
     }
 
+    private var insurance: NSManagedObject? {
+        asset.value(forKey: "insurance") as? NSManagedObject
+    }
+
+    private var insuranceTransactions: [Transaction] {
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        return transactions.filter {
+            $0.portfolio?.objectID == holding.portfolio?.objectID &&
+            $0.type == TransactionType.insurance.rawValue
+        }.sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
+    }
+
+    private var totalPaidPremium: Double {
+        guard isInsurance else { return 0 }
+        let currencyService = CurrencyService.shared
+
+        return insurancePaymentDeposits.reduce(0) { runningTotal, txn in
+            let depositCurrency = Currency(rawValue: txn.currency ?? displayCurrency.rawValue) ?? displayCurrency
+            let converted = currencyService.convertAmount(abs(txn.amount), from: depositCurrency, to: displayCurrency)
+            return runningTotal + converted
+        }
+    }
+
+    private var insurancePaymentDeposits: [Transaction] {
+        guard let portfolio = holding.portfolio else { return [] }
+
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let originalTransaction = insuranceTransactions.first
+
+        return transactions.filter { txn in
+            guard txn.portfolio?.objectID == portfolio.objectID else { return false }
+            guard txn.type == TransactionType.deposit.rawValue else { return false }
+            return isInsurancePaymentTransaction(txn, asset: asset, originalTransaction: originalTransaction)
+        }
+    }
+
+    private func isInsurancePaymentTransaction(_ transaction: Transaction,
+                                               asset: Asset,
+                                               originalTransaction: Transaction? = nil) -> Bool {
+        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
+
+        if let original = originalTransaction,
+           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
+           notesLowercased.hasPrefix(identifier) {
+            return true
+        }
+
+        if notesLowercased.contains("premium payment") {
+            return true
+        }
+
+        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
+            return true
+        }
+
+        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
+            return true
+        }
+        return false
+    }
+
     private var hasAutoFetchEnabled: Bool {
         autoFetchToggle
     }
@@ -441,6 +502,15 @@ struct HoldingDetailView: View {
                     }
                 }
 
+                // Insurance Sections (for insurance assets)
+                if isInsurance {
+                    insuranceDetailsSection
+                    insuranceFinancialSection
+                    insurancePremiumSection
+                    insuranceCoverageSection
+                    insuranceBeneficiariesSection
+                }
+
                 // Performance Section (for non-insurance assets)
                 if !isInsurance {
                     Section(header: Text("Performance")) {
@@ -562,6 +632,163 @@ struct HoldingDetailView: View {
         }
         .sheet(isPresented: $showingCashValueEditor) {
             CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
+        }
+    }
+
+    // MARK: - Insurance Detail Sections
+
+    @ViewBuilder
+    private var insuranceDetailsSection: some View {
+        Section(header: Text("Insurance Details")) {
+            HStack {
+                Text("Policy Symbol")
+                Spacer()
+                Text(asset.symbol ?? "-")
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Text("Policy Type")
+                Spacer()
+                Text(insurance?.value(forKey: "insuranceType") as? String ?? "-")
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Text("Policyholder")
+                Spacer()
+                Text(insurance?.value(forKey: "policyholder") as? String ?? "-")
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Text("Insured Person")
+                Spacer()
+                Text(insurance?.value(forKey: "insuredPerson") as? String ?? "-")
+                    .foregroundColor(.secondary)
+            }
+            if let phone = insurance?.value(forKey: "contactNumber") as? String, !phone.isEmpty {
+                HStack {
+                    Text("Contact Number")
+                    Spacer()
+                    Text(phone)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var insuranceFinancialSection: some View {
+        Section(header: Text("Financial Details")) {
+            insuranceValueRow(label: "Basic Insured Amount", amount: insurance?.value(forKey: "basicInsuredAmount") as? Double)
+            insuranceValueRow(label: "Additional Payment", amount: insurance?.value(forKey: "additionalPaymentAmount") as? Double)
+            insuranceValueRow(label: "Death Benefit", amount: insurance?.value(forKey: "deathBenefit") as? Double)
+            HStack {
+                Text("Total Paid Premium")
+                Spacer()
+                Text(Formatters.currency(totalPaidPremium, symbol: displayCurrency.displayName))
+                    .foregroundColor(.blue)
+                    .fontWeight(.semibold)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var insurancePremiumSection: some View {
+        Section(header: Text("Premium Details")) {
+            let paymentType = insurance?.value(forKey: "premiumPaymentType") as? String ?? "-"
+            let paymentStatus = insurance?.value(forKey: "premiumPaymentStatus") as? String ?? "-"
+            HStack {
+                Text("Payment Type")
+                Spacer()
+                Text(paymentType)
+                    .foregroundColor(.secondary)
+            }
+            HStack {
+                Text("Payment Status")
+                Spacer()
+                Text(paymentStatus)
+                    .foregroundColor(.secondary)
+            }
+            insuranceValueRow(label: "Single Premium", amount: insurance?.value(forKey: "singlePremium") as? Double)
+            if let discounted = insurance?.value(forKey: "firstDiscountedPremium") as? Double, abs(discounted) > 1e-6 {
+                insuranceValueRow(label: "First Discounted Premium", amount: discounted)
+            }
+            insuranceValueRow(label: "Total Premium", amount: insurance?.value(forKey: "totalPremium") as? Double)
+            if let term = insurance?.value(forKey: "premiumPaymentTerm") as? Int32, term > 0 {
+                HStack {
+                    Text("Payment Term")
+                    Spacer()
+                    Text("\(term) years")
+                        .foregroundColor(.secondary)
+                }
+            }
+            insuranceToggleRow(label: "Participating", value: insurance?.value(forKey: "isParticipating") as? Bool)
+            insuranceToggleRow(label: "Supplementary Insurance", value: insurance?.value(forKey: "hasSupplementaryInsurance") as? Bool)
+        }
+    }
+
+    @ViewBuilder
+    private var insuranceCoverageSection: some View {
+        Section(header: Text("Coverage & Benefits")) {
+            if let expiration = insurance?.value(forKey: "coverageExpirationDate") as? Date {
+                insuranceDateRow(label: "Coverage Expiration", date: expiration)
+            }
+            if let maturityDate = insurance?.value(forKey: "maturityBenefitRedemptionDate") as? Date {
+                insuranceDateRow(label: "Maturity Benefit Date", date: maturityDate)
+            }
+            insuranceValueRow(label: "Estimated Maturity Benefit", amount: insurance?.value(forKey: "estimatedMaturityBenefit") as? Double)
+            insuranceToggleRow(label: "Can Withdraw Premiums", value: insurance?.value(forKey: "canWithdrawPremiums") as? Bool)
+            if let percentage = insurance?.value(forKey: "maxWithdrawalPercentage") as? Double, percentage > 0 {
+                HStack {
+                    Text("Max Withdrawal %")
+                    Spacer()
+                    Text("\(Formatters.decimal(percentage, fractionDigits: 1))%")
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var insuranceBeneficiariesSection: some View {
+        if let beneficiaries = insurance?.value(forKey: "beneficiaries") as? Set<NSManagedObject>, !beneficiaries.isEmpty {
+            Section(header: Text("Beneficiaries")) {
+                ForEach(Array(beneficiaries), id: \.objectID) { beneficiary in
+                    HStack {
+                        Text(beneficiary.value(forKey: "name") as? String ?? "-" )
+                        Spacer()
+                        let pct = beneficiary.value(forKey: "percentage") as? Double ?? 0
+                        Text("\(Formatters.decimal(pct, fractionDigits: 1))%")
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private func insuranceValueRow(label: String, amount: Double?) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(Formatters.currency(amount ?? 0, symbol: displayCurrency.displayName))
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func insuranceToggleRow(label: String, value: Bool?) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text((value ?? false) ? "Yes" : "No")
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func insuranceDateRow(label: String, date: Date) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(date, style: .date)
+                .foregroundColor(.secondary)
         }
     }
 }
@@ -697,16 +924,15 @@ struct PriceEditorView: View {
             self.error = "Failed to save price: \(error.localizedDescription)"
         }
     }
-
 }
 
 #Preview {
     let context = PersistenceController.preview.container.viewContext
     if let holding = context.registeredObjects.first(where: { $0 is Holding }) as? Holding,
        let asset = holding.asset {
-        return HoldingDetailView(holding: holding, asset: asset)
+        HoldingDetailView(holding: holding, asset: asset)
             .environment(\.managedObjectContext, context)
     } else {
-        return Text("No preview data available")
+        Text("No preview data available")
     }
 }
