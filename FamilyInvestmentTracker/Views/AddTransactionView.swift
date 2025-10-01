@@ -1259,13 +1259,6 @@ struct AddTransactionView: View {
                 let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
                 if cashDisciplineEnabled {
                     // Cash will be adjusted via companion deposit entry
-                } else {
-                    let requiredFunds = max(0, convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency))
-                    if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -requiredFundsTransactionCurrency)
-                    } else {
-                        portfolio.addToCash(-requiredFunds)
-                    }
                 }
             }
         }
