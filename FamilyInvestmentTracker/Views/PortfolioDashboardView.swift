@@ -458,6 +458,15 @@ struct QuickStatsView: View {
         }
     }
 
+    private var totalSecuritiesHoldingsValue: Double {
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        return holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            guard asset.assetType != AssetType.insurance.rawValue else { return sum }
+            return sum + (holding.quantity * asset.currentPrice)
+        }
+    }
+
     private var totalCashFromInstitutions: Double {
         // Get all institutions that have transactions in this portfolio
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
@@ -471,7 +480,8 @@ struct QuickStatsView: View {
             StatCardView(
                 title: "Total Holdings Value",
                 value: currencyService.formatAmount(totalHoldingsValue, in: mainCurrency),
-                color: totalHoldingsValue >= 0 ? .green : .red
+                color: totalHoldingsValue >= 0 ? .green : .red,
+                subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesHoldingsValue, in: mainCurrency))"
             )
 
             Button(action: {
@@ -480,7 +490,8 @@ struct QuickStatsView: View {
                 StatCardView(
                     title: "Cash",
                     value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
-                    color: totalCashFromInstitutions >= 0 ? .gray : .red
+                    color: totalCashFromInstitutions >= 0 ? .gray : .red,
+                    subtitle: nil
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -488,13 +499,15 @@ struct QuickStatsView: View {
             StatCardView(
                 title: "Unrealized P&L",
                 value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
-                color: totalGainLoss >= 0 ? .green : .red
+                color: totalGainLoss >= 0 ? .green : .red,
+                subtitle: nil
             )
 
             StatCardView(
                 title: "Total Dividends & Interest",
                 value: currencyService.formatAmount(totalDividends, in: mainCurrency),
-                color: totalDividends >= 0 ? .green : .red
+                color: totalDividends >= 0 ? .green : .red,
+                subtitle: nil
             )
         }
         .padding(.horizontal)
@@ -505,6 +518,7 @@ struct StatCardView: View {
     let title: String
     let value: String
     let color: Color
+    let subtitle: String?
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -516,6 +530,12 @@ struct StatCardView: View {
                 .font(.title3)
                 .fontWeight(.semibold)
                 .foregroundColor(color)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
