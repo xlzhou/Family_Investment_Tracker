@@ -308,6 +308,11 @@ struct AddTransactionView: View {
         return grossAmount - fees - tax
     }
 
+    private var sellSettlementAmountForDisplay: Double {
+        let grossAmount = (quantity * price) + accruedInterest
+        return grossAmount - fees - tax
+    }
+
     private var selectedSellAsset: Asset? {
         if let sellID = selectedSellAssetID {
             if let asset = sellSourceAssets.first(where: { $0.objectID == sellID }) {
@@ -1817,6 +1822,15 @@ struct AddTransactionView: View {
                     Text("Settlement Amount")
                     Spacer()
                     Text(Formatters.currency(incomeSettlementAmountForDisplay, symbol: selectedCurrency.symbol))
+                        .fontWeight(.semibold)
+                }
+            }
+            
+            if selectedTransactionType == .sell {
+                HStack {
+                    Text("Settlement Amount")
+                    Spacer()
+                    Text(Formatters.currency(sellSettlementAmountForDisplay, symbol: selectedCurrency.symbol))
                         .fontWeight(.semibold)
                 }
             }
