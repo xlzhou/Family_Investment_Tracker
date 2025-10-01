@@ -13,6 +13,7 @@ struct TransactionsView: View {
     @State private var selectedAssetType: AssetType? = nil
     @State private var selectedInstitutionID: NSManagedObjectID? = nil
     @State private var selectedYear: Int? = nil
+    @State private var selectedCurrency: String = "All Currencies"
     @State private var sortOption: TransactionSortOption = .dateDescending
     
     private var filteredTransactions: [Transaction] {
@@ -78,6 +79,13 @@ struct TransactionsView: View {
                 guard let date = transaction.transactionDate else { return false }
                 let calendar = Calendar.current
                 return calendar.component(.year, from: date) == year
+            }
+        }
+
+        // Currency filter
+        if selectedCurrency != "All Currencies" {
+            transactions = transactions.filter { transaction in
+                return transaction.currency == selectedCurrency
             }
         }
 
@@ -303,6 +311,21 @@ private extension TransactionsView {
             }
 
             Menu {
+                ForEach(availableCurrencies, id: \.self) { currency in
+                    Button(currency) { selectedCurrency = currency }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "dollarsign.circle")
+                    Text(selectedCurrency)
+                }
+                .font(.caption)
+                .padding(8)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(8)
+            }
+
+            Menu {
                 ForEach(TransactionSortOption.allCases, id: \.self) { option in
                     Button(option.displayName) { sortOption = option }
                 }
@@ -317,11 +340,12 @@ private extension TransactionsView {
                 .cornerRadius(8)
             }
 
-            if selectedAssetType != nil || selectedInstitutionID != nil || selectedYear != nil || sortOption != .dateDescending {
+            if selectedAssetType != nil || selectedInstitutionID != nil || selectedYear != nil || selectedCurrency != "All Currencies" || sortOption != .dateDescending {
                 Button("Clear") {
                     selectedAssetType = nil
                     selectedInstitutionID = nil
                     selectedYear = nil
+                    selectedCurrency = "All Currencies"
                     sortOption = .dateDescending
                 }
                 .font(.caption)
@@ -367,6 +391,11 @@ private extension TransactionsView {
             return Calendar.current.component(.year, from: date)
         })
         return Array(years).sorted(by: >)
+    }
+
+    private var availableCurrencies: [String] {
+        let currencies = Set(allTransactions.compactMap { $0.currency })
+        return ["All Currencies"] + Array(currencies).sorted()
     }
 
     func sortTransactions(_ transactions: [Transaction]) -> [Transaction] {
