@@ -75,7 +75,10 @@ private extension HoldingsView {
             let matchesInstitution: Bool
             if let institutionID = selectedInstitutionID,
                let institution = try? viewContext.existingObject(with: institutionID) as? Institution {
-                matchesInstitution = InstitutionAssetService.shared.isAssetAvailableAt(asset: asset, institution: institution, context: viewContext)
+                // Check if any transactions for this holding came from the selected institution
+                let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+                let portfolioTransactions = transactions.filter { $0.portfolio?.objectID == portfolio.objectID }
+                matchesInstitution = portfolioTransactions.contains { $0.institution?.objectID == institution.objectID }
             } else {
                 matchesInstitution = true
             }
@@ -98,9 +101,12 @@ private extension HoldingsView {
 
         for holding in allHoldings {
             guard let asset = holding.asset else { continue }
-            let institutions = InstitutionAssetService.shared.getInstitutionsOffering(asset: asset, context: viewContext)
-            for institution in institutions {
-                if seen.insert(institution.objectID).inserted {
+            // Get institutions from actual transactions that created this holding
+            let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+            let portfolioTransactions = transactions.filter { $0.portfolio?.objectID == portfolio.objectID }
+
+            for transaction in portfolioTransactions {
+                if let institution = transaction.institution, seen.insert(institution.objectID).inserted {
                     results.append(institution)
                 }
             }
