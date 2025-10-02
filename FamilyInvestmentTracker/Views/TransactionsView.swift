@@ -521,6 +521,20 @@ struct TransactionRowView: View {
         return nil
     }
 
+    private var incomeInstitutionLabel: String? {
+        guard transactionType == .dividend || transactionType == .interest else { return nil }
+        let primary = transaction.tradingInstitution?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let primary, !primary.isEmpty {
+            return primary
+        }
+
+        let fallback = (transaction.value(forKey: "institution") as? Institution)?.name?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let fallback, !fallback.isEmpty {
+            return fallback
+        }
+        return nil
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             // Type Icon
@@ -569,6 +583,30 @@ struct TransactionRowView: View {
                                 .foregroundColor(typeColor)
                         }
                     }
+                } else if transactionType == .dividend || transactionType == .interest {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let asset = transaction.asset {
+                                Text(asset.name ?? asset.symbol ?? "N/A")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                            if let institutionLabel = incomeInstitutionLabel {
+                                Text(institutionLabel)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+
+                        Spacer()
+
+                        Text(Formatters.currency(netValue, symbol: transactionCurrency.displayName))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(typeColor)
+                    }
                 } else if transactionType == .insurance {
                     if insuranceSymbolLabel != nil || insuranceNameLabel != nil {
                         VStack(alignment: .leading, spacing: 2) {
@@ -597,7 +635,7 @@ struct TransactionRowView: View {
                         .lineLimit(1)
                 }
                 
-                if transactionType != .deposit {
+                if transactionType != .deposit && transactionType != .dividend && transactionType != .interest {
                     HStack {
                         if transaction.quantity > 1 {
                             Text("\(Formatters.decimal(transaction.quantity, fractionDigits: 5)) @ \(Formatters.currency(transaction.price, symbol: transactionCurrency.displayName))")
