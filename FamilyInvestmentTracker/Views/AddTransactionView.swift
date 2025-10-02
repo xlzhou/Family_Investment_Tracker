@@ -1615,13 +1615,38 @@ struct AddTransactionView: View {
                 TextField("Linked Assets", text: $structuredProductLinkedAssets)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                HStack {
-                    Text("Quantity")
-                    Spacer()
-                    TextField("0", value: $quantity, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(width: 120)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        if selectedTransactionType == .sell && sellQuantityHint != nil {
+                            HStack(spacing: 4) {
+                                Text("Quantity \(sellQuantityHint!)")
+                                Button(">>") {
+                                    if let maxQuantity = maxSellQuantity {
+                                        quantity = maxQuantity
+                                    }
+                                }
+                                .foregroundColor(.blue)
+                                .font(.caption)
+                            }
+                        } else {
+                            Text("Quantity")
+                        }
+                        Spacer()
+                        TextField("0", value: $quantity, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                            .onChange(of: quantity) { _, _ in
+                                validateSellQuantity()
+                            }
+                    }
+
+                    if let error = quantityValidationError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.leading, 4)
+                    }
                 }
 
                 HStack {
