@@ -49,6 +49,68 @@ enum InsurancePaymentService {
         return fallbackMatches.sorted { ($0.transactionDate ?? .distantPast) < ($1.transactionDate ?? .distantPast) }
     }
 
+    static func totalPaidAmount(for asset: Asset, in portfolio: Portfolio, context: NSManagedObjectContext) -> Double {
+        let currencyService = CurrencyService.shared
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+
+        let deposits = paymentTransactions(for: asset, in: portfolio, context: context)
+        var total: Double = 0
+
+        for deposit in deposits where deposit.type == TransactionType.deposit.rawValue {
+            let depositCurrency = Currency(rawValue: deposit.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+            let absoluteAmount = abs(deposit.amount)
+
+            if absoluteAmount > 1e-6 {
+                total += currencyService.convertAmount(absoluteAmount, from: depositCurrency, to: portfolioCurrency)
+            } else if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+                total += stored
+            }
+        }
+
+        if let original = (asset.transactions?.allObjects as? [Transaction])?
+            .first(where: { $0.portfolio?.objectID == portfolio.objectID && $0.type == TransactionType.insurance.rawValue }) {
+
+            if CashDisciplineService.findCompanionDeposit(for: original, in: context) == nil {
+                if let deductedPortfolioAmount = original.value(forKey: "paymentDeductedAmount") as? Double, deductedPortfolioAmount > 1e-6 {
+                    total += deductedPortfolioAmount
+                } else {
+                    let insuranceCurrency = Currency(rawValue: original.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+                    let absolute = abs(original.amount)
+                    if absolute > 1e-6 {
+                        total += currencyService.convertAmount(absolute, from: insuranceCurrency, to: portfolioCurrency)
+                    }
+                }
+            }
+        }
+
+        return total
+    }
+
+    static func updatePaymentStatusIfNeeded(for asset: Asset, in portfolio: Portfolio, context: NSManagedObjectContext) {
+        guard let insurance = asset.value(forKey: "insurance") as? NSManagedObject else { return }
+
+        let currencyService = CurrencyService.shared
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+
+        let totalPremium = insurance.value(forKey: "totalPremium") as? Double ?? 0
+        guard totalPremium > 0 else { return }
+
+        let originalTransaction = (asset.transactions?.allObjects as? [Transaction])?
+            .first(where: { $0.portfolio?.objectID == portfolio.objectID && $0.type == TransactionType.insurance.rawValue })
+
+        let insuranceCurrency = Currency(rawValue: originalTransaction?.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+        let totalPremiumInPortfolio = currencyService.convertAmount(totalPremium, from: insuranceCurrency, to: portfolioCurrency)
+        guard totalPremiumInPortfolio > 0 else { return }
+
+        let paidAmount = totalPaidAmount(for: asset, in: portfolio, context: context)
+
+        if paidAmount + 0.01 >= totalPremiumInPortfolio {
+            if insurance.value(forKey: "premiumPaymentStatus") as? String != "Paid" {
+                insurance.setValue("Paid", forKey: "premiumPaymentStatus")
+            }
+        }
+    }
+
     private static func matchesLegacyHeuristic(_ transaction: Transaction,
                                                asset: Asset,
                                                originalTransaction: Transaction?) -> Bool {

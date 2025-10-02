@@ -1339,6 +1339,11 @@ struct AddTransactionView: View {
 
         manageCashDisciplineCompanion(for: transaction)
 
+        if selectedTransactionType == .insurance,
+           let insuranceAsset = transaction.asset {
+            InsurancePaymentService.updatePaymentStatusIfNeeded(for: insuranceAsset, in: portfolio, context: viewContext)
+        }
+
         recomputePortfolioTotals()
 
         do {

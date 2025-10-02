@@ -1294,6 +1294,8 @@ struct InsurancePaymentEntryView: View {
 
         appendDiscountNote(to: transaction)
         transaction.ensureIdentifiers()
+
+        InsurancePaymentService.updatePaymentStatusIfNeeded(for: insuranceAsset, in: portfolio, context: viewContext)
     }
 
     private func updateCompanionDeposit(for transaction: Transaction, paymentInstitution: Institution) throws {
@@ -1424,6 +1426,8 @@ struct InsurancePaymentEntryView: View {
         }
 
         transaction.ensureIdentifiers()
+
+        InsurancePaymentService.updatePaymentStatusIfNeeded(for: insuranceAsset, in: portfolio, context: viewContext)
     }
 }
 
