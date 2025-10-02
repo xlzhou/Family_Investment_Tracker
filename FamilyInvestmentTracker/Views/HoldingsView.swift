@@ -6,7 +6,7 @@ struct HoldingsView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest private var holdingsFetch: FetchedResults<Holding>
-    @State private var selectedAssetType: AssetType? = nil
+    @State private var selectedAssetTypes: Set<AssetType> = []
     @State private var selectedInstitutionID: NSManagedObjectID? = nil
 
     init(portfolio: Portfolio) {
@@ -23,6 +23,13 @@ struct HoldingsView: View {
             if !allHoldings.isEmpty {
                 filterBar
                     .padding(.horizontal)
+
+                // Show summary when filters are applied
+                if !selectedAssetTypes.isEmpty || selectedInstitutionID != nil {
+                    filterSummary
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                }
             }
 
             if filteredHoldings.isEmpty {
@@ -66,10 +73,10 @@ private extension HoldingsView {
             guard let asset = holding.asset else { return false }
 
             let matchesType: Bool
-            if let type = selectedAssetType {
-                matchesType = asset.assetType == type.rawValue
-            } else {
+            if selectedAssetTypes.isEmpty {
                 matchesType = true
+            } else {
+                matchesType = selectedAssetTypes.contains { $0.rawValue == asset.assetType }
             }
 
             let matchesInstitution: Bool
@@ -118,14 +125,43 @@ private extension HoldingsView {
     var filterBar: some View {
         HStack(spacing: 12) {
             Menu {
-                Button("All Asset Types") { selectedAssetType = nil }
+                Button(action: {
+                    selectedAssetTypes.removeAll()
+                }) {
+                    HStack {
+                        Text("All Asset Types")
+                        Spacer()
+                        if selectedAssetTypes.isEmpty {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+
+                Divider()
+
                 ForEach(availableAssetTypes, id: \.self) { type in
-                    Button(type.displayName) { selectedAssetType = type }
+                    Button(action: {
+                        if selectedAssetTypes.contains(type) {
+                            selectedAssetTypes.remove(type)
+                        } else {
+                            selectedAssetTypes.insert(type)
+                        }
+                    }) {
+                        HStack {
+                            Text(type.displayName)
+                            Spacer()
+                            if selectedAssetTypes.contains(type) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
                 }
             } label: {
                 HStack {
                     Image(systemName: "line.3.horizontal.decrease.circle")
-                    Text(selectedAssetType?.displayName ?? "All Types")
+                    Text(assetTypeFilterLabel)
                 }
                 .font(.caption)
                 .padding(8)
@@ -149,9 +185,9 @@ private extension HoldingsView {
                 .cornerRadius(8)
             }
 
-            if selectedAssetType != nil || selectedInstitutionID != nil {
+            if !selectedAssetTypes.isEmpty || selectedInstitutionID != nil {
                 Button("Clear") {
-                    selectedAssetType = nil
+                    selectedAssetTypes.removeAll()
                     selectedInstitutionID = nil
                 }
                 .font(.caption)
@@ -167,6 +203,172 @@ private extension HoldingsView {
             return "All Institutions"
         }
         return institution.name ?? "All Institutions"
+    }
+
+    var assetTypeFilterLabel: String {
+        if selectedAssetTypes.isEmpty {
+            return "All Types"
+        } else if selectedAssetTypes.count == 1 {
+            return selectedAssetTypes.first?.displayName ?? "All Types"
+        } else {
+            return "\(selectedAssetTypes.count) Types"
+        }
+    }
+
+    private var portfolioCurrency: Currency {
+        guard let currencyCode = portfolio.mainCurrency else { return .usd }
+        return Currency(rawValue: currencyCode) ?? .usd
+    }
+
+    private var filteredSummary: (totalValue: Double, totalUnrealizedPnL: Double, totalDividends: Double) {
+        var totalValue: Double = 0
+        var totalUnrealizedPnL: Double = 0
+        var totalDividends: Double = 0
+
+        for holding in filteredHoldings {
+            guard let asset = holding.asset else { continue }
+
+            // Calculate current value (for total value display)
+            let currentValue: Double
+            if asset.assetType == AssetType.insurance.rawValue {
+                currentValue = holding.value(forKey: "cashValue") as? Double ?? 0
+            } else {
+                currentValue = holding.quantity * asset.currentPrice
+            }
+
+            // Calculate unrealized P&L (including insurance with proper calculation)
+            let unrealizedPnL: Double
+            if asset.assetType == AssetType.insurance.rawValue {
+                // For insurance: P&L = Cash Value - Actual Paid Premium
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+
+                // Calculate actual paid premium using same logic as HoldingDetailView
+                let allTransactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+
+                // Get the original insurance transaction
+                let insuranceTransactions = (asset.transactions?.allObjects as? [Transaction] ?? []).filter {
+                    $0.portfolio?.objectID == portfolio.objectID &&
+                    $0.type == TransactionType.insurance.rawValue
+                }.sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
+                let originalTransaction = insuranceTransactions.first
+
+                // Find insurance payment deposits
+                let insurancePaymentDeposits = allTransactions.filter { transaction in
+                    guard transaction.portfolio?.objectID == portfolio.objectID else { return false }
+                    guard transaction.type == TransactionType.deposit.rawValue else { return false }
+                    return isInsurancePaymentTransaction(transaction, asset: asset, originalTransaction: originalTransaction)
+                }
+
+                let actualPaidPremium = insurancePaymentDeposits.reduce(0) { total, transaction in
+                    let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+                    let currencyService = CurrencyService.shared
+                    let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: portfolioCurrency)
+                    return total + converted
+                }
+
+                unrealizedPnL = cashValue - actualPaidPremium
+
+                print("🔍 HOLDINGS Insurance Debug:")
+                print("🔍   Asset Symbol: \(asset.symbol ?? "N/A")")
+                print("🔍   Asset Name: \(asset.name ?? "N/A")")
+                print("🔍   Cash Value: \(cashValue)")
+                print("🔍   Payment Deposits Found: \(insurancePaymentDeposits.count)")
+                print("🔍   Actual Paid Premium: \(actualPaidPremium)")
+                print("🔍   Calculated P&L: \(unrealizedPnL)")
+                print("🔍   Running Total: \(totalUnrealizedPnL + unrealizedPnL)")
+            } else {
+                // For securities: P&L = Current Value - Cost Basis
+                let costBasis = holding.quantity * holding.averageCostBasis
+                let securityValue = holding.quantity * asset.currentPrice
+                unrealizedPnL = securityValue - costBasis
+            }
+
+            totalUnrealizedPnL += unrealizedPnL
+            totalValue += currentValue
+            totalDividends += holding.totalDividends
+        }
+
+        return (totalValue, totalUnrealizedPnL, totalDividends)
+    }
+
+    private func isInsurancePaymentTransaction(_ transaction: Transaction,
+                                               asset: Asset,
+                                               originalTransaction: Transaction? = nil) -> Bool {
+        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
+
+        if let original = originalTransaction,
+           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
+           notesLowercased.hasPrefix(identifier) {
+            return true
+        }
+
+        if notesLowercased.contains("premium payment") {
+            return true
+        }
+
+        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
+            return true
+        }
+
+        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
+            return true
+        }
+        return false
+    }
+
+    var filterSummary: some View {
+        let summary = filteredSummary
+
+        return VStack(spacing: 8) {
+            HStack {
+                Text("Filtered Results Summary")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                Spacer()
+                Text("\(filteredHoldings.count) holdings")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 16) {
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Total Value")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(Formatters.currency(summary.totalValue, symbol: portfolioCurrency.displayName))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                }
+
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Unrealized P&L")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(Formatters.signedCurrency(summary.totalUnrealizedPnL, symbol: portfolioCurrency.symbol))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(summary.totalUnrealizedPnL >= 0 ? .green : .red)
+                }
+
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Total Dividends")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(Formatters.currency(summary.totalDividends, symbol: portfolioCurrency.displayName))
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.blue)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color(.tertiarySystemBackground))
+        .cornerRadius(12)
     }
 }
 

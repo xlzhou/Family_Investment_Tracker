@@ -433,14 +433,109 @@ struct QuickStatsView: View {
     }
     
     private var totalGainLoss: Double {
-        portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0) { result, holding in
+        let holdings = portfolio.holdings?.compactMap { $0 as? Holding } ?? []
+
+        let result = holdings.reduce(0) { result, holding in
             guard let asset = holding.asset else { return result }
+
+            let gainLoss: Double
+
+            if asset.assetType == AssetType.insurance.rawValue {
+                // For insurance: P&L = Cash Value - Actual Paid Premium
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+
+                // Calculate actual paid premium using same logic as HoldingDetailView
+                let allTransactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+
+                // Get the original insurance transaction
+                let insuranceTransactions = (asset.transactions?.allObjects as? [Transaction] ?? []).filter {
+                    $0.portfolio?.objectID == portfolio.objectID &&
+                    $0.type == TransactionType.insurance.rawValue
+                }.sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
+                let originalTransaction = insuranceTransactions.first
+
+                // Find insurance payment deposits
+                let insurancePaymentDeposits = allTransactions.filter { transaction in
+                    guard transaction.portfolio?.objectID == portfolio.objectID else { return false }
+                    guard transaction.type == TransactionType.deposit.rawValue else { return false }
+                    return isInsurancePaymentTransaction(transaction, asset: asset, originalTransaction: originalTransaction)
+                }
+
+                let actualPaidPremium = insurancePaymentDeposits.reduce(0) { total, transaction in
+                    let depositCurrency = Currency(rawValue: transaction.currency ?? "USD") ?? .usd
+                    let mainCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+                    let currencyService = CurrencyService.shared
+                    let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: mainCurrency)
+                    return total + converted
+                }
+
+                gainLoss = cashValue - actualPaidPremium
+
+                print("🔍 DASHBOARD Insurance Debug:")
+                print("🔍   Asset Symbol: \(asset.symbol ?? "N/A")")
+                print("🔍   Asset Name: \(asset.name ?? "N/A")")
+                print("🔍   Cash Value: \(cashValue)")
+                print("🔍   Payment Deposits Found: \(insurancePaymentDeposits.count)")
+                print("🔍   Actual Paid Premium: \(actualPaidPremium)")
+                print("🔍   Calculated P&L: \(gainLoss)")
+                print("🔍   Running Total: \(result + gainLoss)")
+            } else {
+                // For securities: P&L = Current Value - Cost Basis
+                let currentValue = holding.quantity * asset.currentPrice
+                let costBasis = holding.quantity * holding.averageCostBasis
+                gainLoss = currentValue - costBasis
+            }
+
+            return result + gainLoss
+        }
+
+        return result
+    }
+
+    private var totalSecuritiesGainLoss: Double {
+        let holdings = portfolio.holdings?.compactMap { $0 as? Holding } ?? []
+
+        let result = holdings.reduce(0) { result, holding in
+            guard let asset = holding.asset else { return result }
+
+            // Only calculate P&L for non-insurance assets (securities)
+            guard asset.assetType != AssetType.insurance.rawValue else { return result }
+
             let currentValue = holding.quantity * asset.currentPrice
             let costBasis = holding.quantity * holding.averageCostBasis
-            return result + (currentValue - costBasis)
-        } ?? 0
+            let gainLoss = currentValue - costBasis
+
+            return result + gainLoss
+        }
+
+        return result
     }
-    
+
+    private func isInsurancePaymentTransaction(_ transaction: Transaction,
+                                               asset: Asset,
+                                               originalTransaction: Transaction? = nil) -> Bool {
+        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
+
+        if let original = originalTransaction,
+           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
+           notesLowercased.hasPrefix(identifier) {
+            return true
+        }
+
+        if notesLowercased.contains("premium payment") {
+            return true
+        }
+
+        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
+            return true
+        }
+
+        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
+            return true
+        }
+        return false
+    }
+
     private var totalDividends: Double {
         portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0) { $0 + $1.totalDividends } ?? 0
     }
@@ -500,7 +595,7 @@ struct QuickStatsView: View {
                 title: "Unrealized P&L",
                 value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
                 color: totalGainLoss >= 0 ? .green : .red,
-                subtitle: nil
+                subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesGainLoss, in: mainCurrency))"
             )
 
             StatCardView(
