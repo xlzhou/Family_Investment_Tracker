@@ -775,7 +775,7 @@ struct AddTransactionView: View {
             structuredProductLinkedAssets = asset.value(forKey: "linkedAssets") as? String ?? ""
             structuredProductInterestRate = asset.value(forKey: "interestRate") as? Double ?? 0
         }
-        .alert("Cash Requirement", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
+        .alert("Validation Error", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
             Button("OK", role: .cancel) {
                 cashDisciplineError = nil
             }
@@ -965,6 +965,41 @@ struct AddTransactionView: View {
                 failWithMessage("Insured person name is required for insurance transactions.")
                 return
             }
+            let trimmedPolicyNumber = contactNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmedPolicyNumber.isEmpty {
+                let policyRequest = NSFetchRequest<NSManagedObject>(entityName: "Insurance")
+                policyRequest.predicate = NSPredicate(format: "contactNumber ==[c] %@", trimmedPolicyNumber)
+                policyRequest.fetchLimit = 1
+
+                if let existingPolicy = try? viewContext.fetch(policyRequest).first {
+                    let editingInsurance = existingTransaction?.asset?.value(forKey: "insurance") as? NSManagedObject
+                    if editingInsurance == nil || existingPolicy.objectID != editingInsurance?.objectID {
+                        failWithMessage("A policy with this policy number already exists. Please enter a unique policy number.")
+                        return
+                    }
+                }
+            }
+
+            if !insuranceSymbol.isEmpty {
+                let symbolRequest: NSFetchRequest<Asset> = Asset.fetchRequest()
+                symbolRequest.predicate = NSPredicate(format: "symbol ==[c] %@", insuranceSymbol)
+                symbolRequest.fetchLimit = 1
+
+                if let existingAsset = try? viewContext.fetch(symbolRequest).first {
+                    let editingAsset = existingTransaction?.asset
+                    if editingAsset == nil || existingAsset.objectID != editingAsset?.objectID {
+                        let policyholderName = policyholder.trimmingCharacters(in: .whitespacesAndNewlines)
+                        var suggestion = insuranceSymbol
+                        if !policyholderName.isEmpty {
+                            suggestion += "-\(policyholderName.replacingOccurrences(of: " ", with: ""))"
+                        }
+                        suggestion += "-1"
+                        failWithMessage("The symbol is already used by another policy. Please make it unique (e.g. \(suggestion)).")
+                        return
+                    }
+                }
+            }
+
             guard !beneficiaries.isEmpty else {
                 failWithMessage("At least one beneficiary is required for insurance policies.")
                 return
