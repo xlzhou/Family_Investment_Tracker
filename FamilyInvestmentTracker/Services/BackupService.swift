@@ -218,7 +218,7 @@ struct BackupAsset: Codable {
         lastPriceUpdate = try container.decodeIfPresent(Date.self, forKey: .lastPriceUpdate)
         interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate)
         linkedAssets = try container.decodeIfPresent(String.self, forKey: .linkedAssets)
-        autoFetchPriceEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPriceEnabled) ?? true
+        autoFetchPriceEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPriceEnabled) ?? false
     }
 
     func encode(to encoder: Encoder) throws {
@@ -336,7 +336,7 @@ struct BackupTransaction: Codable {
         paymentDeducted = try container.decode(Bool.self, forKey: .paymentDeducted)
         paymentDeductedAmount = try container.decode(Double.self, forKey: .paymentDeductedAmount)
         realizedGain = try container.decode(Double.self, forKey: .realizedGain)
-        autoFetchPrice = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPrice) ?? true
+        autoFetchPrice = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPrice) ?? false
         interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate) ?? 0
     }
 
@@ -510,7 +510,7 @@ final class BackupService {
                         lastPriceUpdate: asset.lastPriceUpdate,
                         interestRate: asset.value(forKey: "interestRate") as? Double,
                         linkedAssets: asset.value(forKey: "linkedAssets") as? String,
-                        autoFetchPriceEnabled: (asset.value(forKey: "autoFetchPriceEnabled") as? Bool) ?? true
+                        autoFetchPriceEnabled: (asset.value(forKey: "autoFetchPriceEnabled") as? Bool) ?? false
                     )
                 },
                 transactions: transactions.map { transaction in

@@ -54,13 +54,14 @@ class MarketDataService: ObservableObject {
         guard !symbols.isEmpty else { return }
 
         do {
-            let prices = try await fetchPrices(for: symbols)
+            let (prices, successfulSymbols) = try await fetchPricesWithSuccess(for: symbols)
 
             await MainActor.run {
                 var hasUpdates = false
                 for data in assetData {
                     if let asset = try? context.existingObject(with: data.objectID) as? Asset,
-                       let price = prices[data.symbol] {
+                       let price = prices[data.symbol],
+                       successfulSymbols.contains(data.symbol) {
                         asset.currentPrice = convertPrice(price, for: asset)
                         asset.lastPriceUpdate = Date()
                         hasUpdates = true
@@ -84,6 +85,68 @@ class MarketDataService: ObservableObject {
         }
     }
     
+    private func fetchPricesWithSuccess(for symbols: [String]) async throws -> ([String: Double], Set<String>) {
+        guard !symbols.isEmpty else { return ([:], Set()) }
+
+        // Try to fetch current prices from Yahoo Finance
+        do {
+            let (realPrices, successfulSymbols) = try await fetchRealPricesWithSuccess(for: symbols)
+            var prices = realPrices
+
+            if !realPrices.isEmpty {
+                await MainActor.run {
+                    self.isOfflineMode = false
+                    self.errorMessage = nil
+                }
+            } else {
+                // If we got no real prices, we might be offline
+                await MainActor.run {
+                    self.isOfflineMode = true
+                }
+            }
+
+            // For symbols we couldn't fetch, try cached data (but don't mark as successful)
+            let cachedPrices = loadCachedPrices()
+            for symbol in symbols where prices[symbol.uppercased()] == nil {
+                let upperSymbol = symbol.uppercased()
+                if let cachedPrice = cachedPrices[upperSymbol] {
+                    prices[upperSymbol] = cachedPrice
+                }
+                // Don't add simulated prices for failed fetches
+            }
+
+            return (prices, successfulSymbols)
+
+        } catch {
+            // Network error - use cached data if available but mark as failed
+            let cachedPrices = loadCachedPrices()
+
+            if !cachedPrices.isEmpty {
+                var validPrices: [String: Double] = [:]
+                for symbol in symbols {
+                    let upperSymbol = symbol.uppercased()
+                    if let cachedPrice = cachedPrices[upperSymbol] {
+                        validPrices[upperSymbol] = cachedPrice
+                    }
+                }
+
+                await MainActor.run {
+                    self.isOfflineMode = true
+                    let cacheAge = self.getPricesAge() ?? "unknown time"
+                    self.errorMessage = "Network unavailable. Using cached price data from \(cacheAge)."
+                }
+                return (validPrices, Set()) // No successful fetches
+            } else {
+                await MainActor.run {
+                    self.isOfflineMode = true
+                    self.errorMessage = "Network unavailable and no cached price data available."
+                }
+            }
+
+            throw error
+        }
+    }
+
     private func fetchPrices(for symbols: [String]) async throws -> [String: Double] {
         guard !symbols.isEmpty else { return [:] }
 
@@ -248,7 +311,50 @@ extension MarketDataService {
 
         return prices
     }
-    
+
+    private func fetchRealPricesWithSuccess(for symbols: [String]) async throws -> ([String: Double], Set<String>) {
+        let uniqueSymbols = Array(Set(symbols.map { $0.uppercased() }))
+        guard !uniqueSymbols.isEmpty else { return ([:], Set()) }
+
+        var prices: [String: Double] = [:]
+        var successfulSymbols: Set<String> = Set()
+
+        let session = session
+        let service = self
+        try await withThrowingTaskGroup(of: (String, Double?).self) { group in
+            for symbol in uniqueSymbols {
+                group.addTask {
+                    guard let url = service.yahooFinanceURL(for: [symbol]) else {
+                        return (symbol, nil)
+                    }
+                    do {
+                        var request = URLRequest(url: url)
+                        request.timeoutInterval = service.networkTimeoutSeconds
+
+                        let (data, response) = try await session.data(for: request)
+                        guard let httpResponse = response as? HTTPURLResponse,
+                              200..<300 ~= httpResponse.statusCode else {
+                            return (symbol, nil)
+                        }
+                        let quote = service.parseYahooFinanceResponse(data)
+                        return (symbol, quote)
+                    } catch {
+                        return (symbol, nil)
+                    }
+                }
+            }
+
+            for try await (symbol, price) in group {
+                if let price = price, price > 0 {
+                    prices[symbol] = price
+                    successfulSymbols.insert(symbol)
+                }
+            }
+        }
+
+        return (prices, successfulSymbols)
+    }
+
     private func parseYahooFinanceResponse(_ data: Data) -> Double? {
         do {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],

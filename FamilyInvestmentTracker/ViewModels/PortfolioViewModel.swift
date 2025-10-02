@@ -35,6 +35,8 @@ class PortfolioViewModel: ObservableObject {
         for holding in holdings {
             guard let asset = holding.asset else { continue }
 
+            asset.migrateAutoFetchPreferenceIfNeeded(limitTo: portfolio)
+
             let hasAutoFetchEnabled = asset.resolvedAutoFetchPreference
 
             if hasAutoFetchEnabled && !autoFetchAssets.contains(where: { $0.objectID == asset.objectID }) {

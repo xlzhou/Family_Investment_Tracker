@@ -31,7 +31,6 @@ struct AddTransactionView: View {
     @State private var selectedCurrency = Currency.usd
     @State private var hasMaturityDate = false
     @State private var maturityDate = Date()
-    @State private var autoFetchPrice = true
     @State private var accruedInterest: Double = 0
     // Dividend-specific: source security
     @State private var selectedDividendAssetID: NSManagedObjectID?
@@ -152,14 +151,6 @@ struct AddTransactionView: View {
         }
         _hasMaturityDate = State(initialValue: hasMaturity)
         _maturityDate = State(initialValue: transactionToEdit?.maturityDate ?? defaultDate)
-        let defaultAutoFetch: Bool
-        if initialType == .buy {
-            defaultAutoFetch = transactionToEdit?.autoFetchPrice ?? false
-        } else {
-            defaultAutoFetch = transactionToEdit?.autoFetchPrice ?? true
-        }
-        _autoFetchPrice = State(initialValue: defaultAutoFetch)
-
         let initialStructuredLinkedAssets = isEditingStructuredProduct ? (transactionToEdit?.asset?.value(forKey: "linkedAssets") as? String ?? "") : ""
         let initialStructuredInterestRate = isEditingStructuredProduct ? (transactionToEdit?.asset?.value(forKey: "interestRate") as? Double ?? 0) : 0
         // For structured products, quantity and price are loaded directly from the transaction
@@ -1026,7 +1017,7 @@ struct AddTransactionView: View {
         transaction.currency = selectedCurrency.rawValue
         transaction.notes = notes.isEmpty ? nil : notes
         transaction.maturityDate = hasMaturityDate ? maturityDate : nil
-        transaction.autoFetchPrice = autoFetchPrice
+        transaction.autoFetchPrice = existingTransaction?.autoFetchPrice ?? false
         transaction.portfolio = portfolio
         transaction.ensureIdentifiers()
 
@@ -1390,7 +1381,7 @@ struct AddTransactionView: View {
             if seenInstitutions.contains(institutionID) { continue }
             seenInstitutions.insert(institutionID)
 
-            let displayName = (txnInstitution.name?.isEmpty == false) ? (txnInstitution.name ?? "Unknown Institution") : "Unknown Institution"
+            let displayName = DepositCategory.fixed.displayTitle
 
             fixedOptions.append(
                 InterestSourceOption(
@@ -1406,7 +1397,7 @@ struct AddTransactionView: View {
            let editingInstitution = transactionToEdit?.institution {
             let institutionID = editingInstitution.objectID
             if !seenInstitutions.contains(institutionID) {
-                let displayName = (editingInstitution.name?.isEmpty == false) ? (editingInstitution.name ?? "Unknown Institution") : "Unknown Institution"
+                let displayName = DepositCategory.fixed.displayTitle
                 fixedOptions.append(
                     InterestSourceOption(
                         selection: .fixedDeposit(institutionID),
@@ -1702,7 +1693,7 @@ struct AddTransactionView: View {
                     }
                 }
             } else if isStructuredProductTransaction {
-                Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
+                // structured product specific inputs handled above
             } else {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
@@ -1767,10 +1758,6 @@ struct AddTransactionView: View {
                     Spacer()
                     Text(Formatters.currency(selectedTransactionType == .sell ? (quantity * price + accruedInterest) : (quantity * price), symbol: selectedCurrency.symbol))
                         .fontWeight(.medium)
-                }
-
-                if selectedTransactionType == .buy {
-                    Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchPrice)
                 }
             }
 
@@ -2180,6 +2167,7 @@ struct AddTransactionView: View {
             let convertedPrice = convertToPortfolioCurrency(price, from: selectedCurrency)
             newAsset.currentPrice = convertedPrice
             newAsset.lastPriceUpdate = Date()
+            newAsset.setValue(false, forKey: "autoFetchPriceEnabled")
             return newAsset
         }
     }
@@ -2484,22 +2472,15 @@ private extension AddTransactionView {
 
 extension Asset {
     var resolvedAutoFetchPreference: Bool {
-        let override = value(forKey: "autoFetchPriceEnabled") as? Bool
-        let allTransactions = transactions?.allObjects as? [Transaction] ?? []
-        let transactionDrivenPreference: Bool = {
-            guard !allTransactions.isEmpty else { return true }
-            return allTransactions.contains { $0.autoFetchPrice }
-        }()
-
-        if let override {
-            if override && !transactionDrivenPreference && !allTransactions.isEmpty {
-                // Stored value likely comes from legacy default; honor live transaction setting instead.
-                return transactionDrivenPreference
-            }
+        if let override = value(forKey: "autoFetchPriceEnabled") as? Bool {
             return override
         }
 
-        return transactionDrivenPreference
+        guard let allTransactions = transactions?.allObjects as? [Transaction], !allTransactions.isEmpty else {
+            return false
+        }
+
+        return allTransactions.contains { $0.autoFetchPrice }
     }
 
     func applyAutoFetchPreference(_ enabled: Bool, limitTo portfolio: Portfolio? = nil) {
@@ -2516,6 +2497,27 @@ extension Asset {
                 transaction.autoFetchPrice = enabled
             }
         }
+    }
+
+    func migrateAutoFetchPreferenceIfNeeded(limitTo portfolio: Portfolio? = nil) {
+        if value(forKey: "autoFetchPriceEnabled") as? Bool != nil {
+            return
+        }
+
+        let allTransactions = transactions?.allObjects as? [Transaction] ?? []
+        let relevantTransactions: [Transaction]
+        if let portfolio {
+            relevantTransactions = allTransactions.filter { $0.portfolio?.objectID == portfolio.objectID }
+        } else {
+            relevantTransactions = allTransactions
+        }
+
+        guard !relevantTransactions.isEmpty else {
+            return
+        }
+
+        let hasAutoFetch = relevantTransactions.contains { $0.autoFetchPrice }
+        setValue(hasAutoFetch, forKey: "autoFetchPriceEnabled")
     }
 }
 

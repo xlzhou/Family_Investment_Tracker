@@ -22,6 +22,7 @@ struct HoldingDetailView: View {
     init(holding: Holding, asset: Asset) {
         _holding = ObservedObject(initialValue: holding)
         _asset = ObservedObject(initialValue: asset)
+        asset.migrateAutoFetchPreferenceIfNeeded(limitTo: holding.portfolio)
         _autoFetchToggle = State(initialValue: asset.resolvedAutoFetchPreference)
     }
 
