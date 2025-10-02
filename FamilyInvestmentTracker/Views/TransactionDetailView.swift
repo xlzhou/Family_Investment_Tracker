@@ -230,17 +230,8 @@ struct TransactionDetailView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
-                    if isInsurance {
-                        HStack {
-                            Text("Payment Deducted")
-                            Spacer()
-                            let deducted = (transaction.value(forKey: "paymentDeducted") as? Bool) ?? false
-                            Text(deducted ? "Yes" : "No")
-                                .foregroundColor(.secondary)
-                        }
-                    }
                 }
-                
+
                 let isDividend = transactionTypeEnum == .dividend
                 Section(header: Text(isDividend ? "Dividend Source" : "Asset")) {
                     HStack {
@@ -1165,7 +1156,11 @@ struct InsurancePaymentEntryView: View {
 
     @ViewBuilder
     private var institutionSection: some View {
-        Section(header: Text("Payment Institution"), footer: Text("Select the institution where the payment will be deducted from")) {
+        let footerText = portfolio.enforcesCashDisciplineEnabled ?
+            "Select the institution where the payment will be deducted from" :
+            "Select the institution that received this payment (cash will not be deducted automatically)"
+
+        return Section(header: Text("Payment Institution"), footer: Text(footerText)) {
             Picker("Institution", selection: $selectedPaymentInstitution) {
                 Text("Select Institution").tag(Optional<Institution>.none)
                 ForEach(institutions, id: \.objectID) { institution in
