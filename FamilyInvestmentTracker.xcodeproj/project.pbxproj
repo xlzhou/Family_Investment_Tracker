@@ -38,6 +38,7 @@
 		B7F0E1C2D3B4456699AA0012 /* CashDisciplineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F0E1C2D3B4456699AA0011 /* CashDisciplineService.swift */; };
 		B7F0E1C2D3B4456699AA0014 /* Holding+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F0E1C2D3B4456699AA0013 /* Holding+Extensions.swift */; };
 		B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3FD956593F495A808BA082 /* Formatters.swift */; };
+		E1D2C3B4A5968778695A4B3C /* InsurancePaymentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E3D2C1B0A9988776655443 /* InsurancePaymentService.swift */; };
 		B8A3BF339CA44DBF8A3D0047 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */; };
 		C4D5E6F7G8H9I0J1K2L3M4N5 /* PortfolioOwnershipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E6F7G8H9I0J1K2L3M4N5O6 /* PortfolioOwnershipService.swift */; };
 		D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CA597ABF61463EBB88272F /* PortfolioListView.swift */; };
@@ -61,6 +62,7 @@
 		3D046EC644910D6BDC69E714 /* RealizedPnLView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealizedPnLView.swift; sourceTree = "<group>"; };
 		46CA597ABF61463EBB88272F /* PortfolioListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioListView.swift; sourceTree = "<group>"; };
 		4E3FD956593F495A808BA082 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		F4E3D2C1B0A9988776655443 /* InsurancePaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsurancePaymentService.swift; sourceTree = "<group>"; };
 		4F73691411C641EE9E5E0180 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddPortfolioView.swift; sourceTree = "<group>"; };
 		595D7062BFBF413DA8BA003C /* CloudKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitService.swift; sourceTree = "<group>"; };
@@ -190,6 +192,7 @@
 			isa = PBXGroup;
 			children = (
 				4E3FD956593F495A808BA082 /* Formatters.swift */,
+				F4E3D2C1B0A9988776655443 /* InsurancePaymentService.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -329,6 +332,7 @@
 				A2C3D4E5F6A7B8090C1D2E3F /* DashboardSettingsService.swift in Sources */,
 				96B7992AEA38485CB1E59864 /* AuthenticationManager.swift in Sources */,
 				B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */,
+				E1D2C3B4A5968778695A4B3C /* InsurancePaymentService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -75,38 +75,7 @@ struct TransactionDetailView: View {
         guard let portfolio = transaction.portfolio,
               let insuranceAsset = transaction.asset else { return [] }
 
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-
-        return transactions.filter { txn in
-            guard txn.portfolio?.objectID == portfolio.objectID else { return false }
-            guard txn.type == TransactionType.deposit.rawValue else { return false }
-            return isInsurancePaymentTransaction(txn, asset: insuranceAsset, originalTransaction: transaction)
-        }
-    }
-
-    private func isInsurancePaymentTransaction(_ transaction: Transaction,
-                                               asset: Asset,
-                                               originalTransaction: Transaction? = nil) -> Bool {
-        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
-
-        if let original = originalTransaction,
-           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
-           notesLowercased.hasPrefix(identifier) {
-            return true
-        }
-
-        if notesLowercased.contains("premium payment") {
-            return true
-        }
-
-        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
-            return true
-        }
-
-        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
-            return true
-        }
-        return false
+        return InsurancePaymentService.paymentTransactions(for: insuranceAsset, in: portfolio, context: viewContext)
     }
 
     var body: some View {
@@ -502,35 +471,23 @@ struct InsurancePaymentManagementView: View {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
 
+    private var insuranceTransactions: [Transaction] {
+        (insuranceAsset.transactions?.allObjects as? [Transaction] ?? [])
+            .filter { $0.portfolio?.objectID == portfolio.objectID && $0.type == TransactionType.insurance.rawValue }
+            .sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
+    }
+
+    private var paymentDeposits: [Transaction] {
+        InsurancePaymentService.paymentTransactions(for: insuranceAsset, in: portfolio, context: viewContext)
+    }
+
     private var paymentTransactions: [Transaction] {
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-
-        let primaryInsuranceTransaction = transactions.first { txn in
-            guard txn.portfolio?.objectID == portfolio.objectID else { return false }
-            return txn.type == TransactionType.insurance.rawValue && txn.asset?.objectID == insuranceAsset.objectID
-        }
-
-        return transactions.filter { txn in
-            guard txn.portfolio?.objectID == portfolio.objectID else { return false }
-
-            let type = TransactionType(rawValue: txn.type ?? "")
-
-            switch type {
-            case .some(.insurance):
-                return txn.asset?.objectID == insuranceAsset.objectID
-            case .some(.deposit):
-                return isInsurancePaymentTransaction(txn,
-                                                    asset: insuranceAsset,
-                                                    originalTransaction: primaryInsuranceTransaction)
-            default:
-                return false
-            }
-        }
-        .sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
+        (insuranceTransactions + paymentDeposits)
+            .sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
     }
 
     private var originalTransaction: Transaction? {
-        paymentTransactions.first { $0.type == TransactionType.insurance.rawValue }
+        insuranceTransactions.first
     }
 
     private var paymentHistory: [Transaction] {
@@ -800,35 +757,6 @@ struct InsurancePaymentManagementView: View {
     }
 
 
-    private func isInsurancePayment(_ transaction: Transaction) -> Bool {
-        isInsurancePaymentTransaction(transaction, asset: insuranceAsset, originalTransaction: originalTransaction)
-    }
-
-    private func isInsurancePaymentTransaction(_ transaction: Transaction,
-                                               asset: Asset,
-                                               originalTransaction: Transaction? = nil) -> Bool {
-        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
-
-        if let original = originalTransaction,
-           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
-           notesLowercased.hasPrefix(identifier) {
-            return true
-        }
-
-        if notesLowercased.contains("premium payment") {
-            return true
-        }
-
-        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
-            return true
-        }
-
-        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
-            return true
-        }
-
-        return false
-    }
 }
 
 struct PaymentHistoryRowView: View {
@@ -1330,6 +1258,9 @@ struct InsurancePaymentEntryView: View {
         transaction.institution = paymentInstitution
         transaction.tradingInstitution = paymentInstitution.name
         transaction.autoFetchPrice = false
+        if let insuranceID = insuranceAsset.id {
+            transaction.setValue(insuranceID, forKey: "linkedInsuranceAssetID")
+        }
 
         var paymentNotes = notes
         if applyDiscount && discountSavings > 0 {

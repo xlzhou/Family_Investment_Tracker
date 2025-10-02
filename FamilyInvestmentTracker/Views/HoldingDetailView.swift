@@ -59,40 +59,7 @@ struct HoldingDetailView: View {
 
     private var insurancePaymentDeposits: [Transaction] {
         guard let portfolio = holding.portfolio else { return [] }
-
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-        let originalTransaction = insuranceTransactions.first
-
-        return transactions.filter { txn in
-            guard txn.portfolio?.objectID == portfolio.objectID else { return false }
-            guard txn.type == TransactionType.deposit.rawValue else { return false }
-            return isInsurancePaymentTransaction(txn, asset: asset, originalTransaction: originalTransaction)
-        }
-    }
-
-    private func isInsurancePaymentTransaction(_ transaction: Transaction,
-                                               asset: Asset,
-                                               originalTransaction: Transaction? = nil) -> Bool {
-        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
-
-        if let original = originalTransaction,
-           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
-           notesLowercased.hasPrefix(identifier) {
-            return true
-        }
-
-        if notesLowercased.contains("premium payment") {
-            return true
-        }
-
-        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
-            return true
-        }
-
-        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
-            return true
-        }
-        return false
+        return InsurancePaymentService.paymentTransactions(for: asset, in: portfolio, context: viewContext)
     }
 
     private var hasAutoFetchEnabled: Bool {

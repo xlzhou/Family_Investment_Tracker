@@ -242,22 +242,7 @@ private extension HoldingsView {
                 // For insurance: P&L = Cash Value - Actual Paid Premium
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
 
-                // Calculate actual paid premium using same logic as HoldingDetailView
-                let allTransactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-
-                // Get the original insurance transaction
-                let insuranceTransactions = (asset.transactions?.allObjects as? [Transaction] ?? []).filter {
-                    $0.portfolio?.objectID == portfolio.objectID &&
-                    $0.type == TransactionType.insurance.rawValue
-                }.sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
-                let originalTransaction = insuranceTransactions.first
-
-                // Find insurance payment deposits
-                let insurancePaymentDeposits = allTransactions.filter { transaction in
-                    guard transaction.portfolio?.objectID == portfolio.objectID else { return false }
-                    guard transaction.type == TransactionType.deposit.rawValue else { return false }
-                    return isInsurancePaymentTransaction(transaction, asset: asset, originalTransaction: originalTransaction)
-                }
+                let insurancePaymentDeposits = InsurancePaymentService.paymentTransactions(for: asset, in: portfolio, context: viewContext)
 
                 let actualPaidPremium = insurancePaymentDeposits.reduce(0) { total, transaction in
                     let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
@@ -267,15 +252,6 @@ private extension HoldingsView {
                 }
 
                 unrealizedPnL = cashValue - actualPaidPremium
-
-                print("🔍 HOLDINGS Insurance Debug:")
-                print("🔍   Asset Symbol: \(asset.symbol ?? "N/A")")
-                print("🔍   Asset Name: \(asset.name ?? "N/A")")
-                print("🔍   Cash Value: \(cashValue)")
-                print("🔍   Payment Deposits Found: \(insurancePaymentDeposits.count)")
-                print("🔍   Actual Paid Premium: \(actualPaidPremium)")
-                print("🔍   Calculated P&L: \(unrealizedPnL)")
-                print("🔍   Running Total: \(totalUnrealizedPnL + unrealizedPnL)")
             } else {
                 // For securities: P&L = Current Value - Cost Basis
                 let costBasis = holding.quantity * holding.averageCostBasis
@@ -289,31 +265,6 @@ private extension HoldingsView {
         }
 
         return (totalValue, totalUnrealizedPnL, totalDividends)
-    }
-
-    private func isInsurancePaymentTransaction(_ transaction: Transaction,
-                                               asset: Asset,
-                                               originalTransaction: Transaction? = nil) -> Bool {
-        guard let notesLowercased = transaction.notes?.lowercased() else { return false }
-
-        if let original = originalTransaction,
-           let identifier = CashDisciplineService.companionNoteIdentifier(for: original)?.lowercased(),
-           notesLowercased.hasPrefix(identifier) {
-            return true
-        }
-
-        if notesLowercased.contains("premium payment") {
-            return true
-        }
-
-        if let symbol = asset.symbol?.lowercased(), !symbol.isEmpty, notesLowercased.contains(symbol) {
-            return true
-        }
-
-        if let name = asset.name?.lowercased(), !name.isEmpty, notesLowercased.contains(name) {
-            return true
-        }
-        return false
     }
 
     var filterSummary: some View {

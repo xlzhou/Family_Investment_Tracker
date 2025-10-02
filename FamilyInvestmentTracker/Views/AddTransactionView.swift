@@ -1908,13 +1908,21 @@ struct AddTransactionView: View {
                 removeCashDisciplineCompanion(for: transaction)
                 return
             }
-            upsertCashDisciplineCompanion(for: transaction, amount: -premiumAmount, currency: transactionCurrency, institution: institution)
+            upsertCashDisciplineCompanion(for: transaction,
+                                          amount: -premiumAmount,
+                                          currency: transactionCurrency,
+                                          institution: institution,
+                                          linkedInsuranceAsset: transaction.asset)
         default:
             removeCashDisciplineCompanion(for: transaction)
         }
     }
 
-    private func upsertCashDisciplineCompanion(for transaction: Transaction, amount: Double, currency: Currency, institution: Institution) {
+    private func upsertCashDisciplineCompanion(for transaction: Transaction,
+                                               amount: Double,
+                                               currency: Currency,
+                                               institution: Institution,
+                                               linkedInsuranceAsset: Asset? = nil) {
         let epsilon = 1e-6
         guard abs(amount) > epsilon else {
             removeCashDisciplineCompanion(for: transaction)
@@ -1950,6 +1958,9 @@ struct AddTransactionView: View {
             companion.institution = institution
             companion.portfolio = portfolio
             companion.asset = depositAsset
+            if let insuranceID = linkedInsuranceAsset?.id {
+                companion.setValue(insuranceID, forKey: "linkedInsuranceAssetID")
+            }
             companion.ensureIdentifiers()
         } else {
             let companion = Transaction(context: viewContext)
@@ -1970,6 +1981,9 @@ struct AddTransactionView: View {
             companion.portfolio = portfolio
             companion.asset = depositAsset
             companion.createdAt = Date()
+            if let insuranceID = linkedInsuranceAsset?.id {
+                companion.setValue(insuranceID, forKey: "linkedInsuranceAssetID")
+            }
             companion.ensureIdentifiers()
         }
 

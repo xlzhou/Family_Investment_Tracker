@@ -61,6 +61,8 @@ struct PersistenceController {
             }
         })
         container.viewContext.automaticallyMergesChangesFromParent = true
+
+        InsurancePaymentService.backfillMissingLinkedInsuranceIDsIfNeeded(using: container)
     }
 }
 
