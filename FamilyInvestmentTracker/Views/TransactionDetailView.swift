@@ -596,12 +596,32 @@ struct InsurancePaymentManagementView: View {
     }
 
     private var totalPaidAmount: Double {
-        paymentTransactions.reduce(0) { total, transaction in
+        let depositContributions = paymentTransactions.reduce(0) { total, transaction in
             guard transaction.type == TransactionType.deposit.rawValue else { return total }
             let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
             let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: portfolioCurrency)
             return total + converted
         }
+
+        return depositContributions + firstPaymentContribution
+    }
+
+    private var firstPaymentContribution: Double {
+        guard let original = originalTransaction else { return 0 }
+
+        if CashDisciplineService.findCompanionDeposit(for: original, in: viewContext) != nil {
+            return 0
+        }
+
+        if let deductedFlag = original.value(forKey: "paymentDeducted") as? Bool,
+           deductedFlag,
+           let deductedPortfolioAmount = original.value(forKey: "paymentDeductedAmount") as? Double,
+           deductedPortfolioAmount > 0 {
+            return deductedPortfolioAmount
+        }
+
+        guard let firstDisplay = firstPaymentDisplayAmount else { return 0 }
+        return currencyService.convertAmount(firstDisplay, from: insuranceTransactionCurrency, to: portfolioCurrency)
     }
 
     private var remainingBalance: Double {
@@ -1197,19 +1217,14 @@ struct InsurancePaymentEntryView: View {
         let previousDeductedPortfolio = (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0
         let previousDeductedTransaction = currencyService.convertAmount(previousDeductedPortfolio, from: portfolioCurrency, to: transactionCurrency)
 
-        let convertedFinal = currencyService.convertAmount(finalPaymentAmount, from: selectedCurrency, to: portfolioCurrency)
-        let finalInTransactionCurrency = currencyService.convertAmount(finalPaymentAmount, from: selectedCurrency, to: transactionCurrency)
-
         if previousDeductedPortfolio != 0 {
             portfolio.addToCash(previousDeductedPortfolio)
             paymentInstitution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: previousDeductedTransaction)
         }
 
-        portfolio.addToCash(-convertedFinal)
-        paymentInstitution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -finalInTransactionCurrency)
-
-        transaction.setValue(true, forKey: "paymentDeducted")
-        transaction.setValue(convertedFinal, forKey: "paymentDeductedAmount")
+        transaction.setValue(false, forKey: "paymentDeducted")
+        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+        transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
 
         TransactionImpactService.recomputePortfolioTotals(for: portfolio)
     }
