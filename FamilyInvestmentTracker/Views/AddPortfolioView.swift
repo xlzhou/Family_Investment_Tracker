@@ -45,6 +45,7 @@ struct AddPortfolioView: View {
         portfolio.createdAt = Date()
         portfolio.updatedAt = Date()
         portfolio.totalValue = 0.0
+        portfolio.enforcesCashDisciplineEnabled = true
 
         // Set the current user as the owner
         PortfolioOwnershipService.shared.setOwnerForNewPortfolio(portfolio)
