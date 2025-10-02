@@ -117,7 +117,7 @@ struct SettingsView: View {
                                             ForEach(Currency.allCases.filter { $0 != baseCurrency }, id: \.self) { targetCurrency in
                                                 if let rate = rates[targetCurrency.rawValue] {
                                                     HStack {
-                                                        Text("1 \(baseCurrency.symbol) → \(String(format: "%.3f", rate)) \(targetCurrency.symbol)")
+                                                        Text("1 \(baseCurrency.rawValue) → \(String(format: "%.3f", rate)) \(targetCurrency.rawValue)")
                                                             .font(.caption2)
                                                             .foregroundColor(.secondary)
                                                         Spacer()
