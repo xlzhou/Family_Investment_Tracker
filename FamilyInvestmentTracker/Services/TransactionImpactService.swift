@@ -4,7 +4,10 @@ import Foundation
 struct TransactionImpactService {
     private static let currencyService = CurrencyService.shared
     
-    static func reverse(_ transaction: Transaction, in portfolio: Portfolio, context: NSManagedObjectContext) {
+    static func reverse(_ transaction: Transaction,
+                       in portfolio: Portfolio,
+                       context: NSManagedObjectContext,
+                       preserveAsset: Bool = false) {
         // Defensive check for transaction validity
         guard let transactionType = TransactionType(rawValue: transaction.type ?? "") else {
             return
@@ -36,7 +39,10 @@ struct TransactionImpactService {
                     institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalNetCash)
                 }
             case .insurance:
-                cleanupInsuranceArtifacts(for: transaction, in: portfolio, context: context)
+                cleanupInsuranceArtifacts(for: transaction,
+                                          in: portfolio,
+                                          context: context,
+                                          preserveAsset: preserveAsset)
             case .dividend, .interest:
                 if let institution = institution {
                     institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalNetCash)
@@ -74,7 +80,10 @@ struct TransactionImpactService {
                         }
                     }
                 } else if transactionType == .insurance {
-                    cleanupInsuranceArtifacts(for: transaction, in: portfolio, context: context)
+                    cleanupInsuranceArtifacts(for: transaction,
+                                              in: portfolio,
+                                              context: context,
+                                              preserveAsset: preserveAsset)
                 }
             }
         }
@@ -154,7 +163,10 @@ struct TransactionImpactService {
         holding.updatedAt = Date()
     }
     
-    private static func cleanupInsuranceArtifacts(for transaction: Transaction, in portfolio: Portfolio, context: NSManagedObjectContext) {
+    private static func cleanupInsuranceArtifacts(for transaction: Transaction,
+                                                   in portfolio: Portfolio,
+                                                   context: NSManagedObjectContext,
+                                                   preserveAsset: Bool) {
         guard transaction.type == TransactionType.insurance.rawValue else { return }
         let paymentDeducted = (transaction.value(forKey: "paymentDeducted") as? Bool) ?? false
         if paymentDeducted {
@@ -187,7 +199,9 @@ struct TransactionImpactService {
                 context.delete(insurance)
             }
             
-            context.delete(asset)
+            if !preserveAsset {
+                context.delete(asset)
+            }
         }
     }
     

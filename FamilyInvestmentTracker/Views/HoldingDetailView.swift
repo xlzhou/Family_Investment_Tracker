@@ -632,11 +632,11 @@ struct HoldingDetailView: View {
                 Text(insurance?.value(forKey: "insuredPerson") as? String ?? "-")
                     .foregroundColor(.secondary)
             }
-            if let phone = insurance?.value(forKey: "contactNumber") as? String, !phone.isEmpty {
+            if let policyNumber = insurance?.value(forKey: "contactNumber") as? String, !policyNumber.isEmpty {
                 HStack {
-                    Text("Contact Number")
+                    Text("Policy Number")
                     Spacer()
-                    Text(phone)
+                    Text(policyNumber)
                         .foregroundColor(.secondary)
                 }
             }

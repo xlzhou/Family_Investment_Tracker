@@ -465,7 +465,7 @@ struct AddTransactionView: View {
                         TextField("Insured Person", text: $insuredPerson)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                        TextField("Contact Number", text: $contactNumber)
+                        TextField("Policy Number", text: $contactNumber)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.phonePad)
                     }
@@ -985,7 +985,11 @@ struct AddTransactionView: View {
         let transaction = existingTransaction ?? Transaction(context: viewContext)
 
         if let existingTransaction = existingTransaction {
-            TransactionImpactService.reverse(existingTransaction, in: portfolio, context: viewContext)
+            let preserveAssetForEdit = (existingTransactionType == .insurance && selectedTransactionType == .insurance)
+            TransactionImpactService.reverse(existingTransaction,
+                                             in: portfolio,
+                                             context: viewContext,
+                                             preserveAsset: preserveAssetForEdit)
         } else {
             transaction.id = UUID()
             transaction.createdAt = Date()
@@ -1065,8 +1069,6 @@ struct AddTransactionView: View {
                         transaction.setValue(0.0, forKey: "paymentDeductedAmount")
                     } else {
                         let convertedPremium = convertToPortfolioCurrency(premiumAmount, from: selectedCurrency)
-                        portfolio.addToCash(-convertedPremium)
-                        paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -premiumAmount)
                         transaction.setValue(true, forKey: "paymentDeducted")
                         transaction.setValue(convertedPremium, forKey: "paymentDeductedAmount")
                         transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")

@@ -50,6 +50,38 @@ struct TransactionDetailView: View {
         (transaction.asset?.value(forKey: "linkedAssets") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var totalPaidPremium: Double {
+        guard isInsurance else { return 0 }
+
+        let depositContributions = insurancePaymentDeposits.reduce(0) { runningTotal, txn in
+            guard txn.type == TransactionType.deposit.rawValue else { return runningTotal }
+            let depositCurrency = Currency(rawValue: txn.currency ?? currency.rawValue) ?? currency
+            let absoluteAmount = abs(txn.amount)
+
+            if absoluteAmount > 1e-6 {
+                let converted = currencyService.convertAmount(absoluteAmount, from: depositCurrency, to: currency)
+                return runningTotal + converted
+            }
+
+            if let stored = txn.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+                let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+                let converted = currencyService.convertAmount(stored, from: portfolioCurrency, to: currency)
+                return runningTotal + converted
+            }
+
+            return runningTotal
+        }
+
+        return depositContributions + firstPaymentContributionInTransactionCurrency
+    }
+
+    private var insurancePaymentDeposits: [Transaction] {
+        guard let portfolio = transaction.portfolio,
+              let insuranceAsset = transaction.asset else { return [] }
+
+        return InsurancePaymentService.paymentTransactions(for: insuranceAsset, in: portfolio, context: viewContext)
+    }
+
     private var settlementAmount: Double {
         switch transactionTypeEnum {
         case .some(.buy):
@@ -61,21 +93,86 @@ struct TransactionDetailView: View {
         }
     }
 
-    private var totalPaidPremium: Double {
+    private var firstPaymentContributionInTransactionCurrency: Double {
         guard isInsurance else { return 0 }
 
-        return insurancePaymentDeposits.reduce(0) { runningTotal, txn in
-            let depositCurrency = Currency(rawValue: txn.currency ?? currency.rawValue) ?? currency
-            let converted = currencyService.convertAmount(abs(txn.amount), from: depositCurrency, to: currency)
-            return runningTotal + converted
+        if CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext) != nil {
+            return 0
         }
+
+        if let deductedFlag = transaction.value(forKey: "paymentDeducted") as? Bool,
+           deductedFlag,
+           let deductedPortfolioAmount = transaction.value(forKey: "paymentDeductedAmount") as? Double,
+           deductedPortfolioAmount > 0 {
+            let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+            return currencyService.convertAmount(deductedPortfolioAmount, from: portfolioCurrency, to: currency)
+        }
+
+        return firstPaymentDisplayAmount ?? 0
     }
 
-    private var insurancePaymentDeposits: [Transaction] {
-        guard let portfolio = transaction.portfolio,
-              let insuranceAsset = transaction.asset else { return [] }
+    private var firstPaymentDisplayAmount: Double? {
+        guard isInsurance else { return nil }
 
-        return InsurancePaymentService.paymentTransactions(for: insuranceAsset, in: portfolio, context: viewContext)
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+
+        if let stored = transaction.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6,
+           let deductedFlag = transaction.value(forKey: "paymentDeducted") as? Bool, deductedFlag {
+            return currencyService.convertAmount(stored, from: portfolioCurrency, to: currency)
+        }
+
+        let absoluteAmount = abs(transaction.amount)
+        if absoluteAmount > 1e-6 {
+            return absoluteAmount
+        }
+
+        let fallback = defaultFirstPaymentAmount
+        return fallback > 0 ? fallback : nil
+    }
+
+    private var defaultFirstPaymentAmount: Double {
+        guard let insurance = insurance else {
+            return abs(transaction.amount)
+        }
+
+        let paymentTypeValue = (insurance.value(forKey: "premiumPaymentType") as? String)?.lowercased() ?? ""
+        let totalPremiumValue = insurance.value(forKey: "totalPremium") as? Double ?? 0
+        let singlePremiumValue = insurance.value(forKey: "singlePremium") as? Double ?? 0
+        let discountedPremiumValue = insurance.value(forKey: "firstDiscountedPremium") as? Double ?? 0
+        let paymentTermValue = max(0, Int32(insurance.value(forKey: "premiumPaymentTerm") as? Int32 ?? 0))
+
+        if discountedPremiumValue > 0 {
+            return discountedPremiumValue
+        }
+
+        if paymentTypeValue.contains("lump") {
+            if totalPremiumValue > 0 {
+                return totalPremiumValue
+            }
+            if singlePremiumValue > 0 {
+                let term = max(1, Double(paymentTermValue))
+                return singlePremiumValue * term
+            }
+        }
+
+        if paymentTermValue <= 1 {
+            if totalPremiumValue > 0 {
+                return totalPremiumValue
+            }
+            if singlePremiumValue > 0 {
+                return singlePremiumValue
+            }
+        }
+
+        if singlePremiumValue > 0 {
+            return singlePremiumValue
+        }
+
+        if totalPremiumValue > 0, paymentTermValue > 0 {
+            return totalPremiumValue / Double(paymentTermValue)
+        }
+
+        return abs(transaction.amount)
     }
 
     var body: some View {
@@ -332,11 +429,11 @@ struct TransactionDetailView: View {
                 Text(insurance?.value(forKey: "insuredPerson") as? String ?? "-")
                     .foregroundColor(.secondary)
             }
-            if let phone = insurance?.value(forKey: "contactNumber") as? String, !phone.isEmpty {
+            if let policyNumber = insurance?.value(forKey: "contactNumber") as? String, !policyNumber.isEmpty {
                 HStack {
-                    Text("Contact Number")
+                    Text("Policy Number")
                     Spacer()
-                    Text(phone)
+                    Text(policyNumber)
                         .foregroundColor(.secondary)
                 }
             }
@@ -599,8 +696,18 @@ struct InsurancePaymentManagementView: View {
         let depositContributions = paymentTransactions.reduce(0) { total, transaction in
             guard transaction.type == TransactionType.deposit.rawValue else { return total }
             let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
-            let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: portfolioCurrency)
-            return total + converted
+            let absoluteAmount = abs(transaction.amount)
+
+            if absoluteAmount > 1e-6 {
+                let converted = currencyService.convertAmount(absoluteAmount, from: depositCurrency, to: portfolioCurrency)
+                return total + converted
+            }
+
+            if let stored = transaction.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+                return total + stored
+            }
+
+            return total
         }
 
         return depositContributions + firstPaymentContribution
@@ -791,7 +898,17 @@ struct PaymentHistoryRowView: View {
 
     private var paymentAmount: Double {
         let base = overrideAmount ?? transaction.amount
-        return abs(base)
+        let absolute = abs(base)
+        if absolute > 1e-6 {
+            return absolute
+        }
+
+        if let stored = transaction.value(forKey: "paymentDeductedAmount") as? Double, stored > 0 {
+            let portfolioCurrency = Currency(rawValue: transaction.portfolio?.mainCurrency ?? "USD") ?? .usd
+            return CurrencyService.shared.convertAmount(stored, from: portfolioCurrency, to: transactionCurrency)
+        }
+
+        return 0
     }
 
     private var hasDiscount: Bool {
@@ -1222,8 +1339,9 @@ struct InsurancePaymentEntryView: View {
             paymentInstitution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: previousDeductedTransaction)
         }
 
-        transaction.setValue(false, forKey: "paymentDeducted")
-        transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+        let convertedFinal = currencyService.convertAmount(finalPaymentAmount, from: selectedCurrency, to: portfolioCurrency)
+        transaction.setValue(true, forKey: "paymentDeducted")
+        transaction.setValue(convertedFinal, forKey: "paymentDeductedAmount")
         transaction.setValue(paymentInstitution.name, forKey: "paymentInstitutionName")
 
         TransactionImpactService.recomputePortfolioTotals(for: portfolio)
@@ -1263,9 +1381,7 @@ struct InsurancePaymentEntryView: View {
         transaction.createdAt = Date()
         transaction.transactionDate = paymentDate
         transaction.type = TransactionType.deposit.rawValue
-        transaction.amount = -finalPaymentAmount
         transaction.quantity = 1
-        transaction.price = -finalPaymentAmount
         transaction.fees = 0
         transaction.tax = 0
         transaction.currency = selectedCurrency.rawValue
@@ -1292,9 +1408,19 @@ struct InsurancePaymentEntryView: View {
         transaction.asset = depositAsset
 
         if portfolio.enforcesCashDisciplineEnabled {
+            transaction.amount = -finalPaymentAmount
+            transaction.price = -finalPaymentAmount
             let convertedAmount = convertToPortfolioCurrency(finalPaymentAmount)
             portfolio.addToCash(-convertedAmount)
             paymentInstitution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: -finalPaymentAmount)
+            transaction.setValue(0.0, forKey: "paymentDeductedAmount")
+            transaction.setValue(false, forKey: "paymentDeducted")
+        } else {
+            transaction.amount = 0
+            transaction.price = 0
+            let convertedAmount = convertToPortfolioCurrency(finalPaymentAmount)
+            transaction.setValue(convertedAmount, forKey: "paymentDeductedAmount")
+            transaction.setValue(true, forKey: "paymentDeducted")
         }
 
         transaction.ensureIdentifiers()

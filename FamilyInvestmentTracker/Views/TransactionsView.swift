@@ -19,6 +19,15 @@ struct TransactionsView: View {
     private var filteredTransactions: [Transaction] {
         var transactions = allTransactions
 
+        transactions = transactions.filter { transaction in
+            let isInsuranceCompanion = transaction.type == TransactionType.deposit.rawValue &&
+                (transaction.value(forKey: "linkedInsuranceAssetID") as? UUID) != nil
+            if !isInsuranceCompanion { return true }
+
+            let amount = transaction.amount
+            return abs(amount) > 1e-6
+        }
+
         // Apply base filter
         switch selectedFilter {
         case .all:
