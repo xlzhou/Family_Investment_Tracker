@@ -236,232 +236,215 @@ struct HoldingDetailView: View {
                 }
 
                 // Holdings Information Section
-                Section(header: Text("Holdings Information")) {
-                    if isInsurance {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Cash Value")
-                                Text("(\(displayCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: displayCurrency.displayName))
-                                .fontWeight(.medium)
-                            Button(action: {
-                                editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
-                                showingCashValueEditor = true
-                            }) {
-                                Image(systemName: "pencil")
-                                    .foregroundColor(.blue)
-                            }
-                        }
-                    } else if isStructuredProduct {
-                        HStack {
-                            Text("Investment Amount")
-                            Spacer()
-                            Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.displayName))
-                                .fontWeight(.medium)
-                        }
-
-                        HStack {
-                            Text("Institution")
-                            Spacer()
-                            Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
-                                .foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            Text("Interest Rate")
-                            Spacer()
-                            Text(Formatters.percent(structuredProductInterestRate, fractionDigits: 2))
-                                .foregroundColor(.secondary)
-                        }
-
-                        if let maturityDate = structuredProductMaturityDate {
+                if !isInsurance {
+                    Section(header: Text("Holdings Information")) {
+                        if isStructuredProduct {
                             HStack {
-                                Text("Maturity Date")
+                                Text("Investment Amount")
                                 Spacer()
-                                Text(maturityDate, style: .date)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-
-                        if !structuredProductLinkedAssets.isEmpty {
-                            HStack {
-                                Text("Linked Assets")
-                                Spacer()
-                                Text(structuredProductLinkedAssets)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Current Price")
-                                Text("(\(displayCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            HStack {
-                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName, fractionDigits: 6))
+                                Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.displayName))
                                     .fontWeight(.medium)
+                            }
 
-                                if hasAutoFetchEnabled {
-                                    let marketOffline = MarketDataService.shared.isOfflineMode
-                                    let currencyOffline = CurrencyService.shared.isOfflineMode
-                                    let isOffline = marketOffline || currencyOffline
-                                    Image(systemName: "globe")
-                                        .foregroundColor(isOffline ? .red : .blue)
+                            HStack {
+                                Text("Institution")
+                                Spacer()
+                                Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack {
+                                Text("Interest Rate")
+                                Spacer()
+                                Text(Formatters.percent(structuredProductInterestRate, fractionDigits: 2))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            if let maturityDate = structuredProductMaturityDate {
+                                HStack {
+                                    Text("Maturity Date")
+                                    Spacer()
+                                    Text(maturityDate, style: .date)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+
+                            if !structuredProductLinkedAssets.isEmpty {
+                                HStack {
+                                    Text("Linked Assets")
+                                    Spacer()
+                                    Text(structuredProductLinkedAssets)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Current Price")
+                                    /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
-                                        .onAppear {
-                                            // Trigger actual price updates for this asset
-                                            Task {
-                                                await refreshAssetPrice()
+                                        .foregroundColor(.secondary)*/
+                                }
+                                Spacer()
+                                HStack {
+                                    Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName, fractionDigits: 6))
+                                        .fontWeight(.medium)
+
+                                    if hasAutoFetchEnabled {
+                                        let marketOffline = MarketDataService.shared.isOfflineMode
+                                        let currencyOffline = CurrencyService.shared.isOfflineMode
+                                        let isOffline = marketOffline || currencyOffline
+                                        Image(systemName: "globe")
+                                            .foregroundColor(isOffline ? .red : .blue)
+                                            .font(.caption)
+                                            .onAppear {
+                                                // Trigger actual price updates for this asset
+                                                Task {
+                                                    await refreshAssetPrice()
+                                                }
                                             }
+                                    } else {
+                                        Button(action: {
+                                            editingPrice = displayPrice
+                                            showingPriceEditor = true
+                                        }) {
+                                            Image(systemName: "pencil")
+                                                .foregroundColor(.blue)
                                         }
-                                } else {
-                                    Button(action: {
-                                        editingPrice = displayPrice
-                                        showingPriceEditor = true
-                                    }) {
-                                        Image(systemName: "pencil")
-                                            .foregroundColor(.blue)
                                     }
                                 }
                             }
-                        }
 
-                        if hasAutoFetchEnabled {
-                            HStack {
-                                Text("Price Source")
-                                Spacer()
-                                let marketOffline = MarketDataService.shared.isOfflineMode
-                                let currencyOffline = CurrencyService.shared.isOfflineMode
-                                let isOffline = marketOffline || currencyOffline
-                                Text(isOffline ?
-                                     "Network returned incomplete data. Using cached data from \(isOffline ? (MarketDataService.shared.getPricesAge() ?? CurrencyService.shared.getRateAge() ?? "earlier") : "now")" :
-                                     "Auto-fetched from Yahoo Finance")
-                                    .font(.caption)
-                                    .foregroundColor(isOffline ? .red : .blue)
-                            }
-                        }
-
-                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
-                            .toggleStyle(SwitchToggleStyle())
-                            .onChange(of: autoFetchToggle) { _, newValue in
-                                guard !isUpdatingAutoFetchPreference else { return }
-                                updateAutoFetchPreference(newValue)
-                            }
-
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Total Value")
-                                Text("(\(displayCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
-                                .foregroundColor(.secondary)
-                        }
-                    } else {
-                        HStack {
-                            Text("Quantity")
-                            Spacer()
-                            Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
-                                .foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            Text("Institution")
-                            Spacer()
-                            Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
-                                .foregroundColor(.secondary)
-                        }
-
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Current Price")
-                                Text("(\(displayCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            HStack {
-                                Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName, fractionDigits: 6))
-                                    .fontWeight(.medium)
-
-                                if hasAutoFetchEnabled {
+                            if hasAutoFetchEnabled {
+                                HStack {
+                                    Text("Price Source")
+                                    Spacer()
                                     let marketOffline = MarketDataService.shared.isOfflineMode
                                     let currencyOffline = CurrencyService.shared.isOfflineMode
                                     let isOffline = marketOffline || currencyOffline
-                                    Image(systemName: "globe")
-                                        .foregroundColor(isOffline ? .red : .blue)
+                                    Text(isOffline ?
+                                        "Network returned incomplete data. Using cached data from \(isOffline ? (MarketDataService.shared.getPricesAge() ?? CurrencyService.shared.getRateAge() ?? "earlier") : "now")" :
+                                        "Auto-fetched from Yahoo Finance")
                                         .font(.caption)
-                                        .onAppear {
-                                            // Trigger actual price updates for this asset
-                                            Task {
-                                                await refreshAssetPrice()
+                                        .foregroundColor(isOffline ? .red : .blue)
+                                }
+                            }
+
+                            Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
+                                .toggleStyle(SwitchToggleStyle())
+                                .onChange(of: autoFetchToggle) { _, newValue in
+                                    guard !isUpdatingAutoFetchPreference else { return }
+                                    updateAutoFetchPreference(newValue)
+                                }
+
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Total Value")
+                                    Text("(\(displayCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            HStack {
+                                Text("Quantity")
+                                Spacer()
+                                Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack {
+                                Text("Institution")
+                                Spacer()
+                                Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
+                                    .foregroundColor(.secondary)
+                            }
+
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Current Price")
+                                    /*Text("(\(displayCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)*/
+                                }
+                                Spacer()
+                                HStack {
+                                    Text(Formatters.currency(displayPrice, symbol: displayCurrency.displayName, fractionDigits: 6))
+                                        .fontWeight(.medium)
+
+                                    if hasAutoFetchEnabled {
+                                        let marketOffline = MarketDataService.shared.isOfflineMode
+                                        let currencyOffline = CurrencyService.shared.isOfflineMode
+                                        let isOffline = marketOffline || currencyOffline
+                                        Image(systemName: "globe")
+                                            .foregroundColor(isOffline ? .red : .blue)
+                                            .font(.caption)
+                                            .onAppear {
+                                                // Trigger actual price updates for this asset
+                                                Task {
+                                                    await refreshAssetPrice()
+                                                }
                                             }
+                                    } else {
+                                        Button(action: {
+                                            editingPrice = displayPrice
+                                            showingPriceEditor = true
+                                        }) {
+                                            Image(systemName: "pencil")
+                                                .foregroundColor(.blue)
                                         }
-                                } else {
-                                    Button(action: {
-                                        editingPrice = displayPrice
-                                        showingPriceEditor = true
-                                    }) {
-                                        Image(systemName: "pencil")
-                                            .foregroundColor(.blue)
                                     }
                                 }
                             }
-                        }
 
-                        if hasAutoFetchEnabled {
+                            if hasAutoFetchEnabled {
+                                HStack {
+                                    Text("Price Source")
+                                    Spacer()
+                                    let marketOffline = MarketDataService.shared.isOfflineMode
+                                    let currencyOffline = CurrencyService.shared.isOfflineMode
+                                    let isOffline = marketOffline || currencyOffline
+                                    Text(isOffline ?
+                                        "Network returned incomplete data. Using cached data from \(isOffline ? (MarketDataService.shared.getPricesAge() ?? CurrencyService.shared.getRateAge() ?? "earlier") : "now")" :
+                                        "Auto-fetched from Yahoo Finance")
+                                        .font(.caption)
+                                        .foregroundColor(isOffline ? .red : .blue)
+                                }
+                            }
+
+                            Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
+                                .toggleStyle(SwitchToggleStyle())
+                                .onChange(of: autoFetchToggle) { _, newValue in
+                                    guard !isUpdatingAutoFetchPreference else { return }
+                                    updateAutoFetchPreference(newValue)
+                                }
+
                             HStack {
-                                Text("Price Source")
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Average Cost Basis")
+                                    Text("(\(portfolioMainCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
                                 Spacer()
-                                let marketOffline = MarketDataService.shared.isOfflineMode
-                                let currencyOffline = CurrencyService.shared.isOfflineMode
-                                let isOffline = marketOffline || currencyOffline
-                                Text(isOffline ?
-                                     "Network returned incomplete data. Using cached data from \(isOffline ? (MarketDataService.shared.getPricesAge() ?? CurrencyService.shared.getRateAge() ?? "earlier") : "now")" :
-                                     "Auto-fetched from Yahoo Finance")
-                                    .font(.caption)
-                                    .foregroundColor(isOffline ? .red : .blue)
-                            }
-                        }
-
-                        Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
-                            .toggleStyle(SwitchToggleStyle())
-                            .onChange(of: autoFetchToggle) { _, newValue in
-                                guard !isUpdatingAutoFetchPreference else { return }
-                                updateAutoFetchPreference(newValue)
-                            }
-
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Average Cost Basis")
-                                Text("(\(portfolioMainCurrency.displayName))")
-                                    .font(.caption)
+                                Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.displayName, fractionDigits: 6))
                                     .foregroundColor(.secondary)
                             }
-                            Spacer()
-                            Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.displayName, fractionDigits: 6))
-                                .foregroundColor(.secondary)
-                        }
 
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Total Value")
-                                Text("(\(displayCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Total Value")
+                                    Text("(\(displayCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
+                                    .fontWeight(.semibold)
                             }
-                            Spacer()
-                            Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
-                                .fontWeight(.semibold)
                         }
                     }
                 }
@@ -619,7 +602,7 @@ struct HoldingDetailView: View {
                     .foregroundColor(.secondary)
             }
             HStack {
-                Text("Policyholder")
+                Text("Policy Holder")
                 Spacer()
                 Text(insurance?.value(forKey: "policyholder") as? String ?? "-")
                     .foregroundColor(.secondary)
@@ -644,6 +627,23 @@ struct HoldingDetailView: View {
     @ViewBuilder
     private var insuranceFinancialSection: some View {
         Section(header: Text("Financial Details")) {
+
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Cash Value")
+                }
+                Spacer()
+                Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: displayCurrency.displayName))
+                    .fontWeight(.medium)
+                Button(action: {
+                    editingCashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                    showingCashValueEditor = true
+                }) {
+                    Image(systemName: "pencil")
+                        .foregroundColor(.blue)
+                }
+            }
+
             insuranceValueRow(label: "Basic Insured Amount", amount: insurance?.value(forKey: "basicInsuredAmount") as? Double)
             insuranceValueRow(label: "Additional Payment", amount: insurance?.value(forKey: "additionalPaymentAmount") as? Double)
             insuranceValueRow(label: "Death Benefit", amount: insurance?.value(forKey: "deathBenefit") as? Double)
@@ -777,17 +777,17 @@ struct PriceEditorView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Current Price")
-                            Text("(\(displayCurrency.displayName))")
+                            /*Text("(\(displayCurrency.displayName))")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.secondary)*/
                         }
                         Spacer()
+                        Text(displayCurrency.displayName)
+                            .foregroundColor(.secondary)
                         TextField("0.00", value: $editingPrice, format: .number)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .frame(width: 120)
-                        Text(displayCurrency.symbol)
-                            .foregroundColor(.secondary)
                     }
                 }
 
@@ -809,9 +809,9 @@ struct PriceEditorView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Previous Price")
-                            Text("(\(displayCurrency.displayName))")
+                            /*Text("(\(displayCurrency.displayName))")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.secondary)*/
                         }
                         Spacer()
                         Text(Formatters.currency(currencyService.convertAmount(asset.currentPrice, from: portfolioMainCurrency, to: displayCurrency), symbol: displayCurrency.displayName, fractionDigits: 6))

@@ -342,6 +342,23 @@ struct HoldingRowView: View {
         return holding.quantity * asset.currentPrice
     }
 
+    private var insuranceObject: NSManagedObject? {
+        asset.value(forKey: "insurance") as? NSManagedObject
+    }
+
+    private var basicInsuredAmountValue: Double {
+        insuranceObject?.value(forKey: "basicInsuredAmount") as? Double ?? 0
+    }
+
+    private var policyHolderName: String {
+        insuranceObject?.value(forKey: "policyholder") as? String ?? "-"
+    }
+
+    private var totalPaidPremiumValue: Double {
+        guard let portfolio = holding.portfolio else { return 0 }
+        return InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: viewContext)
+    }
+
     private var isInsurance: Bool {
         asset.assetType == "Insurance"
     }
@@ -451,34 +468,34 @@ struct HoldingRowView: View {
             HStack {
                 if isInsurance {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Policy Type")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("Insurance Policy")
+                        Text("Basic Insured Amount")
                             .font(.subheadline)
                             .fontWeight(.medium)
+                        Text(Formatters.currency(basicInsuredAmountValue, symbol: portfolioCurrency.displayName))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
 
                     Spacer()
 
                     VStack(alignment: .center, spacing: 2) {
-                        Text("Policyholder")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("Policy Owner")
+                        Text("Policy Holder")
                             .font(.subheadline)
                             .fontWeight(.medium)
+                        Text(policyHolderName)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
 
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Death Benefit")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("Insurance")
+                        Text("Paid Premium")
                             .font(.subheadline)
                             .fontWeight(.medium)
+                        Text(Formatters.currency(totalPaidPremiumValue, symbol: portfolioCurrency.displayName))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 } else if isStructuredProduct {
                     VStack(alignment: .leading, spacing: 2) {
