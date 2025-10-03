@@ -509,38 +509,40 @@ struct HoldingDetailView: View {
                             }
                         }
 
-                        let cumulativeIncome = holding.totalDividends
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Cumulative Income (Dividends/Interest)")
-                                Text("(\(portfolioMainCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(Formatters.currency(cumulativeIncome, symbol: portfolioMainCurrency.displayName))
-                                .fontWeight(.medium)
-                                .foregroundColor(.blue)
-                        }
-
-                        let incomeAdjustedGain = unrealizedGainLoss + cumulativeIncome
-                        let incomeAdjustedPercent = costBasis > 0 ? (incomeAdjustedGain / costBasis) * 100 : 0
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Total Return (with Income)")
-                                Text("(\(portfolioMainCurrency.displayName))")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            VStack(alignment: .trailing, spacing: 2) {
-                                Text(Formatters.signedCurrency(incomeAdjustedGain, symbol: portfolioMainCurrency.symbol))
+                        if holding.totalDividends != 0 {
+                            let cumulativeIncome = holding.totalDividends
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Cumulative Income (Dividends/Interest)")
+                                    Text("(\(portfolioMainCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(Formatters.currency(cumulativeIncome, symbol: portfolioMainCurrency.displayName))
                                     .fontWeight(.medium)
-                                    .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
+                                    .foregroundColor(.blue)
+                            }
 
-                                Text("(" + Formatters.signedPercent(incomeAdjustedPercent) + ")")
-                                    .font(.caption)
-                                    .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
+                            let incomeAdjustedGain = unrealizedGainLoss + cumulativeIncome
+                            let incomeAdjustedPercent = costBasis > 0 ? (incomeAdjustedGain / costBasis) * 100 : 0
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Total Return (with Income)")
+                                    Text("(\(portfolioMainCurrency.displayName))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                VStack(alignment: .trailing, spacing: 2) {
+                                    Text(Formatters.signedCurrency(incomeAdjustedGain, symbol: portfolioMainCurrency.symbol))
+                                        .fontWeight(.medium)
+                                        .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
+
+                                    Text("(" + Formatters.signedPercent(incomeAdjustedPercent) + ")")
+                                        .font(.caption)
+                                        .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
+                                }
                             }
                         }
 
