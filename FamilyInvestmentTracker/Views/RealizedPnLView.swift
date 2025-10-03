@@ -67,7 +67,7 @@ struct RealizedPnLView: View {
         NavigationView {
             Form {
                 Section(header: Text("Date Range")) {
-                    DatePicker("From", selection: $startDate, displayedComponents: .date)
+                    DatePicker("From", selection: $startDate, in: ...Date(), displayedComponents: .date)
                     DatePicker("To", selection: $endDate, in: startDate...Date(), displayedComponents: .date)
                 }
 
