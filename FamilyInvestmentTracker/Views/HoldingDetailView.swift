@@ -340,9 +340,9 @@ struct HoldingDetailView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Total Value")
-                                    Text("(\(displayCurrency.displayName))")
+                                    /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondary)*/
                                 }
                                 Spacer()
                                 Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
@@ -425,9 +425,9 @@ struct HoldingDetailView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Average Cost Basis")
-                                    Text("(\(portfolioMainCurrency.displayName))")
+                                    /*Text("(\(portfolioMainCurrency.displayName))")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondary)*/
                                 }
                                 Spacer()
                                 Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioMainCurrency.displayName, fractionDigits: 6))
@@ -437,9 +437,9 @@ struct HoldingDetailView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Total Value")
-                                    Text("(\(displayCurrency.displayName))")
+                                    /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondary)*/
                                 }
                                 Spacer()
                                 Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
@@ -464,9 +464,9 @@ struct HoldingDetailView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Cost Basis")
-                                Text("(\(portfolioMainCurrency.displayName))")
+                                /*Text("(\(portfolioMainCurrency.displayName))")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.secondary)*/
                             }
                             Spacer()
                             Text(Formatters.currency(costBasis, symbol: portfolioMainCurrency.displayName))
@@ -476,13 +476,13 @@ struct HoldingDetailView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Unrealized Gain/Loss")
-                                Text("(\(portfolioMainCurrency.displayName))")
+                                /*Text("(\(portfolioMainCurrency.displayName))")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.secondary)*/
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 2) {
-                                Text(Formatters.signedCurrency(unrealizedGainLoss, symbol: portfolioMainCurrency.symbol))
+                                Text(Formatters.signedCurrency(unrealizedGainLoss, symbol: portfolioMainCurrency.displayName))
                                     .fontWeight(.medium)
                                     .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
 
@@ -497,9 +497,9 @@ struct HoldingDetailView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Cumulative Income (Dividends/Interest)")
-                                    Text("(\(portfolioMainCurrency.displayName))")
+                                    /*Text("(\(portfolioMainCurrency.displayName))")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondary)*/
                                 }
                                 Spacer()
                                 Text(Formatters.currency(cumulativeIncome, symbol: portfolioMainCurrency.displayName))
@@ -512,13 +512,13 @@ struct HoldingDetailView: View {
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text("Total Return (with Income)")
-                                    Text("(\(portfolioMainCurrency.displayName))")
+                                    /*Text("(\(portfolioMainCurrency.displayName))")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(.secondary)*/
                                 }
                                 Spacer()
                                 VStack(alignment: .trailing, spacing: 2) {
-                                    Text(Formatters.signedCurrency(incomeAdjustedGain, symbol: portfolioMainCurrency.symbol))
+                                    Text(Formatters.signedCurrency(incomeAdjustedGain, symbol: portfolioMainCurrency.displayName))
                                         .fontWeight(.medium)
                                         .foregroundColor(incomeAdjustedGain >= 0 ? .green : .red)
 
@@ -563,6 +563,13 @@ struct HoldingDetailView: View {
                         Text(error)
                             .foregroundColor(.red)
                     }
+                }
+
+                Section {
+                    Text("Historical costs use portfolio currency while current values use transaction currency.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
                 }
             }
             .navigationTitle(asset.symbol ?? "Asset Details")
