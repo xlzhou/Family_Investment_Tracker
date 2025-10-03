@@ -47,14 +47,10 @@ struct HoldingDetailView: View {
     }
 
     private var totalPaidPremium: Double {
-        guard isInsurance else { return 0 }
-        let currencyService = CurrencyService.shared
-
-        return insurancePaymentDeposits.reduce(0) { runningTotal, txn in
-            let depositCurrency = Currency(rawValue: txn.currency ?? displayCurrency.rawValue) ?? displayCurrency
-            let converted = currencyService.convertAmount(abs(txn.amount), from: depositCurrency, to: displayCurrency)
-            return runningTotal + converted
-        }
+        guard isInsurance, let portfolio = holding.portfolio else { return 0 }
+        let paid = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: viewContext)
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+        return CurrencyService.shared.convertAmount(paid, from: portfolioCurrency, to: displayCurrency)
     }
 
     private var insurancePaymentDeposits: [Transaction] {

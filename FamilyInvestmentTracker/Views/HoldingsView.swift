@@ -242,16 +242,8 @@ private extension HoldingsView {
                 // For insurance: P&L = Cash Value - Actual Paid Premium
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
 
-                let insurancePaymentDeposits = InsurancePaymentService.paymentTransactions(for: asset, in: portfolio, context: viewContext)
-
-                let actualPaidPremium = insurancePaymentDeposits.reduce(0) { total, transaction in
-                    let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
-                    let currencyService = CurrencyService.shared
-                    let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: portfolioCurrency)
-                    return total + converted
-                }
-
-                unrealizedPnL = cashValue - actualPaidPremium
+                let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: viewContext)
+                unrealizedPnL = cashValue - paidPremium
             } else {
                 // For securities: P&L = Current Value - Cost Basis
                 let costBasis = holding.quantity * holding.averageCostBasis

@@ -445,17 +445,8 @@ struct QuickStatsView: View {
                 // For insurance: P&L = Cash Value - Actual Paid Premium
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
 
-                let insurancePaymentDeposits = InsurancePaymentService.paymentTransactions(for: asset, in: portfolio, context: viewContext)
-
-                let actualPaidPremium = insurancePaymentDeposits.reduce(0) { total, transaction in
-                    let depositCurrency = Currency(rawValue: transaction.currency ?? "USD") ?? .usd
-                    let mainCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
-                    let currencyService = CurrencyService.shared
-                    let converted = currencyService.convertAmount(abs(transaction.amount), from: depositCurrency, to: mainCurrency)
-                    return total + converted
-                }
-
-                gainLoss = cashValue - actualPaidPremium
+                let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: viewContext)
+                gainLoss = cashValue - paidPremium
             } else {
                 // For securities: P&L = Current Value - Cost Basis
                 let currentValue = holding.quantity * asset.currentPrice
