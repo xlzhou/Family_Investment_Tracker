@@ -15,6 +15,7 @@ struct PortfolioDashboardView: View {
     @State private var shareSetupError: String?
     @State private var selectedTab = 0
     @State private var showingCashBreakdown = false
+    @State private var showingRealizedPnL = false
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var isRefreshing = false
@@ -65,6 +66,12 @@ struct PortfolioDashboardView: View {
             
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
+                    Button {
+                        showingRealizedPnL = true
+                    } label: {
+                        Image(systemName: "chart.bar.doc.horizontal")
+                    }
+
                     if ownershipService.canSharePortfolio(portfolio) {
                         Button(action: {
                             handleShareButtonTap()
@@ -126,6 +133,10 @@ struct PortfolioDashboardView: View {
         }
         .sheet(isPresented: $showingCashBreakdown) {
             CashBreakdownViewInline(portfolio: portfolio)
+                .environment(\.managedObjectContext, viewContext)
+        }
+        .sheet(isPresented: $showingRealizedPnL) {
+            RealizedPnLView(portfolio: portfolio)
                 .environment(\.managedObjectContext, viewContext)
         }
     }

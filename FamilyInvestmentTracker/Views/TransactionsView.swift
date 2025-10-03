@@ -9,7 +9,6 @@ struct TransactionsView: View {
     @State private var selectedTransaction: Transaction?
     @State private var showingDeleteConfirmation = false
     @State private var transactionToDelete: Transaction?
-    @State private var showingRealizedPnL = false
     @State private var selectedAssetType: AssetType? = nil
     @State private var selectedInstitutionID: NSManagedObjectID? = nil
     @State private var selectedYear: Int? = nil
@@ -167,10 +166,6 @@ struct TransactionsView: View {
                 TransactionDetailView(transaction: txn, portfolio: portfolio)
             }
         }
-        .sheet(isPresented: $showingRealizedPnL) {
-            RealizedPnLView(portfolio: portfolio)
-                .environment(\.managedObjectContext, viewContext)
-        }
         .alert("Delete Transaction", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {
                 transactionToDelete = nil
@@ -184,15 +179,6 @@ struct TransactionsView: View {
         } message: {
             if let transaction = transactionToDelete {
                 Text("Are you sure you want to delete this \(transaction.type?.lowercased() ?? "transaction")? This action cannot be undone.")
-            }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    showingRealizedPnL = true
-                } label: {
-                    Label("Realized P&L", systemImage: "chart.bar.doc.horizontal")
-                }
             }
         }
     }

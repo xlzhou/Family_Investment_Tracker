@@ -453,6 +453,9 @@ struct HoldingRowView: View {
                             .foregroundColor(.secondary)
                     } else {
                         HStack(spacing: 4) {
+                            Text("Unrealized P/L")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                             Text(Formatters.signedCurrency(unrealizedGainLoss, symbol: currencySymbol))
                                 .font(.subheadline)
                                 .foregroundColor(unrealizedGainLoss >= 0 ? .green : .red)
@@ -521,10 +524,10 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Current Price")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                         HStack(spacing: 4) {
+                            Text("Current Price")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                             Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
@@ -557,10 +560,11 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Current Price")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        
                         HStack {
+                            Text("Current Price")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                             Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
                                 .font(.subheadline)
                                 .fontWeight(.medium)
@@ -582,6 +586,18 @@ struct HoldingRowView: View {
                                     .font(.caption2)
                             }
                         }
+                        if holding.totalDividends > 0 {
+                            HStack(){    
+                                Text("Total Dividends/Interest:")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    
+                                Text(Formatters.currency(holding.totalDividends, symbol: portfolioCurrency.displayName))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.blue)
+                            }
+                        }
                     }
                 }
             }
@@ -591,21 +607,7 @@ struct HoldingRowView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
-
-            if holding.totalDividends > 0 {
-                HStack {
-                    Text("Total Dividends:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Text(Formatters.currency(holding.totalDividends, symbol: portfolioCurrency.displayName))
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundColor(.blue)
-                }
-            }
+            
         }
         .padding(.vertical, 8)
         .contentShape(Rectangle())
