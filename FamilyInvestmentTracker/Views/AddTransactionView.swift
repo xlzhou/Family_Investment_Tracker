@@ -46,6 +46,17 @@ struct AddTransactionView: View {
     // Interest-specific selection
     @State private var selectedInterestSource: InterestSourceSelection = .demand
 
+    // Debug: Track transaction asset changes
+    private func debugTransactionAsset() {
+        if let transactionToEdit = transactionToEdit {
+            print("🔍 DEBUG - Transaction asset: \(transactionToEdit.asset != nil ? "present" : "nil")")
+            if let asset = transactionToEdit.asset {
+                print("   - Asset ID: \(asset.objectID)")
+                print("   - Asset symbol: '\(asset.symbol ?? "nil")'")
+            }
+        }
+    }
+
     // Insurance-specific fields
     @State private var insuranceType = "Life Insurance"
     @State private var insuranceSymbol = ""
@@ -79,6 +90,15 @@ struct AddTransactionView: View {
         self.portfolio = portfolio
         self.transactionToEdit = transactionToEdit
         self.originalPaymentInstitutionName = transactionToEdit?.value(forKey: "paymentInstitutionName") as? String
+
+        // Debug: Check transaction asset relationship at initialization
+        if let transactionToEdit = transactionToEdit {
+            print("🔍 AddTransactionView INIT - Transaction asset: \(transactionToEdit.asset != nil ? "present" : "nil")")
+            if let asset = transactionToEdit.asset {
+                print("   - Asset ID: \(asset.objectID)")
+                print("   - Asset symbol: '\(asset.symbol ?? "nil")'")
+            }
+        }
 
         let defaultDate = Date()
         let initialType = transactionToEdit.flatMap { TransactionType(rawValue: $0.type ?? "") } ?? .buy
@@ -342,6 +362,12 @@ struct AddTransactionView: View {
     }
 
     var body: some View {
+        // Debug: Check transaction asset when view appears
+        let _ = {
+            print("🔍 BODY - Checking transaction asset")
+            debugTransactionAsset()
+        }()
+
         NavigationView {
             Form {
                 // Transaction Type
@@ -1019,12 +1045,43 @@ struct AddTransactionView: View {
 
         let transaction = existingTransaction ?? Transaction(context: viewContext)
 
+        // Debug: Check asset relationship before reversing
         if let existingTransaction = existingTransaction {
+            print("🔍 SAVE - Before reverse, existing transaction asset: \(existingTransaction.asset != nil ? "present" : "nil")")
+            if let asset = existingTransaction.asset {
+                print("   - Asset ID: \(asset.objectID)")
+                print("   - Asset symbol: '\(asset.symbol ?? "nil")'")
+            }
+
             let preserveAssetForEdit = (existingTransactionType == .insurance && selectedTransactionType == .insurance)
+
+            // Preserve the existing asset before reversing
+            let existingAsset = existingTransaction.asset
+
+            // Debug: Check transaction object state before reverse
+            print("🔍 SAVE - Before reverse - transaction objectID: \(existingTransaction.objectID)")
+            print("🔍 SAVE - Before reverse - transaction managedObjectContext: \(existingTransaction.managedObjectContext != nil ? "present" : "nil")")
+
             TransactionImpactService.reverse(existingTransaction,
                                              in: portfolio,
                                              context: viewContext,
                                              preserveAsset: preserveAssetForEdit)
+
+            // Restore the asset relationship after reversing
+            if let existingAsset = existingAsset {
+                existingTransaction.asset = existingAsset
+            }
+
+            // Debug: Check asset relationship after reversing
+            print("🔍 SAVE - After reverse, existing transaction asset: \(existingTransaction.asset != nil ? "present" : "nil")")
+            if let asset = existingTransaction.asset {
+                print("   - Asset ID: \(asset.objectID)")
+                print("   - Asset symbol: '\(asset.symbol ?? "nil")'")
+            }
+
+            // Debug: Check transaction object state after reverse
+            print("🔍 SAVE - After reverse - transaction objectID: \(existingTransaction.objectID)")
+            print("🔍 SAVE - After reverse - transaction managedObjectContext: \(existingTransaction.managedObjectContext != nil ? "present" : "nil")")
         } else {
             transaction.id = UUID()
             transaction.createdAt = Date()
@@ -1089,7 +1146,6 @@ struct AddTransactionView: View {
             transaction.setValue(0.0, forKey: "paymentDeductedAmount")
         }
         transaction.realizedGainAmount = 0
-        transaction.asset = nil
 
         if isAmountOnly {
             if selectedTransactionType == .insurance {
@@ -1243,6 +1299,13 @@ struct AddTransactionView: View {
             if selectedTransactionType == .sell, let preselectedSellAsset {
                 asset = preselectedSellAsset
             } else {
+                // Debug: Check transaction state before findOrCreateAsset
+                print("🔍 SAVE - Before findOrCreateAsset - transaction objectID: \(transaction.objectID)")
+                print("🔍 SAVE - Before findOrCreateAsset - transaction asset: \(transaction.asset != nil ? "present" : "nil")")
+                if let existingAsset = transaction.asset {
+                    print("   - Asset ID: \(existingAsset.objectID)")
+                    print("   - Asset symbol: '\(existingAsset.symbol ?? "nil")'")
+                }
                 asset = findOrCreateAsset()
             }
             transaction.asset = asset
@@ -2228,17 +2291,62 @@ struct AddTransactionView: View {
     }
 
     private func findOrCreateAsset() -> Asset {
+        print("🔍 findOrCreateAsset called:")
+        print("   - transactionToEdit: \(transactionToEdit != nil ? "present" : "nil")")
+        print("   - assetSymbol: '\(assetSymbol)'")
+        print("   - assetName: '\(assetName)'")
+        print("   - selectedAssetType: \(selectedAssetType.rawValue)")
+
+        // First, check if we're editing an existing transaction with an existing asset
+        if let transactionToEdit = transactionToEdit {
+            print("📝 EDITING EXISTING TRANSACTION DETECTED:")
+            print("   - Transaction ID: \(transactionToEdit.objectID)")
+            print("   - Transaction type: \(transactionToEdit.type ?? "nil")")
+            print("   - Transaction asset: \(transactionToEdit.asset != nil ? "present" : "nil")")
+
+            if let existingAsset = transactionToEdit.asset {
+                print("📝 EDITING WITH EXISTING ASSET:")
+                print("   - Existing asset ID: \(existingAsset.objectID)")
+                print("   - Existing asset symbol: '\(existingAsset.symbol ?? "nil")'")
+                print("   - Existing asset name: '\(existingAsset.name ?? "nil")'")
+                print("   - New symbol: '\(assetSymbol.uppercased())'")
+                print("   - New name: '\(assetName)'")
+
+                // We're editing an existing transaction - update the existing asset
+                existingAsset.assetType = selectedAssetType.rawValue
+                existingAsset.symbol = assetSymbol.uppercased()
+                if !assetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    existingAsset.name = assetName
+                }
+                print("✅ UPDATED existing asset: \(existingAsset.objectID)")
+                return existingAsset
+            } else {
+                print("⚠️ EDITING TRANSACTION BUT NO ASSET FOUND - checking for existing asset by symbol")
+            }
+        }
+
+        // For new transactions, check if an asset with this symbol already exists
         let request: NSFetchRequest<Asset> = Asset.fetchRequest()
         request.predicate = NSPredicate(format: "symbol == %@", assetSymbol.uppercased())
-        
+
         if let existingAsset = try? viewContext.fetch(request).first {
+            print("📝 FOUND EXISTING ASSET:")
+            print("   - Existing asset ID: \(existingAsset.objectID)")
+            print("   - Existing asset symbol: '\(existingAsset.symbol ?? "nil")'")
+            print("   - Existing asset name: '\(existingAsset.name ?? "nil")'")
+
             existingAsset.assetType = selectedAssetType.rawValue
             if !assetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 existingAsset.name = assetName
             }
             existingAsset.symbol = assetSymbol.uppercased()
+            print("✅ UPDATED existing asset: \(existingAsset.objectID)")
             return existingAsset
         } else {
+            print("🆕 CREATING NEW ASSET:")
+            print("   - Symbol: '\(assetSymbol.uppercased())'")
+            print("   - Name: '\(assetName.isEmpty ? assetSymbol.uppercased() : assetName)'")
+
             let newAsset = Asset(context: viewContext)
             newAsset.id = UUID()
             newAsset.symbol = assetSymbol.uppercased()
@@ -2249,6 +2357,7 @@ struct AddTransactionView: View {
             newAsset.currentPrice = convertedPrice
             newAsset.lastPriceUpdate = Date()
             newAsset.setValue(false, forKey: "autoFetchPriceEnabled")
+            print("✅ CREATED new asset: \(newAsset.objectID)")
             return newAsset
         }
     }
