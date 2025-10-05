@@ -403,16 +403,6 @@ struct HoldingRowView: View {
         structuredProductTransactions.first?.maturityDate
     }
 
-    private var structuredProductInvestmentAmountValue: Double {
-        if let amount = structuredProductTransactions.first?.amount, amount > 0 {
-            return amount
-        }
-        if costBasis > 0 {
-            return costBasis
-        }
-        return currentValue
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -502,12 +492,19 @@ struct HoldingRowView: View {
                     }
                 } else if isStructuredProduct {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Investment Amount")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(Formatters.currency(structuredProductInvestmentAmountValue, symbol: portfolioCurrency.displayName))
-                            .font(.subheadline)
-                            .fontWeight(.medium)
+                        HStack(spacing: 2) {
+                            Text("Quantity")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        if isStructuredProduct, !structuredProductLinkedAssetsText.isEmpty {
+                            Text("Linked Assets: \(structuredProductLinkedAssetsText)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+            }
                     }
 
                     Spacer()
@@ -535,10 +532,22 @@ struct HoldingRowView: View {
                                 .foregroundColor(.blue)
                                 .font(.caption2)
                         }
+                        if holding.totalDividends >= 0 {
+                            HStack {
+                                Text("Total Dividends/Interest:")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+
+                                Text(Formatters.currency(holding.totalDividends, symbol: portfolioCurrency.displayName))
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.blue)
+                            }
+                        }
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Shares")
+                        Text("Quantity")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
@@ -586,7 +595,7 @@ struct HoldingRowView: View {
                                     .font(.caption2)
                             }
                         }
-                        if holding.totalDividends > 0 {
+                        if holding.totalDividends >= 0 {
                             HStack(){    
                                 Text("Total Dividends/Interest:")
                                     .font(.caption)
@@ -602,11 +611,11 @@ struct HoldingRowView: View {
                 }
             }
 
-            if isStructuredProduct, !structuredProductLinkedAssetsText.isEmpty {
+            /*if isStructuredProduct, !structuredProductLinkedAssetsText.isEmpty {
                 Text("Linked Assets: \(structuredProductLinkedAssetsText)")
                     .font(.caption)
                     .foregroundColor(.secondary)
-            }
+            }*/
             
         }
         .padding(.vertical, 8)
