@@ -86,7 +86,7 @@ struct TransactionDetailView: View {
         switch transactionTypeEnum {
         case .some(.buy):
             return transaction.amount + transaction.fees + transaction.tax
-        case .some(.sell), .some(.deposit), .some(.dividend), .some(.interest), .some(.insurance):
+        case .some(.sell), .some(.deposit), .some(.depositWithdrawal), .some(.dividend), .some(.interest), .some(.insurance):
             return transaction.amount - transaction.fees - transaction.tax
         case .none:
             return transaction.amount

@@ -5,11 +5,18 @@ struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var authManager = AuthenticationManager()
     @Environment(\.scenePhase) private var scenePhase
-    
+
+    @State private var showingMigration = false
+    @State private var migrationChecked = false
+
     var body: some View {
         Group {
             if authManager.isAuthenticated {
-                PortfolioListView()
+                if migrationChecked && showingMigration {
+                    FixedDepositMigrationView()
+                } else {
+                    PortfolioListView()
+                }
             } else {
                 AuthenticationView()
             }
@@ -30,6 +37,19 @@ struct ContentView: View {
             @unknown default:
                 break
             }
+        }
+        .onAppear {
+            checkMigrationStatus()
+        }
+    }
+
+    private func checkMigrationStatus() {
+        guard !migrationChecked else { return }
+
+        DispatchQueue.main.async {
+            let shouldShowMigration = FixedDepositMigrationService.shared.shouldShowMigrationPrompt(context: viewContext)
+            showingMigration = shouldShowMigration
+            migrationChecked = true
         }
     }
 }

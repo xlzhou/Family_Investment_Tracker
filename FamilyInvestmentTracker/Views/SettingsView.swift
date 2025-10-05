@@ -24,6 +24,7 @@ struct SettingsView: View {
     @StateObject private var currencyService = CurrencyService.shared
     @State private var showAllExchangeRates = false
     @State private var showingChangePassword = false
+    @State private var showingMigration = false
     
     var body: some View {
         NavigationView {
@@ -259,6 +260,23 @@ struct SettingsView: View {
                     }
                     .disabled(isCreatingBackup || isRestoring)
 
+                    Button(action: {
+                        FixedDepositMigrationService.shared.resetMigrationStatus()
+                        showingMigration = true
+                    }) {
+                        HStack {
+                            Image(systemName: "wand.and.stars")
+                                .foregroundColor(.purple)
+                            Text("Start Fixed Deposit Migration")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .disabled(isCreatingBackup || isRestoring)
+
                     if let message = restoreMessage {
                         Text(message)
                             .font(.caption)
@@ -364,6 +382,9 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingChangePassword) {
             ChangePasswordView()
+        }
+        .sheet(isPresented: $showingMigration) {
+            FixedDepositMigrationView()
         }
         .fileImporter(isPresented: $showingRestoreImporter, allowedContentTypes: [.json]) { result in
             switch result {

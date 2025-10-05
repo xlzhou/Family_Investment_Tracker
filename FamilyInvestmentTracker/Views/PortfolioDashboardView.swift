@@ -16,6 +16,7 @@ struct PortfolioDashboardView: View {
     @State private var selectedTab = 0
     @State private var showingCashBreakdown = false
     @State private var showingRealizedPnL = false
+    @State private var showingFixedDepositManagement = false
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var isRefreshing = false
@@ -70,6 +71,12 @@ struct PortfolioDashboardView: View {
                         showingRealizedPnL = true
                     } label: {
                         Image(systemName: "chart.bar.doc.horizontal")
+                    }
+
+                    Button {
+                        showingFixedDepositManagement = true
+                    } label: {
+                        Image(systemName: "building.columns")
                     }
 
                     if ownershipService.canSharePortfolio(portfolio) {
@@ -137,6 +144,10 @@ struct PortfolioDashboardView: View {
         }
         .sheet(isPresented: $showingRealizedPnL) {
             RealizedPnLView(portfolio: portfolio)
+                .environment(\.managedObjectContext, viewContext)
+        }
+        .sheet(isPresented: $showingFixedDepositManagement) {
+            FixedDepositManagementView(portfolio: portfolio)
                 .environment(\.managedObjectContext, viewContext)
         }
     }
@@ -236,6 +247,10 @@ struct PortfolioDashboardView: View {
             let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
             let totalHoldingsValue = holdings.reduce(0.0) { sum, holding in
                 guard let asset = holding.asset else { return sum }
+                // Exclude deposit assets from holdings value calculation
+                // Deposit assets are already accounted for in cash balance
+                guard asset.assetType != AssetType.deposit.rawValue else { return sum }
+
                 if asset.assetType == AssetType.insurance.rawValue {
                     let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                     return sum + cashValue
@@ -371,28 +386,28 @@ struct PortfolioHeaderView: View {
     }
 
     private var totalCashFromInstitutions: Double {
-        // Get all institutions that have transactions in this portfolio
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-        let institutionSet = Set(transactions.compactMap { $0.institution })
-
-        return institutionSet.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
+        return portfolio.totalCashBalance
     }
 
     private var totalValueInMainCurrency: Double {
         // Calculate total value by converting all holdings to main currency
         let holdingsTotal = portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0.0) { result, holding in
             guard let asset = holding.asset else { return result }
+            // Exclude deposit assets from holdings value calculation
+            // Deposit assets are already accounted for in cash balance
+            guard asset.assetType != AssetType.deposit.rawValue else { return result }
+
             if asset.assetType == AssetType.insurance.rawValue {
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                 return result + cashValue
             }
             let holdingValue = holding.quantity * asset.currentPrice
-            
+
             // For now, assume all assets are in the main currency
             // In a real app, you'd need to track the currency for each asset
             return result + holdingValue
         } ?? 0.0
-        
+
         return holdingsTotal + totalCashFromInstitutions
     }
     
@@ -499,6 +514,10 @@ struct QuickStatsView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         return holdings.reduce(0.0) { sum, holding in
             guard let asset = holding.asset else { return sum }
+            // Exclude deposit assets from holdings value calculation
+            // Deposit assets are already accounted for in cash balance
+            guard asset.assetType != AssetType.deposit.rawValue else { return sum }
+
             if asset.assetType == AssetType.insurance.rawValue {
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                 return sum + cashValue
@@ -511,19 +530,25 @@ struct QuickStatsView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         return holdings.reduce(0.0) { sum, holding in
             guard let asset = holding.asset else { return sum }
+            // Exclude insurance and deposit assets from securities calculation
             guard asset.assetType != AssetType.insurance.rawValue else { return sum }
+            guard asset.assetType != AssetType.deposit.rawValue else { return sum }
             return sum + (holding.quantity * asset.currentPrice)
         }
     }
 
     private var totalCashFromInstitutions: Double {
-        // Get all institutions that have transactions in this portfolio
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-        let institutionSet = Set(transactions.compactMap { $0.institution })
-
-        return institutionSet.reduce(0) { $0 + $1.getCashBalance(for: portfolio) }
+        return portfolio.totalCashBalance
     }
-    
+
+    private var availableCashBalance: Double {
+        return portfolio.availableCashBalance
+    }
+
+    private var fixedDepositBalance: Double {
+        return portfolio.fixedDepositBalance
+    }
+
     var body: some View {
         HStack(spacing: 15) {
             StatCardView(
@@ -537,10 +562,10 @@ struct QuickStatsView: View {
                 showingCashBreakdown = true
             }) {
                 StatCardView(
-                    title: "Cash",
+                    title: "Total Cash",
                     value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
-                    color: totalCashFromInstitutions >= 0 ? .gray : .red,
-                    subtitle: nil
+                    color: totalCashFromInstitutions >= 0 ? .blue : .red,
+                    subtitle: "Available: \(currencyService.formatAmount(availableCashBalance, in: mainCurrency))\nFixed Deposits: \(currencyService.formatAmount(fixedDepositBalance, in: mainCurrency))"
                 )
             }
             .buttonStyle(PlainButtonStyle())

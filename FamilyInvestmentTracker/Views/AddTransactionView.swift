@@ -835,6 +835,8 @@ struct AddTransactionView: View {
             return !assetSymbol.isEmpty && quantity > 0 && price > 0 && hasValidInstitution
         case .deposit:
             return amount != 0 && hasValidInstitution
+        case .depositWithdrawal:
+            return amount > 0 && hasValidInstitution
         case .insurance:
             let hasSymbol = !insuranceSymbol.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             return cashValue > 0 && hasValidInstitution && hasSymbol
@@ -2452,7 +2454,7 @@ struct AddTransactionView: View {
             
         case .dividend, .interest:
             holding.totalDividends += amountInPortfolioCurrency
-        case .deposit, .insurance:
+        case .deposit, .depositWithdrawal, .insurance:
             // No holding changes for cash movements
             break
         }

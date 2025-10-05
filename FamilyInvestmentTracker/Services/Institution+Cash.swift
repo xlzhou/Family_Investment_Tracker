@@ -24,6 +24,35 @@ extension Institution {
         }
     }
 
+    // MARK: - Enhanced Cash Balance Methods
+
+    /// Total cash balance including both available cash and fixed deposits
+    func getTotalCashBalance(for portfolio: Portfolio) -> Double {
+        return CashBalanceService.shared.getTotalCashBalance(for: portfolio, institution: self)
+    }
+
+    /// Available cash balance (demand deposits + savings accounts)
+    func getAvailableCashBalance(for portfolio: Portfolio) -> Double {
+        return CashBalanceService.shared.getAvailableCashBalance(for: portfolio, institution: self)
+    }
+
+    /// Fixed deposit balance (locked funds)
+    func getFixedDepositBalance(for portfolio: Portfolio) -> Double {
+        return CashBalanceService.shared.getFixedDepositBalance(for: portfolio, institution: self)
+    }
+
+    /// Check if there's sufficient available cash for a transaction
+    func hasSufficientAvailableCash(for portfolio: Portfolio, amount: Double, currency: Currency) -> Bool {
+        let availableBalance = getAvailableCashBalance(for: portfolio)
+        return availableBalance >= amount
+    }
+
+    /// Check if there's sufficient total cash (including fixed deposits) for a transaction
+    func hasSufficientTotalCash(for portfolio: Portfolio, amount: Double, currency: Currency) -> Bool {
+        let totalBalance = getTotalCashBalance(for: portfolio)
+        return totalBalance >= amount
+    }
+
     func setCashBalance(for portfolio: Portfolio, currency: Currency, amount: Double) {
         guard let context = managedObjectContext else { return }
 

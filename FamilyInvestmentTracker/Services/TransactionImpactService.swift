@@ -21,7 +21,7 @@ struct TransactionImpactService {
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
         let institution = transaction.value(forKey: "institution") as? Institution
-        let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .insurance
+        let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .insurance || transactionType == .depositWithdrawal
         let companionDeposit = CashDisciplineService.findCompanionDeposit(for: transaction, in: context)
         if let companionDeposit {
             reverse(companionDeposit, in: portfolio, context: context)
@@ -53,6 +53,30 @@ struct TransactionImpactService {
                    let holding = findHolding(for: asset, portfolio: portfolio, context: context) {
                     let dividendValue = currencyService.convertAmount(transaction.amount, from: transactionCurrency, to: portfolioCurrency)
                     holding.totalDividends = max(0, holding.totalDividends - dividendValue)
+                    holding.updatedAt = Date()
+                }
+            case .depositWithdrawal:
+                // For deposit withdrawals, we need to handle both the cash movement and the holding adjustment
+                let originalNetCash = transaction.amount - transaction.fees - transaction.tax
+                let netCash = currencyService.convertAmount(originalNetCash, from: transactionCurrency, to: portfolioCurrency)
+
+                // Add cash back to available balance
+                portfolio.addToCash(netCash)
+                if let institution = institution {
+                    institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: originalNetCash)
+                }
+
+                // If this is linked to a fixed deposit, adjust the holding
+                if let asset = transaction.asset,
+                   let holding = findHolding(for: asset, portfolio: portfolio, context: context),
+                   let parentAsset = transaction.parentDepositAsset {
+
+                    // For fixed deposit withdrawals, we need to reduce the holding quantity
+                    let withdrawalAmount = transaction.amount
+                    let currentPrice = parentAsset.currentPrice
+                    let quantityToRemove = withdrawalAmount / currentPrice
+
+                    holding.quantity = max(0, holding.quantity - quantityToRemove)
                     holding.updatedAt = Date()
                 }
             default:

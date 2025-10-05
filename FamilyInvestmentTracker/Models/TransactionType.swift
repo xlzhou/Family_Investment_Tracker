@@ -7,9 +7,13 @@ enum TransactionType: String, CaseIterable {
     case interest = "Interest"
     case deposit = "Deposit"
     case insurance = "Insurance"
-    
+    case depositWithdrawal = "DepositWithdrawal"
+
     var displayName: String {
-        return self.rawValue
+        switch self {
+        case .depositWithdrawal: return "Deposit Withdrawal"
+        default: return self.rawValue
+        }
     }
 }
 

@@ -262,6 +262,9 @@ struct BackupTransaction: Codable {
     let interestRate: Double
     let linkedInsuranceAssetID: UUID?
     let linkedTransactionID: UUID?
+    let parentDepositAssetID: UUID?
+    let accruedInterest: Double
+    let institutionPenalty: Double
 
     init(id: UUID,
          portfolioID: UUID?,
@@ -287,7 +290,10 @@ struct BackupTransaction: Codable {
          autoFetchPrice: Bool,
          interestRate: Double,
          linkedInsuranceAssetID: UUID?,
-         linkedTransactionID: UUID?) {
+         linkedTransactionID: UUID?,
+         parentDepositAssetID: UUID?,
+         accruedInterest: Double,
+         institutionPenalty: Double) {
         self.id = id
         self.portfolioID = portfolioID
         self.assetID = assetID
@@ -313,10 +319,13 @@ struct BackupTransaction: Codable {
         self.interestRate = interestRate
         self.linkedInsuranceAssetID = linkedInsuranceAssetID
         self.linkedTransactionID = linkedTransactionID
+        self.parentDepositAssetID = parentDepositAssetID
+        self.accruedInterest = accruedInterest
+        self.institutionPenalty = institutionPenalty
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, interestRate, linkedInsuranceAssetID, linkedTransactionID
+        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, interestRate, linkedInsuranceAssetID, linkedTransactionID, parentDepositAssetID, accruedInterest, institutionPenalty
     }
 
     init(from decoder: Decoder) throws {
@@ -346,6 +355,9 @@ struct BackupTransaction: Codable {
         interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate) ?? 0
         linkedInsuranceAssetID = try container.decodeIfPresent(UUID.self, forKey: .linkedInsuranceAssetID)
         linkedTransactionID = try container.decodeIfPresent(UUID.self, forKey: .linkedTransactionID)
+        parentDepositAssetID = try container.decodeIfPresent(UUID.self, forKey: .parentDepositAssetID)
+        accruedInterest = try container.decodeIfPresent(Double.self, forKey: .accruedInterest) ?? 0
+        institutionPenalty = try container.decodeIfPresent(Double.self, forKey: .institutionPenalty) ?? 0
     }
 
     func encode(to encoder: Encoder) throws {
@@ -375,6 +387,9 @@ struct BackupTransaction: Codable {
         try container.encode(interestRate, forKey: .interestRate)
         try container.encodeIfPresent(linkedInsuranceAssetID, forKey: .linkedInsuranceAssetID)
         try container.encodeIfPresent(linkedTransactionID, forKey: .linkedTransactionID)
+        try container.encodeIfPresent(parentDepositAssetID, forKey: .parentDepositAssetID)
+        try container.encode(accruedInterest, forKey: .accruedInterest)
+        try container.encode(institutionPenalty, forKey: .institutionPenalty)
     }
 }
 
@@ -549,7 +564,10 @@ final class BackupService {
                         autoFetchPrice: transaction.autoFetchPrice,
                         interestRate: (transaction.value(forKey: "interestRate") as? Double) ?? 0,
                         linkedInsuranceAssetID: transaction.value(forKey: "linkedInsuranceAssetID") as? UUID,
-                        linkedTransactionID: transaction.value(forKey: "linkedTransactionID") as? UUID
+                        linkedTransactionID: transaction.value(forKey: "linkedTransactionID") as? UUID,
+                        parentDepositAssetID: transaction.value(forKey: "parentDepositAssetID") as? UUID,
+                        accruedInterest: (transaction.value(forKey: "accruedInterest") as? Double) ?? 0,
+                        institutionPenalty: (transaction.value(forKey: "institutionPenalty") as? Double) ?? 0
                     )
                 },
                 institutions: institutions.map { institution in

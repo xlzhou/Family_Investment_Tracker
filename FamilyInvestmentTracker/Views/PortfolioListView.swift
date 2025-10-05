@@ -116,13 +116,17 @@ struct PortfolioListView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let holdingsValue = holdings.reduce(0.0) { sum, holding in
             guard let asset = holding.asset else { return sum }
+            // Exclude deposit assets from holdings value calculation
+            // Deposit assets are already accounted for in cash balance
+            guard asset.assetType != AssetType.deposit.rawValue else { return sum }
+
             if asset.assetType == AssetType.insurance.rawValue {
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                 return sum + cashValue
             }
             return sum + (holding.quantity * asset.currentPrice)
         }
-        return holdingsValue + portfolio.resolvedCashBalance()
+        return holdingsValue + portfolio.totalCashBalance
     }
 
     private func ensureDashboardCurrencyDefault() {
@@ -186,13 +190,17 @@ struct PortfolioCardView: View {
         let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
         let holdingsValue = holdings.reduce(0.0) { sum, holding in
             guard let asset = holding.asset else { return sum }
+            // Exclude deposit assets from holdings value calculation
+            // Deposit assets are already accounted for in cash balance
+            guard asset.assetType != AssetType.deposit.rawValue else { return sum }
+
             if asset.assetType == AssetType.insurance.rawValue {
                 let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
                 return sum + cashValue
             }
             return sum + (holding.quantity * asset.currentPrice)
         }
-        return holdingsValue + portfolio.resolvedCashBalance()
+        return holdingsValue + portfolio.totalCashBalance
     }
     
     var body: some View {

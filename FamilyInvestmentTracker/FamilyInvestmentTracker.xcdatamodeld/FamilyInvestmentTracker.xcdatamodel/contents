@@ -11,6 +11,9 @@
         <attribute name="linkedAssets" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="symbol" optional="YES" attributeType="String"/>
+        <attribute name="depositSubtype" optional="YES" attributeType="String" defaultValueString="demand"/>
+        <attribute name="maturityDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="allowEarlyWithdrawal" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <relationship name="holdings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Holding" inverseName="asset" inverseEntity="Holding"/>
         <relationship name="institutionAvailabilities" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="InstitutionAssetAvailability" inverseName="asset" inverseEntity="InstitutionAssetAvailability"/>
         <relationship name="insurance" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Insurance" inverseName="asset" inverseEntity="Insurance"/>
@@ -123,6 +126,9 @@
         <attribute name="type" optional="YES" attributeType="String"/>
         <attribute name="linkedInsuranceAssetID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="linkedTransactionID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="parentDepositAssetID" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="accruedInterest" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="institutionPenalty" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="asset" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Asset" inverseName="transactions" inverseEntity="Asset"/>
         <relationship name="institution" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Institution" inverseName="transactions" inverseEntity="Institution"/>
         <relationship name="portfolio" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Portfolio" inverseName="transactions" inverseEntity="Portfolio"/>
