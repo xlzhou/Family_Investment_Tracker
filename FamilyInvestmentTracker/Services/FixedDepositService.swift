@@ -38,21 +38,11 @@ final class FixedDepositService {
             asset.maturityDate = maturityDate
         }
 
-        // Create holding for the fixed deposit
-        let holding = Holding(context: context)
-        holding.id = UUID()
-        holding.quantity = 1
-        holding.averageCostBasis = amount
-        holding.totalDividends = 0
-        holding.realizedGainLoss = 0
-        holding.updatedAt = Date()
-        holding.asset = asset
-        holding.portfolio = portfolio
-        holding.institution = institution
+        // Fixed deposits should NOT have holdings - they are cash assets, not investment holdings
+        // They are tracked through cash balance, not through the holdings system
 
         // Ensure identifiers are set
         asset.ensureIdentifier()
-        holding.ensureIdentifier()
 
         return asset
     }
@@ -83,12 +73,10 @@ final class FixedDepositService {
             context: context
         )
 
-        // Update the holding
-        if let holding = findHolding(for: fixedDeposit, portfolio: portfolio, context: context) {
-            let withdrawalPercentage = amount / fixedDeposit.currentPrice
-            holding.quantity = max(0, holding.quantity - withdrawalPercentage)
-            holding.updatedAt = Date()
-        }
+        // Update the fixed deposit value (fixed deposits don't use holdings)
+        // For partial withdrawal, reduce the currentPrice (which represents the deposit amount)
+        fixedDeposit.currentPrice = max(0, fixedDeposit.currentPrice - amount)
+        fixedDeposit.lastPriceUpdate = Date()
 
         // Add cash to available balance
         let netAmount = amount - institutionPenalty
@@ -110,11 +98,8 @@ final class FixedDepositService {
         currency: Currency,
         context: NSManagedObjectContext
     ) -> Transaction {
-        guard let holding = findHolding(for: fixedDeposit, portfolio: portfolio, context: context) else {
-            fatalError("No holding found for fixed deposit")
-        }
-
-        let amount = holding.quantity * fixedDeposit.currentPrice
+        // Fixed deposits don't use holdings - the currentPrice represents the deposit amount
+        let amount = fixedDeposit.currentPrice
 
         // Create the withdrawal transaction
         let transaction = Transaction.createMaturityWithdrawal(
@@ -127,9 +112,9 @@ final class FixedDepositService {
             context: context
         )
 
-        // Clear the holding
-        holding.quantity = 0
-        holding.updatedAt = Date()
+        // Clear the fixed deposit value (no holdings to clear)
+        fixedDeposit.currentPrice = 0
+        fixedDeposit.lastPriceUpdate = Date()
 
         // Add cash to available balance
         CashBalanceService.shared.addToAvailableCashBalance(
@@ -199,15 +184,6 @@ final class FixedDepositService {
         return fixedDeposit.daysUntilMaturity
     }
 
-    // MARK: - Helper Methods
-
-    private func findHolding(for asset: Asset, portfolio: Portfolio, context: NSManagedObjectContext) -> Holding? {
-        let request: NSFetchRequest<Holding> = Holding.fetchRequest()
-        request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
-        request.fetchLimit = 1
-        return try? context.fetch(request).first
-    }
-
     // MARK: - Portfolio Fixed Deposit Management
 
     /// Get all fixed deposits for a portfolio
@@ -217,10 +193,10 @@ final class FixedDepositService {
 
         guard let assets = try? context.fetch(request) else { return [] }
 
-        // Filter to only include assets that have holdings in this portfolio
+        // Filter fixed deposits that belong to this portfolio (through transactions, not holdings)
         return assets.filter { asset in
-            let holdings = (asset.holdings?.allObjects as? [Holding]) ?? []
-            return holdings.contains { $0.portfolio == portfolio && $0.quantity > 0 }
+            let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+            return transactions.contains { $0.portfolio == portfolio }
         }
     }
 

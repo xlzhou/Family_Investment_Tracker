@@ -38,7 +38,7 @@ struct AddFixedDepositView: View {
             Form {
                 Section(header: Text("Fixed Deposit Details")) {
                     TextField("Deposit Name", text: $depositName)
-                    TextField("Symbol (optional)", text: $symbol)
+                    TextField("Symbol (auto-generated)", text: $symbol)
 
                     HStack {
                         Text("Amount")
@@ -134,6 +134,15 @@ struct AddFixedDepositView: View {
                 loadExistingInstitutions()
                 setupDefaults()
             }
+            .onChange(of: selectedInstitution) { _, newInstitution in
+                updateSymbolSuggestion()
+            }
+            .onChange(of: termMonths) { _, newTerm in
+                updateSymbolSuggestion()
+            }
+            .onChange(of: selectedCurrency) { _, newCurrency in
+                updateSymbolSuggestion()
+            }
         }
     }
 
@@ -149,17 +158,67 @@ struct AddFixedDepositView: View {
     private func setupDefaults() {
         selectedCurrency = mainCurrency
 
-        // Auto-generate name based on term
+        // Auto-generate name with term, currency, and institution
         if depositName.isEmpty {
-            let termString: String
-            if termMonths >= 12 {
-                let years = termMonths / 12
-                termString = "\(years)-Year"
-            } else {
-                termString = "\(termMonths)-Month"
-            }
-            depositName = "\(termString) Fixed Deposit"
+            updateDepositName()
         }
+    }
+
+    private func updateDepositName() {
+        let termString: String
+        if termMonths >= 12 {
+            let years = termMonths / 12
+            termString = "\(years)-Year"
+        } else {
+            termString = "\(termMonths)-Month"
+        }
+
+        let currencyString = selectedCurrency.rawValue
+        let currencySymbol = selectedCurrency.symbol
+
+        if let institution = selectedInstitution {
+            depositName = "\(termString) \(currencyString) \(currencySymbol) Fixed Deposit - \(institution.name ?? "Bank")"
+        } else {
+            depositName = "\(termString) \(currencyString) \(currencySymbol) Fixed Deposit"
+        }
+    }
+
+    private func updateSymbolSuggestion() {
+        // Auto-generate symbol using standardized format: "short form term"-"currency"-"FD"-"short form institution"
+        if symbol.isEmpty, let institution = selectedInstitution {
+            let termShortForm = getTermShortForm(termMonths)
+            let institutionShortForm = getInstitutionShortForm(institution)
+            symbol = "\(termShortForm)-\(selectedCurrency.rawValue)-FD-\(institutionShortForm)"
+        }
+
+        // Update name with term, currency, and institution
+        updateDepositName()
+    }
+
+    /// Get short form for term (e.g., "1Y" for 12 months, "3M" for 3 months)
+    private func getTermShortForm(_ termMonths: Int) -> String {
+        if termMonths >= 12 {
+            let years = termMonths / 12
+            let remainingMonths = termMonths % 12
+            if remainingMonths > 0 {
+                return "\(years)Y\(remainingMonths)M"
+            } else {
+                return "\(years)Y"
+            }
+        } else {
+            return "\(termMonths)M"
+        }
+    }
+
+    /// Get short form for institution name (first 3 characters, uppercase)
+    private func getInstitutionShortForm(_ institution: Institution) -> String {
+        guard let name = institution.name else { return "BNK" }
+
+        // Remove spaces and special characters, take first 3 characters
+        let cleanedName = name.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression)
+        let shortForm = String(cleanedName.prefix(3)).uppercased()
+
+        return shortForm.isEmpty ? "BNK" : shortForm
     }
 
     private func loadExistingInstitutions() {
@@ -183,6 +242,18 @@ struct AddFixedDepositView: View {
         let interestRateValue = Double(interestRate) ?? 0.0
 
         do {
+            // Check cash discipline enforcement
+            if portfolio.enforcesCashDisciplineEnabled {
+                // Check if there's sufficient available cash
+                let availableCash = portfolio.availableCashBalance
+                let availableCashInCurrency = CashBalanceService.shared.getAvailableCashBalance(for: portfolio, currency: selectedCurrency)
+
+                if availableCashInCurrency < amountValue {
+                    errorMessage = "Insufficient available cash. Available: \(CurrencyService.shared.formatAmount(availableCashInCurrency, in: selectedCurrency)), Required: \(CurrencyService.shared.formatAmount(amountValue, in: selectedCurrency))"
+                    return
+                }
+            }
+
             let fixedDeposit = FixedDepositService.shared.createFixedDeposit(
                 name: depositName,
                 symbol: symbol.isEmpty ? nil : symbol,
@@ -196,7 +267,7 @@ struct AddFixedDepositView: View {
                 context: viewContext
             )
 
-            // Create the initial deposit transaction
+            // Create the initial deposit transaction for the fixed deposit
             let transaction = Transaction(context: viewContext)
             transaction.id = UUID()
             transaction.createdAt = Date()
@@ -215,6 +286,36 @@ struct AddFixedDepositView: View {
             transaction.autoFetchPrice = false
             transaction.notes = "Initial deposit for \(depositName)"
             transaction.ensureIdentifiers()
+
+            // If cash discipline is enabled, create negative demand deposit transaction to reduce available cash
+            if portfolio.enforcesCashDisciplineEnabled {
+                let negativeTransaction = Transaction(context: viewContext)
+                negativeTransaction.id = UUID()
+                negativeTransaction.createdAt = Date()
+                negativeTransaction.transactionDate = Date()
+                negativeTransaction.type = TransactionType.deposit.rawValue
+                negativeTransaction.amount = -amountValue
+                negativeTransaction.quantity = 1
+                negativeTransaction.price = amountValue
+                negativeTransaction.fees = 0
+                negativeTransaction.tax = 0
+                negativeTransaction.currency = selectedCurrency.rawValue
+                negativeTransaction.portfolio = portfolio
+                negativeTransaction.institution = institution
+                negativeTransaction.asset = nil // This is a demand deposit transaction
+                negativeTransaction.tradingInstitution = institution.name
+                negativeTransaction.autoFetchPrice = false
+                negativeTransaction.notes = "Transfer to fixed deposit: \(depositName)"
+                negativeTransaction.ensureIdentifiers()
+
+                // Reduce available cash balance
+                CashBalanceService.shared.addToAvailableCashBalance(
+                    for: portfolio,
+                    institution: institution,
+                    currency: selectedCurrency,
+                    delta: -amountValue
+                )
+            }
 
             try viewContext.save()
             dismiss()

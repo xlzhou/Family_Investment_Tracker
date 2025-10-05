@@ -142,12 +142,13 @@ final class CashBalanceService {
         guard let fixedDeposits = try? context.fetch(request) else { return [:] }
 
         return fixedDeposits.reduce(into: [:]) { result, asset in
-            let holdings = (asset.holdings?.allObjects as? [Holding]) ?? []
-            let portfolioHoldings = holdings.filter { $0.portfolio == portfolio }
-            let currencyCode = resolvedCurrencyCode(for: asset, portfolio: portfolio)
+            // Fixed deposits don't use holdings - check if this deposit belongs to this portfolio through transactions
+            let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+            let portfolioTransactions = transactions.filter { $0.portfolio == portfolio }
 
-            for holding in portfolioHoldings {
-                let amount = holding.quantity * asset.currentPrice
+            if !portfolioTransactions.isEmpty {
+                let currencyCode = resolvedCurrencyCode(for: asset, portfolio: portfolio)
+                let amount = asset.currentPrice // currentPrice represents the deposit amount
                 result[currencyCode, default: 0.0] += amount
             }
         }
@@ -160,12 +161,13 @@ final class CashBalanceService {
         guard let fixedDeposits = try? context.fetch(request) else { return [:] }
 
         return fixedDeposits.reduce(into: [:]) { result, asset in
-            let holdings = (asset.holdings?.allObjects as? [Holding]) ?? []
-            let portfolioHoldings = holdings.filter { $0.portfolio == portfolio && $0.institution == institution }
-            let currencyCode = resolvedCurrencyCode(for: asset, portfolio: portfolio)
+            // Fixed deposits don't use holdings - check if this deposit belongs to this portfolio and institution through transactions
+            let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+            let portfolioInstitutionTransactions = transactions.filter { $0.portfolio == portfolio && $0.institution == institution }
 
-            for holding in portfolioHoldings {
-                let amount = holding.quantity * asset.currentPrice
+            if !portfolioInstitutionTransactions.isEmpty {
+                let currencyCode = resolvedCurrencyCode(for: asset, portfolio: portfolio)
+                let amount = asset.currentPrice // currentPrice represents the deposit amount
                 result[currencyCode, default: 0.0] += amount
             }
         }

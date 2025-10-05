@@ -202,15 +202,22 @@ final class FixedDepositMigrationService {
 
                     print("🔄 Creating new fixed deposit: \(institution.name ?? "Unknown") - \(currency.rawValue) \(totalDeposit - totalWithdrawal)")
 
-                    // Create a new fixed deposit asset
+                    // Calculate actual term from maturity date and transaction date
+                    let (termMonths, termString) = calculateTermFromTransaction(firstDeposit)
+
+                    // Generate standardized symbol
+                    let symbol = generateStandardizedSymbol(termMonths: termMonths, currency: currency, institution: institution)
+
+                    let currencyString = currency.rawValue
+                    let currencySymbol = currency.symbol
                     let newFixedDeposit = FixedDepositService.shared.createFixedDeposit(
-                        name: "Fixed Deposit - \(institution.name ?? "Bank")",
-                        symbol: "FD-\(institution.name?.prefix(3) ?? "BNK")",
+                        name: "\(termString) \(currencyString) \(currencySymbol) Fixed Deposit - \(institution.name ?? "Bank")",
+                        symbol: symbol,
                         institution: institution,
                         portfolio: portfolio,
                         amount: totalDeposit - totalWithdrawal,
                         currency: currency,
-                        termMonths: 12, // Default term for migrated deposits
+                        termMonths: termMonths,
                         interestRate: interestRate,
                         allowEarlyWithdrawal: false, // Don't allow early withdrawal for migrated deposits
                         context: context
@@ -224,7 +231,8 @@ final class FixedDepositMigrationService {
                     // Create a deposit transaction for the fixed deposit
                     let transaction = Transaction(context: context)
                     transaction.id = UUID()
-                    transaction.transactionDate = Date()
+                    // Use the original transaction date from the first deposit to preserve historical accuracy
+                    transaction.transactionDate = firstDeposit.transactionDate ?? firstDeposit.createdAt ?? Date()
                     transaction.amount = totalDeposit - totalWithdrawal
                     transaction.currency = currency.rawValue
                     transaction.type = TransactionType.deposit.rawValue
@@ -280,15 +288,21 @@ final class FixedDepositMigrationService {
         let totalAmount = transactions.reduce(0.0) { $0 + $1.amount }
         let currency = Currency(rawValue: firstTransaction.currency ?? "USD") ?? .usd
 
+        // Calculate actual term from transaction data
+        let (termMonths, termString) = calculateTermFromTransaction(firstTransaction)
+
+        // Generate standardized symbol
+        let symbol = generateStandardizedSymbol(termMonths: termMonths, currency: currency, institution: institution)
+
         // Create a fixed deposit asset
         let fixedDeposit = FixedDepositService.shared.createFixedDeposit(
-            name: "Migrated Fixed Deposit - \(institution.name ?? "Bank")",
-            symbol: "FD-\(institution.name?.prefix(3) ?? "BNK")",
+            name: "\(termString) \(currency.rawValue) \(currency.symbol) Fixed Deposit - \(institution.name ?? "Bank")",
+            symbol: symbol,
             institution: institution,
             portfolio: portfolio,
             amount: totalAmount,
             currency: currency,
-            termMonths: 12, // Default 1-year term for migrated deposits
+            termMonths: termMonths,
             interestRate: 2.5, // Default interest rate
             allowEarlyWithdrawal: true, // Allow early withdrawal for migrated deposits
             context: context
@@ -339,6 +353,88 @@ final class FixedDepositMigrationService {
 
         try context.save()
         print("🔄 Converted \(asset.name ?? "Unknown") to fixed deposit")
+    }
+
+    // MARK: - Symbol Generation
+
+    /// Generate standardized symbol format: "short form term"-"currency"-"FD"-"short form institution"
+    private func generateStandardizedSymbol(termMonths: Int, currency: Currency, institution: Institution) -> String {
+        let termShortForm = getTermShortForm(termMonths)
+        let institutionShortForm = getInstitutionShortForm(institution)
+        return "\(termShortForm)-\(currency.rawValue)-FD-\(institutionShortForm)"
+    }
+
+    /// Get short form for term (e.g., "1Y" for 12 months, "3M" for 3 months)
+    private func getTermShortForm(_ termMonths: Int) -> String {
+        if termMonths >= 12 {
+            let years = termMonths / 12
+            let remainingMonths = termMonths % 12
+            if remainingMonths > 0 {
+                return "\(years)Y\(remainingMonths)M"
+            } else {
+                return "\(years)Y"
+            }
+        } else {
+            return "\(termMonths)M"
+        }
+    }
+
+    /// Get short form for institution name (first 3 characters, uppercase)
+    private func getInstitutionShortForm(_ institution: Institution) -> String {
+        guard let name = institution.name else { return "BNK" }
+
+        // Remove spaces and special characters, take first 3 characters
+        let cleanedName = name.replacingOccurrences(of: "[^a-zA-Z0-9]", with: "", options: .regularExpression)
+        let shortForm = String(cleanedName.prefix(3)).uppercased()
+
+        return shortForm.isEmpty ? "BNK" : shortForm
+    }
+
+    // MARK: - Term Calculation
+
+    /// Calculate term from transaction maturity date and transaction date
+    private func calculateTermFromTransaction(_ transaction: Transaction) -> (months: Int, displayString: String) {
+        let calendar = Calendar.current
+
+        guard let maturityDate = transaction.maturityDate else {
+            print("🔍 Debug: No maturity date found for transaction, using default 12-month term")
+            return (12, "1-Year")
+        }
+
+        // Use transactionDate if available, otherwise use createdAt
+        let transactionDate = transaction.transactionDate ?? transaction.createdAt ?? Date()
+
+        print("🔍 Debug: Calculating term from transactionDate: \(transactionDate) to maturityDate: \(maturityDate)")
+
+        let components = calendar.dateComponents([.month, .day], from: transactionDate, to: maturityDate)
+
+        guard let months = components.month else {
+            print("🔍 Debug: Could not calculate months, using default 12-month term")
+            return (12, "1-Year")
+        }
+
+        // Round to nearest whole month (add extra month if there are significant remaining days)
+        let days = components.day ?? 0
+        let adjustedMonths = days > 15 ? months + 1 : months
+
+        let termMonths = max(1, adjustedMonths) // Ensure at least 1 month
+
+        // Generate display string
+        let termString: String
+        if termMonths >= 12 {
+            let years = termMonths / 12
+            let remainingMonths = termMonths % 12
+            if remainingMonths > 0 {
+                termString = "\(years)-Year \(remainingMonths)-Month"
+            } else {
+                termString = "\(years)-Year"
+            }
+        } else {
+            termString = "\(termMonths)-Month"
+        }
+
+        print("🔍 Debug: Calculated term: \(termMonths) months (\(termString))")
+        return (termMonths, termString)
     }
 
 }

@@ -124,14 +124,9 @@ struct FixedDepositRowView: View {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
 
-    private var holding: Holding? {
-        let holdings = (deposit.holdings?.allObjects as? [Holding]) ?? []
-        return holdings.first { $0.portfolio == portfolio && $0.quantity > 0 }
-    }
-
     private var currentValue: Double {
-        guard let holding = holding else { return 0 }
-        return holding.quantity * deposit.currentPrice
+        // Fixed deposits don't use holdings - currentPrice represents the deposit amount
+        return deposit.currentPrice
     }
 
     private var depositCurrency: Currency {
@@ -288,14 +283,9 @@ struct FixedDepositWithdrawalView: View {
         return mainCurrency
     }
 
-    private var holding: Holding? {
-        let holdings = (deposit.holdings?.allObjects as? [Holding]) ?? []
-        return holdings.first { $0.portfolio == portfolio && $0.quantity > 0 }
-    }
-
     private var maxWithdrawalAmount: Double {
-        guard let holding = holding else { return 0 }
-        return holding.quantity * deposit.currentPrice
+        // Fixed deposits don't use holdings - currentPrice represents the deposit amount
+        return deposit.currentPrice
     }
 
     private var isMatured: Bool {
@@ -303,7 +293,9 @@ struct FixedDepositWithdrawalView: View {
     }
 
     private var institution: Institution? {
-        return holding?.institution
+        // Get institution from deposit's transactions instead of holdings
+        let transactions = (deposit.transactions?.allObjects as? [Transaction]) ?? []
+        return transactions.first?.institution
     }
 
     var body: some View {
