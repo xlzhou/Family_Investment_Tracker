@@ -1317,6 +1317,10 @@ struct InsurancePaymentEntryView: View {
             companion.notes = applyDiscount ? note + discountSuffix() : note
         }
 
+        if let transactionID = transaction.id {
+            companion.setValue(transactionID, forKey: "linkedTransactionID")
+        }
+
         companion.ensureIdentifiers()
 
         let cashDeltaPortfolio = currencyService.convertAmount(-finalPaymentAmount, from: selectedCurrency, to: portfolioCurrency)

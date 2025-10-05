@@ -2066,6 +2066,9 @@ struct AddTransactionView: View {
             if let insuranceID = linkedInsuranceAsset?.id {
                 companion.setValue(insuranceID, forKey: "linkedInsuranceAssetID")
             }
+            if let transactionID = transaction.id {
+                companion.setValue(transactionID, forKey: "linkedTransactionID")
+            }
             companion.ensureIdentifiers()
         } else {
             let companion = Transaction(context: viewContext)
@@ -2088,6 +2091,9 @@ struct AddTransactionView: View {
             companion.createdAt = Date()
             if let insuranceID = linkedInsuranceAsset?.id {
                 companion.setValue(insuranceID, forKey: "linkedInsuranceAssetID")
+            }
+            if let transactionID = transaction.id {
+                companion.setValue(transactionID, forKey: "linkedTransactionID")
             }
             companion.ensureIdentifiers()
         }

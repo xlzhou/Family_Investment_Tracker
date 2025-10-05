@@ -261,6 +261,7 @@ struct BackupTransaction: Codable {
     let autoFetchPrice: Bool
     let interestRate: Double
     let linkedInsuranceAssetID: UUID?
+    let linkedTransactionID: UUID?
 
     init(id: UUID,
          portfolioID: UUID?,
@@ -285,7 +286,8 @@ struct BackupTransaction: Codable {
          realizedGain: Double,
          autoFetchPrice: Bool,
          interestRate: Double,
-         linkedInsuranceAssetID: UUID?) {
+         linkedInsuranceAssetID: UUID?,
+         linkedTransactionID: UUID?) {
         self.id = id
         self.portfolioID = portfolioID
         self.assetID = assetID
@@ -310,10 +312,11 @@ struct BackupTransaction: Codable {
         self.autoFetchPrice = autoFetchPrice
         self.interestRate = interestRate
         self.linkedInsuranceAssetID = linkedInsuranceAssetID
+        self.linkedTransactionID = linkedTransactionID
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, interestRate, linkedInsuranceAssetID
+        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, interestRate, linkedInsuranceAssetID, linkedTransactionID
     }
 
     init(from decoder: Decoder) throws {
@@ -342,6 +345,7 @@ struct BackupTransaction: Codable {
         autoFetchPrice = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPrice) ?? false
         interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate) ?? 0
         linkedInsuranceAssetID = try container.decodeIfPresent(UUID.self, forKey: .linkedInsuranceAssetID)
+        linkedTransactionID = try container.decodeIfPresent(UUID.self, forKey: .linkedTransactionID)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -370,6 +374,7 @@ struct BackupTransaction: Codable {
         try container.encode(autoFetchPrice, forKey: .autoFetchPrice)
         try container.encode(interestRate, forKey: .interestRate)
         try container.encodeIfPresent(linkedInsuranceAssetID, forKey: .linkedInsuranceAssetID)
+        try container.encodeIfPresent(linkedTransactionID, forKey: .linkedTransactionID)
     }
 }
 
@@ -543,7 +548,8 @@ final class BackupService {
                         realizedGain: transaction.realizedGainAmount,
                         autoFetchPrice: transaction.autoFetchPrice,
                         interestRate: (transaction.value(forKey: "interestRate") as? Double) ?? 0,
-                        linkedInsuranceAssetID: transaction.value(forKey: "linkedInsuranceAssetID") as? UUID
+                        linkedInsuranceAssetID: transaction.value(forKey: "linkedInsuranceAssetID") as? UUID,
+                        linkedTransactionID: transaction.value(forKey: "linkedTransactionID") as? UUID
                     )
                 },
                 institutions: institutions.map { institution in
@@ -773,6 +779,7 @@ final class BackupService {
                 transaction.autoFetchPrice = transactionData.autoFetchPrice
                 transaction.setValue(transactionData.interestRate, forKey: "interestRate")
                 transaction.setValue(transactionData.linkedInsuranceAssetID, forKey: "linkedInsuranceAssetID")
+                transaction.setValue(transactionData.linkedTransactionID, forKey: "linkedTransactionID")
                 if let portfolioID = transactionData.portfolioID {
                     transaction.portfolio = portfoliosDict[portfolioID]
                 }

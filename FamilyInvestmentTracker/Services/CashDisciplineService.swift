@@ -75,16 +75,16 @@ struct CashDisciplineService {
 
     static func findCompanionDeposit(for transaction: Transaction, in context: NSManagedObjectContext) -> Transaction? {
         guard let portfolio = transaction.portfolio,
-              let noteIdentifier = companionNoteIdentifier(for: transaction) else {
+              let transactionID = transaction.id else {
             return nil
         }
 
         let request: NSFetchRequest<Transaction> = Transaction.fetchRequest()
         request.predicate = NSPredicate(
-            format: "portfolio == %@ AND type == %@ AND notes BEGINSWITH %@",
+            format: "portfolio == %@ AND type == %@ AND linkedTransactionID == %@",
             portfolio,
             TransactionType.deposit.rawValue,
-            noteIdentifier
+            transactionID as CVarArg
         )
         request.fetchLimit = 1
 
