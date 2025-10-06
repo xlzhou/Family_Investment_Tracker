@@ -245,7 +245,6 @@ struct AddFixedDepositView: View {
             // Check cash discipline enforcement
             if portfolio.enforcesCashDisciplineEnabled {
                 // Check if there's sufficient available cash
-                let availableCash = portfolio.availableCashBalance
                 let availableCashInCurrency = CashBalanceService.shared.getAvailableCashBalance(for: portfolio, currency: selectedCurrency)
 
                 if availableCashInCurrency < amountValue {

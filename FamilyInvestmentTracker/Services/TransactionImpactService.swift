@@ -163,7 +163,6 @@ struct TransactionImpactService {
                 holding.averageCostBasis = 0
             }
         case .sell:
-            let currentQuantity = holding.quantity
             let currentTotalCost = holding.quantity * holding.averageCostBasis
             let feesInPortfolio = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
             let taxInPortfolio = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)

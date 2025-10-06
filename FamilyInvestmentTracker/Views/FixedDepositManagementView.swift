@@ -93,13 +93,13 @@ struct FixedDepositManagementView: View {
             .onAppear {
                 loadFixedDeposits()
             }
-            .onChange(of: showingAddFixedDeposit) { _ in
-                if !showingAddFixedDeposit {
+            .onChange(of: showingAddFixedDeposit) { _, newValue in
+                if !newValue {
                     loadFixedDeposits()
                 }
             }
-            .onChange(of: showingWithdrawalView) { _ in
-                if !showingWithdrawalView {
+            .onChange(of: showingWithdrawalView) { _, newValue in
+                if !newValue {
                     loadFixedDeposits()
                 }
             }
@@ -135,10 +135,6 @@ struct FixedDepositRowView: View {
 
         // Debug logging
         //print("🔍 UI Debug: Found \(transactions.count) transactions for deposit: \(deposit.name ?? "Unknown")")
-        for (index, transaction) in transactions.enumerated() {
-            //print("🔍 UI Debug: Transaction \(index + 1): Amount=\(transaction.amount), Currency='\(transaction.currency ?? "nil")', Type=\(transaction.type ?? "nil")")
-        }
-
         if let firstTransaction = transactions.first {
             let detectedCurrency = Currency(rawValue: firstTransaction.currency ?? "USD") ?? .usd
             //print("🔍 UI Debug: Using currency from first transaction: \(detectedCurrency.rawValue)")
@@ -391,7 +387,7 @@ struct FixedDepositWithdrawalView: View {
         guard let amount = Double(withdrawalAmount),
               amount > 0,
               amount <= maxWithdrawalAmount,
-              let institution = institution else {
+              institution != nil else {
             return false
         }
 

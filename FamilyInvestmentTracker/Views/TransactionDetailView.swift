@@ -152,11 +152,11 @@ struct TransactionDetailView: View {
     private var firstPaymentContributionInTransactionCurrency: Double {
         guard isInsurance else { return 0 }
 
-        if let companionDeposit {
+        if companionDeposit != nil {
             return 0
         }
 
-        if let initialPremiumDeposit {
+        if initialPremiumDeposit != nil {
             return 0
         }
 
@@ -1323,7 +1323,7 @@ struct InsurancePaymentEntryView: View {
             "Select the institution where the payment will be deducted from" :
             "Select the institution that received this payment (cash will not be deducted automatically)"
 
-        return Section(header: Text("Payment Institution"), footer: Text(footerText)) {
+        Section(header: Text("Payment Institution"), footer: Text(footerText)) {
             Picker("Institution", selection: $selectedPaymentInstitution) {
                 Text("Select Institution").tag(Optional<Institution>.none)
                 ForEach(institutions, id: \.objectID) { institution in
