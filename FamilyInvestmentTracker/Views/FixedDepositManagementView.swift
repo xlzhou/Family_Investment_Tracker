@@ -134,18 +134,18 @@ struct FixedDepositRowView: View {
         let transactions = (deposit.transactions?.allObjects as? [Transaction]) ?? []
 
         // Debug logging
-        print("🔍 UI Debug: Found \(transactions.count) transactions for deposit: \(deposit.name ?? "Unknown")")
+        //print("🔍 UI Debug: Found \(transactions.count) transactions for deposit: \(deposit.name ?? "Unknown")")
         for (index, transaction) in transactions.enumerated() {
-            print("🔍 UI Debug: Transaction \(index + 1): Amount=\(transaction.amount), Currency='\(transaction.currency ?? "nil")', Type=\(transaction.type ?? "nil")")
+            //print("🔍 UI Debug: Transaction \(index + 1): Amount=\(transaction.amount), Currency='\(transaction.currency ?? "nil")', Type=\(transaction.type ?? "nil")")
         }
 
         if let firstTransaction = transactions.first {
             let detectedCurrency = Currency(rawValue: firstTransaction.currency ?? "USD") ?? .usd
-            print("🔍 UI Debug: Using currency from first transaction: \(detectedCurrency.rawValue)")
+            //print("🔍 UI Debug: Using currency from first transaction: \(detectedCurrency.rawValue)")
             return detectedCurrency
         }
 
-        print("🔍 UI Debug: No transactions found, falling back to main currency: \(mainCurrency.rawValue)")
+        //print("🔍 UI Debug: No transactions found, falling back to main currency: \(mainCurrency.rawValue)")
         return mainCurrency
     }
 

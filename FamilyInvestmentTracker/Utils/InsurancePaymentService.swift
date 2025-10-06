@@ -56,6 +56,11 @@ enum InsurancePaymentService {
         let deposits = paymentTransactions(for: asset, in: portfolio, context: context)
         var total: Double = 0
 
+        let originalTransaction = (asset.transactions?.allObjects as? [Transaction])?
+            .first(where: { $0.portfolio?.objectID == portfolio.objectID && $0.type == TransactionType.insurance.rawValue })
+
+        let initialPremiumDepositCandidate = Self.initialPremiumDeposit(for: originalTransaction, deposits: deposits)
+
         for deposit in deposits where deposit.type == TransactionType.deposit.rawValue {
             let depositCurrency = Currency(rawValue: deposit.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
             let absoluteAmount = abs(deposit.amount)
@@ -67,10 +72,11 @@ enum InsurancePaymentService {
             }
         }
 
-        if let original = (asset.transactions?.allObjects as? [Transaction])?
-            .first(where: { $0.portfolio?.objectID == portfolio.objectID && $0.type == TransactionType.insurance.rawValue }) {
+        if let original = originalTransaction {
+            let hasCompanionDeposit = CashDisciplineService.findCompanionDeposit(for: original, in: context) != nil
+            let initialPremiumHandledByDeposit = initialPremiumDepositCandidate != nil
 
-            if CashDisciplineService.findCompanionDeposit(for: original, in: context) == nil {
+            if !hasCompanionDeposit && !initialPremiumHandledByDeposit {
                 if let deductedPortfolioAmount = original.value(forKey: "paymentDeductedAmount") as? Double, deductedPortfolioAmount > 1e-6 {
                     total += deductedPortfolioAmount
                 } else {
@@ -81,6 +87,7 @@ enum InsurancePaymentService {
                     }
                 }
             }
+
         }
 
         return total
@@ -170,5 +177,53 @@ enum InsurancePaymentService {
                 print("InsurancePaymentService: failed to backfill linked insurance IDs: \(error)")
             }
         }
+    }
+
+    private static func initialPremiumDeposit(for originalTransaction: Transaction?, deposits: [Transaction]) -> Transaction? {
+        guard let originalTransaction,
+              let originalID = originalTransaction.id else { return nil }
+
+        let candidates = deposits.filter { deposit in
+            guard deposit.type == TransactionType.deposit.rawValue else { return false }
+
+            if let linkedID = deposit.value(forKey: "linkedTransactionID") as? UUID,
+               linkedID == originalID {
+                return true
+            }
+
+            return depositOccursDuringInitialWindow(deposit, original: originalTransaction)
+        }
+
+        guard !candidates.isEmpty else { return nil }
+
+        return candidates.sorted { depositDate($0) < depositDate($1) }.first
+    }
+
+    private static func depositOccursDuringInitialWindow(_ deposit: Transaction, original: Transaction) -> Bool {
+        guard let originalDate = original.transactionDate ?? original.createdAt else { return false }
+
+        let depositDate = self.depositDate(deposit)
+        let components = Calendar.current.dateComponents([.day], from: originalDate, to: depositDate)
+        guard let dayDelta = components.day else { return false }
+
+        let hasMeaningfulAmount = significantDepositValue(deposit) != nil
+        return hasMeaningfulAmount && dayDelta >= -7 && dayDelta <= 180
+    }
+
+    private static func significantDepositValue(_ deposit: Transaction) -> Double? {
+        let absoluteAmount = abs(deposit.amount)
+        if absoluteAmount > 1e-6 {
+            return absoluteAmount
+        }
+
+        if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+            return stored
+        }
+
+        return nil
+    }
+
+    private static func depositDate(_ deposit: Transaction) -> Date {
+        deposit.transactionDate ?? deposit.createdAt ?? Date.distantPast
     }
 }

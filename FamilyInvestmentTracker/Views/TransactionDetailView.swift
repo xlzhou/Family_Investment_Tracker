@@ -53,26 +53,30 @@ struct TransactionDetailView: View {
     private var totalPaidPremium: Double {
         guard isInsurance else { return 0 }
 
-        let depositContributions = insurancePaymentDeposits.reduce(0) { runningTotal, txn in
-            guard txn.type == TransactionType.deposit.rawValue else { return runningTotal }
-            let depositCurrency = Currency(rawValue: txn.currency ?? currency.rawValue) ?? currency
-            let absoluteAmount = abs(txn.amount)
+        let deposits = insurancePaymentDeposits
+        var depositContributions: Double = 0
+
+        for deposit in deposits where deposit.type == TransactionType.deposit.rawValue {
+            let depositCurrency = Currency(rawValue: deposit.currency ?? currency.rawValue) ?? currency
+            let absoluteAmount = abs(deposit.amount)
 
             if absoluteAmount > 1e-6 {
                 let converted = currencyService.convertAmount(absoluteAmount, from: depositCurrency, to: currency)
-                return runningTotal + converted
+                depositContributions += converted
+                continue
             }
 
-            if let stored = txn.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+            if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
                 let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
                 let converted = currencyService.convertAmount(stored, from: portfolioCurrency, to: currency)
-                return runningTotal + converted
+                depositContributions += converted
+                continue
             }
-
-            return runningTotal
         }
 
-        return depositContributions + firstPaymentContributionInTransactionCurrency
+        let firstPaymentContribution = firstPaymentContributionInTransactionCurrency
+
+        return depositContributions + firstPaymentContribution
     }
 
     private var insurancePaymentDeposits: [Transaction] {
@@ -80,6 +84,58 @@ struct TransactionDetailView: View {
               let insuranceAsset = transaction.asset else { return [] }
 
         return InsurancePaymentService.paymentTransactions(for: insuranceAsset, in: portfolio, context: viewContext)
+    }
+
+    private var companionDeposit: Transaction? {
+        CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext)
+    }
+
+    private var initialPremiumDeposit: Transaction? {
+        guard isInsurance else { return nil }
+        guard let originalTransactionID = transaction.id else { return nil }
+
+        let candidates = insurancePaymentDeposits.filter { deposit in
+            guard deposit.type == TransactionType.deposit.rawValue else { return false }
+
+            if let linkedID = deposit.value(forKey: "linkedTransactionID") as? UUID,
+               linkedID == originalTransactionID {
+                return true
+            }
+
+            return depositOccursDuringInitialWindow(deposit)
+        }
+
+        guard !candidates.isEmpty else { return nil }
+
+        return candidates.sorted { depositDate($0) < depositDate($1) }.first
+    }
+
+    private func depositOccursDuringInitialWindow(_ deposit: Transaction) -> Bool {
+        guard let originalDate = transaction.transactionDate ?? transaction.createdAt else { return false }
+
+        let depositDate = depositDate(deposit)
+        let components = Calendar.current.dateComponents([.day], from: originalDate, to: depositDate)
+        guard let dayDelta = components.day else { return false }
+
+        let hasMeaningfulAmount = significantDepositValue(deposit) != nil
+        return hasMeaningfulAmount && dayDelta >= -7 && dayDelta <= 180
+    }
+
+    private func depositDate(_ deposit: Transaction) -> Date {
+        deposit.transactionDate ?? deposit.createdAt ?? Date.distantPast
+    }
+
+    private func significantDepositValue(_ deposit: Transaction) -> Double? {
+        let absoluteAmount = abs(deposit.amount)
+        if absoluteAmount > 1e-6 {
+            return absoluteAmount
+        }
+
+        if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+            return stored
+        }
+
+        return nil
     }
 
     private var settlementAmount: Double {
@@ -96,7 +152,11 @@ struct TransactionDetailView: View {
     private var firstPaymentContributionInTransactionCurrency: Double {
         guard isInsurance else { return 0 }
 
-        if CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext) != nil {
+        if let companionDeposit {
+            return 0
+        }
+
+        if let initialPremiumDeposit {
             return 0
         }
 
@@ -116,6 +176,12 @@ struct TransactionDetailView: View {
 
         let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
 
+        if let initialPremiumDeposit {
+            if let converted = convertedDepositValue(initialPremiumDeposit, targetCurrency: currency) {
+                return converted
+            }
+        }
+
         if let stored = transaction.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6,
            let deductedFlag = transaction.value(forKey: "paymentDeducted") as? Bool, deductedFlag {
             return currencyService.convertAmount(stored, from: portfolioCurrency, to: currency)
@@ -128,6 +194,22 @@ struct TransactionDetailView: View {
 
         let fallback = defaultFirstPaymentAmount
         return fallback > 0 ? fallback : nil
+    }
+
+    private func convertedDepositValue(_ deposit: Transaction, targetCurrency: Currency) -> Double? {
+        if let absolute = significantDepositValue(deposit) {
+            if abs(deposit.amount) > 1e-6 {
+                let depositCurrency = Currency(rawValue: deposit.currency ?? targetCurrency.rawValue) ?? targetCurrency
+                return currencyService.convertAmount(absolute, from: depositCurrency, to: targetCurrency)
+            }
+
+            if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+                let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+                return currencyService.convertAmount(stored, from: portfolioCurrency, to: targetCurrency)
+            }
+        }
+
+        return nil
     }
 
     private var defaultFirstPaymentAmount: Double {
@@ -578,6 +660,73 @@ struct InsurancePaymentManagementView: View {
         insuranceTransactions.first
     }
 
+    private var companionDeposit: Transaction? {
+        guard let originalTransaction else { return nil }
+        return CashDisciplineService.findCompanionDeposit(for: originalTransaction, in: viewContext)
+    }
+
+    private var initialPremiumDeposit: Transaction? {
+        guard let originalTransaction,
+              let originalID = originalTransaction.id else { return nil }
+
+        let candidates = paymentDeposits.filter { deposit in
+            guard deposit.type == TransactionType.deposit.rawValue else { return false }
+
+            if let linkedID = deposit.value(forKey: "linkedTransactionID") as? UUID,
+               linkedID == originalID {
+                return true
+            }
+
+            return depositOccursDuringInitialWindow(deposit, original: originalTransaction)
+        }
+
+        guard !candidates.isEmpty else { return nil }
+
+        return candidates.sorted { depositDate($0) < depositDate($1) }.first
+    }
+
+    private func depositOccursDuringInitialWindow(_ deposit: Transaction, original: Transaction) -> Bool {
+        guard let originalDate = original.transactionDate ?? original.createdAt else { return false }
+
+        let depositDate = depositDate(deposit)
+        let components = Calendar.current.dateComponents([.day], from: originalDate, to: depositDate)
+        guard let dayDelta = components.day else { return false }
+
+        let hasMeaningfulAmount = significantDepositValue(deposit) != nil
+        return hasMeaningfulAmount && dayDelta >= -7 && dayDelta <= 180
+    }
+
+    private func significantDepositValue(_ deposit: Transaction) -> Double? {
+        let absoluteAmount = abs(deposit.amount)
+        if absoluteAmount > 1e-6 {
+            return absoluteAmount
+        }
+
+        if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+            return stored
+        }
+
+        return nil
+    }
+
+    private func depositDate(_ deposit: Transaction) -> Date {
+        deposit.transactionDate ?? deposit.createdAt ?? Date.distantPast
+    }
+
+    private func convertedDepositValue(_ deposit: Transaction, targetCurrency: Currency) -> Double? {
+        if abs(deposit.amount) > 1e-6 {
+            let depositCurrency = Currency(rawValue: deposit.currency ?? targetCurrency.rawValue) ?? targetCurrency
+            let absoluteAmount = abs(deposit.amount)
+            return currencyService.convertAmount(absoluteAmount, from: depositCurrency, to: targetCurrency)
+        }
+
+        if let stored = deposit.value(forKey: "paymentDeductedAmount") as? Double, stored > 1e-6 {
+            return currencyService.convertAmount(stored, from: portfolioCurrency, to: targetCurrency)
+        }
+
+        return nil
+    }
+
     private var paymentHistory: [Transaction] {
         paymentTransactions
     }
@@ -649,6 +798,11 @@ struct InsurancePaymentManagementView: View {
         guard let original = originalTransaction else { return nil }
         let transactionCurrency = insuranceTransactionCurrency
 
+        if let initialPremiumDeposit,
+           let converted = convertedDepositValue(initialPremiumDeposit, targetCurrency: transactionCurrency) {
+            return converted
+        }
+
         if let companion = CashDisciplineService.findCompanionDeposit(for: original, in: viewContext) {
             let companionCurrency = Currency(rawValue: companion.currency ?? transactionCurrency.rawValue) ?? transactionCurrency
             let payment = abs(companion.amount)
@@ -676,6 +830,10 @@ struct InsurancePaymentManagementView: View {
         let benchmark = singlePremium > 0 ? singlePremium : expectedInstallmentAmount
         guard benchmark > 0 else { return false }
 
+        if let depositNotes = initialPremiumDeposit?.notes?.lowercased(), depositNotes.contains("discount") {
+            return true
+        }
+
         if configuredFirstDiscountedPremium > 0 {
             return configuredFirstDiscountedPremium + 1e-6 < benchmark
         }
@@ -684,7 +842,8 @@ struct InsurancePaymentManagementView: View {
     }
 
     private var totalPaidAmount: Double {
-        let depositContributions = paymentTransactions.reduce(0) { total, transaction in
+        // Only count deposit transactions (premium payments), not the original insurance transaction
+        let depositContributions = paymentDeposits.reduce(0) { total, transaction in
             guard transaction.type == TransactionType.deposit.rawValue else { return total }
             let depositCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
             let absoluteAmount = abs(transaction.amount)
@@ -707,7 +866,11 @@ struct InsurancePaymentManagementView: View {
     private var firstPaymentContribution: Double {
         guard let original = originalTransaction else { return 0 }
 
-        if CashDisciplineService.findCompanionDeposit(for: original, in: viewContext) != nil {
+        if companionDeposit != nil {
+            return 0
+        }
+
+        if initialPremiumDeposit != nil {
             return 0
         }
 
