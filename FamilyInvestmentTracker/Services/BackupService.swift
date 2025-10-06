@@ -180,9 +180,13 @@ struct BackupAsset: Codable {
     let interestRate: Double?
     let linkedAssets: String?
     let autoFetchPriceEnabled: Bool
+    // Fixed deposit specific fields
+    let depositSubtype: String?
+    let maturityDate: Date?
+    let allowEarlyWithdrawal: Bool?
 
     private enum CodingKeys: String, CodingKey {
-        case id, symbol, name, assetType, createdAt, currentPrice, lastPriceUpdate, interestRate, linkedAssets, autoFetchPriceEnabled
+        case id, symbol, name, assetType, createdAt, currentPrice, lastPriceUpdate, interestRate, linkedAssets, autoFetchPriceEnabled, depositSubtype, maturityDate, allowEarlyWithdrawal
     }
 
     init(id: UUID,
@@ -194,7 +198,10 @@ struct BackupAsset: Codable {
          lastPriceUpdate: Date?,
          interestRate: Double?,
          linkedAssets: String?,
-         autoFetchPriceEnabled: Bool) {
+         autoFetchPriceEnabled: Bool,
+         depositSubtype: String? = nil,
+         maturityDate: Date? = nil,
+         allowEarlyWithdrawal: Bool? = nil) {
         self.id = id
         self.symbol = symbol
         self.name = name
@@ -205,6 +212,9 @@ struct BackupAsset: Codable {
         self.interestRate = interestRate
         self.linkedAssets = linkedAssets
         self.autoFetchPriceEnabled = autoFetchPriceEnabled
+        self.depositSubtype = depositSubtype
+        self.maturityDate = maturityDate
+        self.allowEarlyWithdrawal = allowEarlyWithdrawal
     }
 
     init(from decoder: Decoder) throws {
@@ -219,6 +229,10 @@ struct BackupAsset: Codable {
         interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate)
         linkedAssets = try container.decodeIfPresent(String.self, forKey: .linkedAssets)
         autoFetchPriceEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPriceEnabled) ?? false
+        // Fixed deposit specific fields (backwards compatible)
+        depositSubtype = try container.decodeIfPresent(String.self, forKey: .depositSubtype)
+        maturityDate = try container.decodeIfPresent(Date.self, forKey: .maturityDate)
+        allowEarlyWithdrawal = try container.decodeIfPresent(Bool.self, forKey: .allowEarlyWithdrawal)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -233,6 +247,10 @@ struct BackupAsset: Codable {
         try container.encodeIfPresent(interestRate, forKey: .interestRate)
         try container.encodeIfPresent(linkedAssets, forKey: .linkedAssets)
         try container.encode(autoFetchPriceEnabled, forKey: .autoFetchPriceEnabled)
+        // Fixed deposit specific fields
+        try container.encodeIfPresent(depositSubtype, forKey: .depositSubtype)
+        try container.encodeIfPresent(maturityDate, forKey: .maturityDate)
+        try container.encodeIfPresent(allowEarlyWithdrawal, forKey: .allowEarlyWithdrawal)
     }
 }
 
@@ -535,7 +553,10 @@ final class BackupService {
                         lastPriceUpdate: asset.lastPriceUpdate,
                         interestRate: asset.value(forKey: "interestRate") as? Double,
                         linkedAssets: asset.value(forKey: "linkedAssets") as? String,
-                        autoFetchPriceEnabled: (asset.value(forKey: "autoFetchPriceEnabled") as? Bool) ?? false
+                        autoFetchPriceEnabled: (asset.value(forKey: "autoFetchPriceEnabled") as? Bool) ?? false,
+                        depositSubtype: asset.value(forKey: "depositSubtype") as? String,
+                        maturityDate: asset.maturityDate,
+                        allowEarlyWithdrawal: asset.value(forKey: "allowEarlyWithdrawal") as? Bool
                     )
                 },
                 transactions: transactions.map { transaction in
@@ -680,6 +701,18 @@ final class BackupService {
                     asset.setValue(linkedAssets, forKey: "linkedAssets")
                 }
                 asset.setValue(assetData.autoFetchPriceEnabled, forKey: "autoFetchPriceEnabled")
+
+                // Fixed deposit specific fields
+                if let depositSubtype = assetData.depositSubtype {
+                    asset.setValue(depositSubtype, forKey: "depositSubtype")
+                }
+                if let maturityDate = assetData.maturityDate {
+                    asset.maturityDate = maturityDate
+                }
+                if let allowEarlyWithdrawal = assetData.allowEarlyWithdrawal {
+                    asset.setValue(allowEarlyWithdrawal, forKey: "allowEarlyWithdrawal")
+                }
+
                 assetsDict[assetData.id] = asset
             }
             

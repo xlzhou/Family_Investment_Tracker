@@ -39,17 +39,10 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            checkMigrationStatus()
-        }
-    }
-
-    private func checkMigrationStatus() {
-        guard !migrationChecked else { return }
-
-        DispatchQueue.main.async {
-            let shouldShowMigration = FixedDepositMigrationService.shared.shouldShowMigrationPrompt(context: viewContext)
-            showingMigration = shouldShowMigration
+            // Automatic fixed deposit migration has been disabled
+            // Users can manually run migration from Settings > Fixed Deposit Migration
             migrationChecked = true
+            showingMigration = false
         }
     }
 }
