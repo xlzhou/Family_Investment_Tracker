@@ -14,9 +14,9 @@ struct PortfolioDashboardView: View {
     @State private var isPreparingShare = false
     @State private var shareSetupError: String?
     @State private var selectedTab = 0
-    @State private var showingCashBreakdown = false
+    @State private var showingCashOverview = false
+    @State private var cashOverviewInitialTab: CashOverviewView.Tab = .demandCash
     @State private var showingRealizedPnL = false
-    @State private var showingFixedDepositManagement = false
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var isRefreshing = false
@@ -27,7 +27,9 @@ struct PortfolioDashboardView: View {
             PortfolioHeaderView(portfolio: portfolio)
 
             // Quick Stats
-            QuickStatsView(portfolio: portfolio, showingCashBreakdown: $showingCashBreakdown)
+            QuickStatsView(portfolio: portfolio) { tab in
+                presentCashOverview(initialTab: tab)
+            }
                 .padding(.top, -8)
 
             // Tab Selection
@@ -74,7 +76,7 @@ struct PortfolioDashboardView: View {
                     }
 
                     Button {
-                        showingFixedDepositManagement = true
+                        presentCashOverview(initialTab: .fixedDeposits)
                     } label: {
                         Image(systemName: "building.columns")
                     }
@@ -138,16 +140,12 @@ struct PortfolioDashboardView: View {
                 viewModel.updatePortfolioPrices(portfolio: portfolio, context: viewContext)
             }
         }
-        .sheet(isPresented: $showingCashBreakdown) {
-            CashBreakdownViewInline(portfolio: portfolio)
+        .sheet(isPresented: $showingCashOverview) {
+            CashOverviewView(portfolio: portfolio, initialTab: cashOverviewInitialTab)
                 .environment(\.managedObjectContext, viewContext)
         }
         .sheet(isPresented: $showingRealizedPnL) {
             RealizedPnLView(portfolio: portfolio)
-                .environment(\.managedObjectContext, viewContext)
-        }
-        .sheet(isPresented: $showingFixedDepositManagement) {
-            FixedDepositManagementView(portfolio: portfolio)
                 .environment(\.managedObjectContext, viewContext)
         }
     }
@@ -164,6 +162,11 @@ struct PortfolioDashboardView: View {
             shareSetupError = nil
             showingShareSetup = true
         }
+    }
+
+    private func presentCashOverview(initialTab: CashOverviewView.Tab) {
+        cashOverviewInitialTab = initialTab
+        showingCashOverview = true
     }
 
     private func startSharingFlow() {
@@ -451,7 +454,7 @@ struct PortfolioHeaderView: View {
 
 struct QuickStatsView: View {
     @ObservedObject var portfolio: Portfolio
-    @Binding var showingCashBreakdown: Bool
+    let onCashTapped: (CashOverviewView.Tab) -> Void
     @StateObject private var currencyService = CurrencyService.shared
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -559,7 +562,7 @@ struct QuickStatsView: View {
             )
 
             Button(action: {
-                showingCashBreakdown = true
+                onCashTapped(.demandCash)
             }) {
                 StatCardView(
                     title: "Total Cash",
@@ -616,303 +619,6 @@ struct StatCardView: View {
         .background(Color(.systemBackground))
         .cornerRadius(10)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-    }
-}
-
-struct CashBreakdownViewInline: View {
-    @ObservedObject var portfolio: Portfolio
-    @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.dismiss) private var dismiss
-    @StateObject private var currencyService = CurrencyService.shared
-    @State private var editContext: CashBalanceEditContext?
-
-    private var mainCurrency: Currency {
-        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
-    }
-
-    private struct CashBalanceEditContext: Identifiable {
-        let institution: Institution
-        let currencyBalance: PortfolioInstitutionCurrencyCash
-        let currency: Currency
-
-        var id: NSManagedObjectID { currencyBalance.objectID }
-    }
-
-    private var institutionsWithCash: [(Institution, [PortfolioInstitutionCurrencyCash], Double)] {
-        // Get all institutions that have transactions in this portfolio
-        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-        let institutionSet = Set(transactions.compactMap { $0.institution })
-
-        return institutionSet.compactMap { institution in
-            let currencyBalances = institution.getAllCurrencyBalances(for: portfolio)
-
-            let nonZeroBalances = currencyBalances.filter {
-                let amount = ($0.value(forKey: "amount") as? Double) ?? 0.0
-                return amount != 0.0  // Show both positive and negative balances
-            }
-
-            guard !nonZeroBalances.isEmpty else {
-                return nil
-            }
-
-            // Calculate total in main currency
-            let totalInMainCurrency = institution.getCashBalance(for: portfolio)
-
-            return (institution, nonZeroBalances, totalInMainCurrency)
-        }
-        .sorted { $0.0.name ?? "" < $1.0.name ?? "" }
-    }
-
-    private var totalCash: Double {
-        institutionsWithCash.reduce(0) { partial, element in
-            partial + element.2
-        }
-    }
-
-    var body: some View {
-        NavigationView {
-            VStack {
-                if institutionsWithCash.isEmpty {
-                    // Empty state
-                    VStack(spacing: 16) {
-                        Image(systemName: "banknote")
-                            .font(.system(size: 48))
-                            .foregroundColor(.secondary)
-
-                        Text("No Cash Holdings")
-                            .font(.title2)
-                            .fontWeight(.medium)
-
-                        Text("Cash balances will appear here when you make deposit transactions.")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    // Cash breakdown list with per-currency details
-                    List {
-                        Section(header: Text("Cash by Institution & Currency")) {
-                            ForEach(institutionsWithCash, id: \.0.objectID) { institutionData in
-                                let (institution, currencyBalances, totalInMainCurrency) = institutionData
-
-                                VStack(alignment: .leading, spacing: 8) {
-                                    // Institution header
-                                    HStack {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(institution.name ?? "Unknown Institution")
-                                                .font(.headline)
-                                            Text("\(currencyBalances.count) " + (currencyBalances.count == 1 ? "currency" : "currencies"))
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-
-                                        Spacer()
-
-                                        VStack(alignment: .trailing, spacing: 2) {
-                                            Text(currencyService.formatAmountWithFullCurrency(totalInMainCurrency, in: mainCurrency))
-                                                .font(.headline)
-                                                .foregroundColor(totalInMainCurrency >= 0 ? .primary : .red)
-                                            Text("Total")
-                                                .font(.caption)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
-
-                                    // Currency breakdown
-                                    ForEach(currencyBalances.sorted(by: {
-                                        let currency1 = ($0.value(forKey: "currency") as? String) ?? ""
-                                        let currency2 = ($1.value(forKey: "currency") as? String) ?? ""
-                                        return currency1 < currency2
-                                    }), id: \.objectID) { currencyBalance in
-                                        let currency = Currency(rawValue: (currencyBalance.value(forKey: "currency") as? String) ?? "USD") ?? .usd
-                                        let amount = (currencyBalance.value(forKey: "amount") as? Double) ?? 0.0
-
-                                        HStack {
-                                            Text(currency.displayName)
-                                                .font(.subheadline)
-                                                .foregroundColor(.secondary)
-
-                                            Spacer()
-
-                                            Text(currencyService.formatAmountWithFullCurrency(amount, in: currency))
-                                                .font(.subheadline)
-                                                .fontWeight(.medium)
-                                                .foregroundColor(amount >= 0 ? .primary : .red)
-
-                                            Button {
-                                                editContext = CashBalanceEditContext(
-                                                    institution: institution,
-                                                    currencyBalance: currencyBalance,
-                                                    currency: currency
-                                                )
-                                            } label: {
-                                                Image(systemName: "pencil")
-                                                    .foregroundColor(.blue)
-                                            }
-                                            .buttonStyle(.borderless)
-                                        }
-                                        .padding(.leading, 16)
-                                    }
-                                }
-                                .padding(.vertical, 4)
-                            }
-                        }
-
-                        Section(footer: Text("Total cash is calculated by summing all institution cash balances.")) {
-                            HStack {
-                                Text("Total Cash")
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-
-                                Spacer()
-
-                                Text(currencyService.formatAmount(totalCash, in: mainCurrency))
-                                    .font(.headline)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(totalCash >= 0 ? .primary : .red)
-                            }
-                            .padding(.vertical, 8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(8)
-                        }
-                    }
-                }
-            }
-            .navigationTitle("Cash Holdings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-            .sheet(item: $editContext) { context in
-                CashBalanceEditSheet(
-                    institution: context.institution,
-                    currencyBalance: context.currencyBalance,
-                    currency: context.currency
-                ) {
-                    refreshPortfolioAggregates()
-                }
-            }
-        }
-    }
-
-    private func refreshPortfolioAggregates() -> Error? {
-        let totalCash = portfolio.getTotalCashBalanceInMainCurrency()
-        portfolio.cashBalanceSafe = totalCash
-
-        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
-        let holdingsValue = holdings.reduce(0.0) { sum, holding in
-            guard let asset = holding.asset else { return sum }
-            if asset.assetType == AssetType.insurance.rawValue {
-                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
-                return sum + cashValue
-            }
-            return sum + (holding.quantity * asset.currentPrice)
-        }
-
-        portfolio.totalValue = holdingsValue + totalCash
-
-        do {
-            try viewContext.save()
-            portfolio.objectWillChange.send()
-            return nil
-        } catch {
-            print("❌ Error saving portfolio aggregates after cash edit: \(error)")
-            return error
-        }
-    }
-}
-
-private struct CashBalanceEditSheet: View {
-    let institution: Institution
-    @ObservedObject var currencyBalance: PortfolioInstitutionCurrencyCash
-    let currency: Currency
-    let onSave: () -> Error?
-
-    @Environment(\.dismiss) private var dismiss
-
-    @State private var amountInput: String
-    @State private var validationMessage: String?
-    @FocusState private var amountFieldFocused: Bool
-
-    init(institution: Institution,
-         currencyBalance: PortfolioInstitutionCurrencyCash,
-         currency: Currency,
-         onSave: @escaping () -> Error?) {
-        self.institution = institution
-        self._currencyBalance = ObservedObject(wrappedValue: currencyBalance)
-        self.currency = currency
-        self.onSave = onSave
-        _amountInput = State(wrappedValue: String(format: "%.2f", currencyBalance.amountSafe))
-    }
-
-    var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Institution")) {
-                    Text(institution.name ?? "Unknown Institution")
-                }
-
-                Section(header: Text("Edit Balance(\(currency.rawValue) \(currency.symbol))".uppercased())) {
-                    TextField("Amount", text: $amountInput)
-                        .keyboardType(.decimalPad)
-                        .focused($amountFieldFocused)
-                }
-
-                if let validationMessage {
-                    Section {
-                        Text(validationMessage)
-                            .foregroundColor(.red)
-                    }
-                }
-            }
-            .navigationTitle("\(currency.displayName) Cash")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        persistChanges()
-                    }
-                }
-            }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    amountFieldFocused = true
-                }
-            }
-        }
-    }
-
-    private func persistChanges() {
-        let sanitizedInput = amountInput.replacingOccurrences(of: ",", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard let value = Double(sanitizedInput), value.isFinite else {
-            validationMessage = "Please enter a valid number."
-            return
-        }
-
-        let roundedValue = (value * 100).rounded() / 100
-
-        currencyBalance.amountSafe = roundedValue
-
-        if let error = onSave() {
-            validationMessage = "Failed to save changes: \(error.localizedDescription)"
-            return
-        }
-
-        dismiss()
     }
 }
 

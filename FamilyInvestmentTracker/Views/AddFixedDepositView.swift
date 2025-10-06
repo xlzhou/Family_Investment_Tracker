@@ -14,7 +14,11 @@ struct AddFixedDepositView: View {
     @State private var allowEarlyWithdrawal = false
     @State private var selectedInstitution: Institution?
     @State private var selectedCurrency = Currency.usd
+    @State private var valueDate = Date()
     @State private var errorMessage = ""
+    @State private var showingInsufficientCashAlert = false
+    @State private var availableCashFormatted = ""
+    @State private var requiredCashFormatted = ""
 
     // Institution management
     @State private var showingInstitutionPicker = false
@@ -30,32 +34,33 @@ struct AddFixedDepositView: View {
     }
 
     private var maturityDate: Date {
-        Calendar.current.date(byAdding: .month, value: termMonths, to: Date()) ?? Date()
+        Calendar.current.date(byAdding: .month, value: termMonths, to: valueDate) ?? valueDate
     }
 
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Fixed Deposit Details")) {
-                    TextField("Deposit Name", text: $depositName)
-                    TextField("Symbol (auto-generated)", text: $symbol)
-
-                    HStack {
-                        Text("Amount")
-                        Spacer()
-                        TextField("0.00", text: $amount)
-                            .keyboardType(.decimalPad)
-                            .multilineTextAlignment(.trailing)
+                Section(header: Text("Institution")) {
+                    Button(action: {
+                        showingInstitutionPicker = true
+                    }) {
+                        HStack {
+                            Text("Institution")
+                            Spacer()
+                            Text(selectedInstitution?.name ?? "Select Institution")
+                                .foregroundColor(selectedInstitution == nil ? .secondary : .primary)
+                        }
                     }
+                }
+                Section(header: Text("Fixed Deposit Details")) {
 
                     Picker("Currency", selection: $selectedCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
                             Text(currency.displayName).tag(currency)
                         }
                     }
-                }
+                    DatePicker("Value Date", selection: $valueDate, displayedComponents: .date)
 
-                Section(header: Text("Term & Interest")) {
                     Stepper(value: $termMonths, in: 1...240, step: 1) {
                         HStack {
                             Text("Term")
@@ -82,20 +87,22 @@ struct AddFixedDepositView: View {
                         Text(maturityDate, style: .date)
                             .foregroundColor(.secondary)
                     }
-                }
 
-                Section(header: Text("Institution")) {
-                    Button(action: {
-                        showingInstitutionPicker = true
-                    }) {
-                        HStack {
-                            Text("Institution")
-                            Spacer()
-                            Text(selectedInstitution?.name ?? "Select Institution")
-                                .foregroundColor(selectedInstitution == nil ? .secondary : .primary)
-                        }
+                    TextField("Deposit Name", text: $depositName)
+                    TextField("Symbol (auto-generated)", text: $symbol)
+
+                    HStack {
+                        Text("Amount")
+                        Spacer()
+                        TextField("0.00", text: $amount)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
                     }
                 }
+
+                //Section(header: Text("Term & Interest")) {
+               //}
+
 
                 Section(header: Text("Options")) {
                     Toggle("Allow Early Withdrawal", isOn: $allowEarlyWithdrawal)
@@ -143,6 +150,14 @@ struct AddFixedDepositView: View {
             .onChange(of: selectedCurrency) { _, newCurrency in
                 updateSymbolSuggestion()
             }
+            .onChange(of: interestRate) { _, newRate in
+                updateSymbolSuggestion()
+            }
+            .alert("Insufficient Cash", isPresented: $showingInsufficientCashAlert) {
+                Button("OK") { }
+            } message: {
+                Text("Available: \(availableCashFormatted)\nRequired: \(requiredCashFormatted) \n\nIf you do not want cash to be deducted at the time of create fixed deposit, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
+            }
         }
     }
 
@@ -163,7 +178,16 @@ struct AddFixedDepositView: View {
             updateDepositName()
         }
     }
+    private func formatInterestRate(_ rateString: String) -> String {
+        guard let rate = Double(rateString), rate > 0 else { return "" }
 
+        // Format with appropriate decimal places and % symbol
+        if rate.truncatingRemainder(dividingBy: 1) == 0 {
+            return String(format: "%.0f%%", rate)  // "3%"
+        } else {
+            return String(format: "%.2f%%", rate)  // "3.25%"
+        }
+    }
     private func updateDepositName() {
         let termString: String
         if termMonths >= 12 {
@@ -175,20 +199,22 @@ struct AddFixedDepositView: View {
 
         let currencyString = selectedCurrency.rawValue
         let currencySymbol = selectedCurrency.symbol
+        let interestRateFormatted = formatInterestRate(interestRate)
 
         if let institution = selectedInstitution {
-            depositName = "\(termString) \(currencyString) \(currencySymbol) Fixed Deposit - \(institution.name ?? "Bank")"
+            depositName = "\(termString) \(currencyString) \(currencySymbol) \(interestRateFormatted) FD - \(institution.name ?? "Bank")"
         } else {
-            depositName = "\(termString) \(currencyString) \(currencySymbol) Fixed Deposit"
+            depositName = "\(termString) \(currencyString) \(currencySymbol) \(interestRateFormatted) FD"
         }
     }
 
     private func updateSymbolSuggestion() {
         // Auto-generate symbol using standardized format: "short form term"-"currency"-"FD"-"short form institution"
-        if symbol.isEmpty, let institution = selectedInstitution {
+        if let institution = selectedInstitution {
             let termShortForm = getTermShortForm(termMonths)
             let institutionShortForm = getInstitutionShortForm(institution)
-            symbol = "\(termShortForm)-\(selectedCurrency.rawValue)-FD-\(institutionShortForm)"
+            let interestRateFormatted = formatInterestRate(interestRate)
+            symbol = "\(termShortForm)-\(selectedCurrency.rawValue)\(interestRateFormatted)-FD-\(institutionShortForm)"
         }
 
         // Update name with term, currency, and institution
@@ -248,9 +274,12 @@ struct AddFixedDepositView: View {
                 let availableCashInCurrency = CashBalanceService.shared.getAvailableCashBalance(for: portfolio, currency: selectedCurrency)
 
                 if availableCashInCurrency < amountValue {
-                    errorMessage = "Insufficient available cash. Available: \(CurrencyService.shared.formatAmount(availableCashInCurrency, in: selectedCurrency)), Required: \(CurrencyService.shared.formatAmount(amountValue, in: selectedCurrency))"
+                    availableCashFormatted = CurrencyService.shared.formatAmount(availableCashInCurrency, in: selectedCurrency)
+                    requiredCashFormatted = CurrencyService.shared.formatAmount(amountValue, in: selectedCurrency)
+                    showingInsufficientCashAlert = true
                     return
                 }
+
             }
 
             let fixedDeposit = FixedDepositService.shared.createFixedDeposit(
@@ -268,9 +297,9 @@ struct AddFixedDepositView: View {
 
             // Create the initial deposit transaction for the fixed deposit
             let transaction = Transaction(context: viewContext)
-            transaction.id = UUID()
-            transaction.createdAt = Date()
-            transaction.transactionDate = Date()
+           transaction.id = UUID()
+            transaction.createdAt = valueDate
+            transaction.transactionDate = valueDate
             transaction.type = TransactionType.deposit.rawValue
             transaction.amount = amountValue
             transaction.quantity = 1
@@ -290,8 +319,8 @@ struct AddFixedDepositView: View {
             if portfolio.enforcesCashDisciplineEnabled {
                 let negativeTransaction = Transaction(context: viewContext)
                 negativeTransaction.id = UUID()
-                negativeTransaction.createdAt = Date()
-                negativeTransaction.transactionDate = Date()
+                negativeTransaction.createdAt = valueDate
+                negativeTransaction.transactionDate = valueDate
                 negativeTransaction.type = TransactionType.deposit.rawValue
                 negativeTransaction.amount = -amountValue
                 negativeTransaction.quantity = 1
@@ -319,7 +348,7 @@ struct AddFixedDepositView: View {
             try viewContext.save()
             dismiss()
         } catch {
-            errorMessage = "Failed to create fixed deposit: \(error.localizedDescription)"
+            errorMessage = "Failed to create fixed deposit: \(error.localizedDescription) "
         }
     }
 }

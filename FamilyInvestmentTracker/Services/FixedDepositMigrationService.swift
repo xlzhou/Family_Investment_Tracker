@@ -220,6 +220,7 @@ final class FixedDepositMigrationService {
                         termMonths: termMonths,
                         interestRate: interestRate,
                         allowEarlyWithdrawal: false, // Don't allow early withdrawal for migrated deposits
+                        valueDate: firstDeposit.transactionDate ?? firstDeposit.createdAt ?? Date(),
                         context: context
                     )
 
@@ -305,6 +306,7 @@ final class FixedDepositMigrationService {
             termMonths: termMonths,
             interestRate: 2.5, // Default interest rate
             allowEarlyWithdrawal: true, // Allow early withdrawal for migrated deposits
+            valueDate: firstTransaction.transactionDate ?? firstTransaction.createdAt ?? Date(),
             context: context
         )
 

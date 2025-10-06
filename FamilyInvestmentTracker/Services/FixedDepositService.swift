@@ -18,23 +18,24 @@ final class FixedDepositService {
         termMonths: Int,
         interestRate: Double,
         allowEarlyWithdrawal: Bool = false,
+        valueDate: Date = Date(),
         context: NSManagedObjectContext
     ) -> Asset {
         let asset = Asset(context: context)
         asset.id = UUID()
-        asset.createdAt = Date()
+        asset.createdAt = valueDate
         asset.assetType = AssetType.deposit.rawValue
         asset.depositSubtypeEnum = .fixed
         asset.name = name
         asset.symbol = symbol
         asset.currentPrice = amount
-        asset.lastPriceUpdate = Date()
+        asset.lastPriceUpdate = valueDate
         asset.setValue(interestRate, forKey: "interestRate")
         asset.allowEarlyWithdrawal = allowEarlyWithdrawal
 
         // Calculate maturity date
         let calendar = Calendar.current
-        if let maturityDate = calendar.date(byAdding: .month, value: termMonths, to: Date()) {
+        if let maturityDate = calendar.date(byAdding: .month, value: termMonths, to: valueDate) {
             asset.maturityDate = maturityDate
         }
 

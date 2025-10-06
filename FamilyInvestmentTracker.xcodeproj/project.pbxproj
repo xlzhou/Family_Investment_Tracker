@@ -38,6 +38,7 @@
 		1BB2CC3DD4EE5FF6AA778899 /* Asset+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F3A4C5D6E7081991ABCDEF /* Asset+Identifier.swift */; };
 		1CC2DD3EE4FF5AA6BB778899 /* Holding+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3F4A5C6D7E8091A92ABCDEF /* Holding+Identifier.swift */; };
 		1DD2EE3FF4AA5BB6CC778899 /* Transaction+Deposit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4F5A6C7D8E90A1B93ABCDEF /* Transaction+Deposit.swift */; };
+		DAAA11112222333344445555 /* CashOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAA11112222333344445555 /* CashOverviewView.swift */; };
 		2AA3BB4CC5DD6EE7FF889900 /* CashBalanceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2E3F4A5B6071890ABCDEF /* CashBalanceService.swift */; };
 		2BB3CC4DD5EE6FF7AA889900 /* FixedDepositMigrationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2D3E4F5A6B7081991ABCDEF /* FixedDepositMigrationService.swift */; };
 		2CC3DD4EE5FF6AA7BB889900 /* FixedDepositService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D4E5F6A7B8091A92ABCDEF /* FixedDepositService.swift */; };
@@ -105,6 +106,7 @@
 		C3D4E5F6A7B8091A92ABCDEF /* FixedDepositService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedDepositService.swift; sourceTree = "<group>"; };
 		D1E2F3A4B5C6071890ABCDEF /* AddFixedDepositView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddFixedDepositView.swift; sourceTree = "<group>"; };
 		D2E3F4A5B6C7081991ABCDEF /* FixedDepositManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedDepositManagementView.swift; sourceTree = "<group>"; };
+		CAAA11112222333344445555 /* CashOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashOverviewView.swift; sourceTree = "<group>"; };
 		D3E4F5A6B7C8091A92ABCDEF /* FixedDepositMigrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedDepositMigrationView.swift; sourceTree = "<group>"; };
 		E05B1E5F2D334E2190922280 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E366BA19FB884F43926B5E7B /* ExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 				5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */,
 				56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */,
 				98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */,
+				CAAA11112222333344445555 /* CashOverviewView.swift */,
 				46CA597ABF61463EBB88272F /* PortfolioListView.swift */,
 				1F20E7A40D184FC4AFA47EA7 /* HoldingsView.swift */,
 				C50FDA55600A41BC875E0BD6 /* HoldingDetailView.swift */,
@@ -333,6 +336,7 @@
 				E7C3DCF02E7E881900FC092A /* InstitutionAssetService.swift in Sources */,
 				83A5D1E5DC394A9EB73324A7 /* AddPortfolioView.swift in Sources */,
 				5FAF03082FDC46558F9413C4 /* PortfolioDashboardView.swift in Sources */,
+				DAAA11112222333344445555 /* CashOverviewView.swift in Sources */,
 				D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */,
 				DC9D5EF6AE3B47378F352FEC /* HoldingsView.swift in Sources */,
 				3AA4BB5CC6DD7EE8FF990011 /* AddFixedDepositView.swift in Sources */,
