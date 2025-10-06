@@ -156,7 +156,8 @@ struct AddFixedDepositView: View {
             .alert("Insufficient Cash", isPresented: $showingInsufficientCashAlert) {
                 Button("OK") { }
             } message: {
-                Text("Available: \(availableCashFormatted)\nRequired: \(requiredCashFormatted) \n\nIf you do not want cash to be deducted at the time of create fixed deposit, you can go to the portfolio settings to turn off 'Enforce Cash Discipline'.")
+                let institutionName = selectedInstitution?.name ?? "Selected institution"
+                Text("\(institutionName) available: \(availableCashFormatted)\nRequired: \(requiredCashFormatted)\n\nIf you do not want cash to be deducted when creating a fixed deposit, go to portfolio settings and turn off 'Enforce Cash Discipline'.")
             }
         }
     }
@@ -270,16 +271,27 @@ struct AddFixedDepositView: View {
         do {
             // Check cash discipline enforcement
             if portfolio.enforcesCashDisciplineEnabled {
-                // Check if there's sufficient available cash
-                let availableCashInCurrency = CashBalanceService.shared.getAvailableCashBalance(for: portfolio, currency: selectedCurrency)
+                // First verify the selected institution has enough cash in this currency
+                let institutionBalance = portfolio.getCurrencyBalance(
+                    for: institution,
+                    currency: selectedCurrency.rawValue
+                )
 
-                if availableCashInCurrency < amountValue {
-                    availableCashFormatted = CurrencyService.shared.formatAmount(availableCashInCurrency, in: selectedCurrency)
+                if institutionBalance + 1e-6 < amountValue {
+                    availableCashFormatted = CurrencyService.shared.formatAmount(institutionBalance, in: selectedCurrency)
                     requiredCashFormatted = CurrencyService.shared.formatAmount(amountValue, in: selectedCurrency)
                     showingInsufficientCashAlert = true
                     return
                 }
 
+                // Extra safety: ensure portfolio-level available cash in this currency is also sufficient
+                let availableCashInCurrency = CashBalanceService.shared.getAvailableCashBalance(for: portfolio, currency: selectedCurrency)
+                if availableCashInCurrency + 1e-6 < amountValue {
+                    availableCashFormatted = CurrencyService.shared.formatAmount(availableCashInCurrency, in: selectedCurrency)
+                    requiredCashFormatted = CurrencyService.shared.formatAmount(amountValue, in: selectedCurrency)
+                    showingInsufficientCashAlert = true
+                    return
+                }
             }
 
             let fixedDeposit = FixedDepositService.shared.createFixedDeposit(

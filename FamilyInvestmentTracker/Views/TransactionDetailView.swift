@@ -9,6 +9,7 @@ struct TransactionDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingEdit = false
     @State private var showingPaymentManagement = false
+    @State private var showingCashManagement = false
     private let currencyService = CurrencyService.shared
     
     private var currency: Currency {
@@ -33,6 +34,10 @@ struct TransactionDetailView: View {
 
     private var depositInterestRateText: String? {
         guard transactionTypeEnum == .deposit else { return nil }
+        if let assetRate = transaction.asset?.value(forKey: "interestRate") as? Double {
+            return Formatters.percent(assetRate, fractionDigits: 2)
+        }
+
         let rate = (transaction.value(forKey: "interestRate") as? Double) ?? 0
         return Formatters.percent(rate, fractionDigits: 2)
     }
@@ -44,6 +49,74 @@ struct TransactionDetailView: View {
     private var structuredProductInterestRateText: String {
         let rate = (transaction.asset?.value(forKey: "interestRate") as? Double) ?? 0
         return Formatters.percent(rate, fractionDigits: 2)
+    }
+
+    private var fixedDepositAsset: Asset? {
+        guard transactionTypeEnum == .deposit else { return nil }
+        guard let asset = transaction.asset, asset.isFixedDeposit else { return nil }
+        return asset
+    }
+
+    private var isFixedDepositTransaction: Bool {
+        fixedDepositAsset != nil
+    }
+
+    private var fixedDepositValueDate: Date? {
+        transaction.transactionDate ?? transaction.createdAt ?? fixedDepositAsset?.createdAt
+    }
+
+    private var fixedDepositTermDescription: String? {
+        guard let start = fixedDepositValueDate,
+              let maturity = fixedDepositAsset?.maturityDate else { return nil }
+
+        let components = Calendar.current.dateComponents([.month], from: start, to: maturity)
+        guard let totalMonths = components.month, totalMonths > 0 else { return nil }
+
+        if totalMonths >= 12 {
+            let years = totalMonths / 12
+            let remainingMonths = totalMonths % 12
+
+            if remainingMonths == 0 {
+                return years == 1 ? "1 year" : "\(years) years"
+            }
+
+            var parts: [String] = []
+            if years > 0 {
+                parts.append(years == 1 ? "1 year" : "\(years) years")
+            }
+            if remainingMonths > 0 {
+                parts.append(remainingMonths == 1 ? "1 month" : "\(remainingMonths) months")
+            }
+
+            return parts.joined(separator: " ")
+        }
+
+        return totalMonths == 1 ? "1 month" : "\(totalMonths) months"
+    }
+
+    private var fixedDepositStatus: (text: String, color: Color)? {
+        guard let asset = fixedDepositAsset else { return nil }
+
+        if asset.isMatured {
+            return ("Matured", .orange)
+        }
+
+        if let days = asset.daysUntilMaturity {
+            if days <= 30 {
+                return ("\(days) days left", .orange)
+            }
+            return ("\(days) days left", .blue)
+        }
+
+        return ("Active", .green)
+    }
+
+    private var fixedDepositPrincipalAmount: Double {
+        let transactionValue = abs(transaction.amount)
+        if let asset = fixedDepositAsset, asset.currentPrice > 0 {
+            return asset.currentPrice
+        }
+        return transactionValue
     }
 
     private var structuredProductLinkedAssets: String {
@@ -273,7 +346,7 @@ struct TransactionDetailView: View {
                         Text(transaction.transactionDate ?? Date(), style: .date)
                             .foregroundColor(.secondary)
                     }
-                    if let maturity = transaction.maturityDate {
+                    if let maturity = fixedDepositAsset?.maturityDate ?? transaction.maturityDate {
                         HStack {
                             Text("Maturity Date")
                             Spacer()
@@ -315,77 +388,81 @@ struct TransactionDetailView: View {
                 }
 
                 let isDividend = transactionTypeEnum == .dividend
-                Section(header: Text(isDividend ? "Dividend Source" : "Asset")) {
-                    HStack {
-                        Text("Symbol")
-                        Spacer()
-                        Text(transaction.asset?.symbol ?? "-")
-                            .foregroundColor(.secondary)
-                    }
-                    HStack {
-                        Text("Name")
-                        Spacer()
-                        Text(transaction.asset?.name ?? "-")
-                            .foregroundColor(.secondary)
-                    }
-                    if transactionTypeEnum == .deposit {
+                if isFixedDepositTransaction {
+                    fixedDepositDetailsSection
+                } else {
+                    Section(header: Text(isDividend ? "Dividend Source" : "Asset")) {
                         HStack {
-                            Text("Interest Rate")
+                            Text("Symbol")
                             Spacer()
-                            Text(depositInterestRateText ?? "0%")
+                            Text(transaction.asset?.symbol ?? "-")
                                 .foregroundColor(.secondary)
                         }
                         HStack {
-                            Text("Price")
+                            Text("Name")
                             Spacer()
-                            Text(Formatters.currency(transaction.price, symbol: currency.symbol))
+                            Text(transaction.asset?.name ?? "-")
                                 .foregroundColor(.secondary)
                         }
-                    } else if isStructuredProduct {
-                        HStack {
-                            Text("Quantity")
-                            Spacer()
-                            Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
-                                .foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text("Price per Share")
-                            Spacer()
-                            Text(Formatters.currency(transaction.price, symbol: currency.symbol, fractionDigits: 6))
-                                .foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text("Investment Amount")
-                            Spacer()
-                            Text(Formatters.currency(transaction.quantity * transaction.price, symbol: currency.symbol))
-                                .foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text("Interest Rate")
-                            Spacer()
-                            Text(structuredProductInterestRateText)
-                                .foregroundColor(.secondary)
-                        }
-                        if !structuredProductLinkedAssets.isEmpty {
+                        if transactionTypeEnum == .deposit {
                             HStack {
-                                Text("Linked Assets")
+                                Text("Interest Rate")
                                 Spacer()
-                                Text(structuredProductLinkedAssets)
+                                Text(depositInterestRateText ?? "0%")
                                     .foregroundColor(.secondary)
                             }
-                        }
-                    } else if !isDividend {
-                        HStack {
-                            Text("Quantity")
-                            Spacer()
-                            Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
-                                .foregroundColor(.secondary)
-                        }
-                        HStack {
-                            Text(isInsurance ? "Cash Value" : "Price")
-                            Spacer()
-                            Text(Formatters.currency(transaction.price, symbol: currency.symbol))
-                                .foregroundColor(.secondary)
+                            HStack {
+                                Text("Price")
+                                Spacer()
+                                Text(Formatters.currency(transaction.price, symbol: currency.symbol))
+                                    .foregroundColor(.secondary)
+                            }
+                        } else if isStructuredProduct {
+                            HStack {
+                                Text("Quantity")
+                                Spacer()
+                                Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text("Price per Share")
+                                Spacer()
+                                Text(Formatters.currency(transaction.price, symbol: currency.symbol, fractionDigits: 6))
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text("Investment Amount")
+                                Spacer()
+                                Text(Formatters.currency(transaction.quantity * transaction.price, symbol: currency.symbol))
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text("Interest Rate")
+                                Spacer()
+                                Text(structuredProductInterestRateText)
+                                    .foregroundColor(.secondary)
+                            }
+                            if !structuredProductLinkedAssets.isEmpty {
+                                HStack {
+                                    Text("Linked Assets")
+                                    Spacer()
+                                    Text(structuredProductLinkedAssets)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        } else if !isDividend {
+                            HStack {
+                                Text("Quantity")
+                                Spacer()
+                                Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
+                                    .foregroundColor(.secondary)
+                            }
+                            HStack {
+                                Text(isInsurance ? "Cash Value" : "Price")
+                                Spacer()
+                                Text(Formatters.currency(transaction.price, symbol: currency.symbol))
+                                    .foregroundColor(.secondary)
+                            }
                         }
                     }
                 }
@@ -453,6 +530,12 @@ struct TransactionDetailView: View {
                             }
                         }
                     }
+                } else if isFixedDepositTransaction {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Manage") {
+                            showingCashManagement = true
+                        }
+                    }
                 } else {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button("Edit") {
@@ -471,6 +554,101 @@ struct TransactionDetailView: View {
             if let asset = transaction.asset {
                 InsurancePaymentManagementView(portfolio: portfolio, insuranceAsset: asset)
                     .environment(\.managedObjectContext, viewContext)
+            }
+        }
+        .sheet(isPresented: $showingCashManagement) {
+            CashOverviewView(portfolio: portfolio, initialTab: .fixedDeposits)
+                .environment(\.managedObjectContext, viewContext)
+        }
+    }
+
+    @ViewBuilder
+    private var fixedDepositDetailsSection: some View {
+        Section(header: Text("Fixed Deposit")) {
+            if let asset = fixedDepositAsset {
+                HStack {
+                    Text("Symbol")
+                    Spacer()
+                    Text(asset.symbol ?? "-")
+                        .foregroundColor(.secondary)
+                }
+                HStack {
+                    Text("Name")
+                    Spacer()
+                    Text(asset.name ?? "-")
+                        .foregroundColor(.secondary)
+                }
+                if let institutionName = transaction.institution?.name ?? transaction.tradingInstitution {
+                    HStack {
+                        Text("Institution")
+                        Spacer()
+                        Text(institutionName)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                HStack {
+                    Text("Principal")
+                    Spacer()
+                    Text(Formatters.currency(fixedDepositPrincipalAmount, symbol: currency.symbol))
+                        .foregroundColor(.primary)
+                        .fontWeight(.semibold)
+                }
+                if let rate = depositInterestRateText {
+                    HStack {
+                        Text("Interest Rate")
+                        Spacer()
+                        Text(rate)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                if let valueDate = fixedDepositValueDate {
+                    HStack {
+                        Text("Value Date")
+                        Spacer()
+                        Text(valueDate, style: .date)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                if let maturity = asset.maturityDate {
+                    HStack {
+                        Text("Maturity Date")
+                        Spacer()
+                        Text(maturity, style: .date)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                if let term = fixedDepositTermDescription {
+                    HStack {
+                        Text("Term")
+                        Spacer()
+                        Text(term)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                if let status = fixedDepositStatus {
+                    HStack {
+                        Text("Status")
+                        Spacer()
+                        Text(status.text)
+                            .foregroundColor(status.color)
+                    }
+                }
+                HStack {
+                    Text("Early Withdrawal")
+                    Spacer()
+                    Text(asset.allowEarlyWithdrawal ? "Allowed" : "Not allowed")
+                        .foregroundColor(.secondary)
+                }
+                Button {
+                    showingCashManagement = true
+                } label: {
+                    Text("Manage Fixed Deposit")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+            } else {
+                Text("Fixed deposit details unavailable.")
+                    .foregroundColor(.secondary)
             }
         }
     }

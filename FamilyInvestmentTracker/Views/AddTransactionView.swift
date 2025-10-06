@@ -39,6 +39,7 @@ struct AddTransactionView: View {
     // Deposit-specific selection
     @State private var selectedDepositCategory = DepositCategory.demand
     @State private var depositInterestRate: Double = 0
+    @State private var showingCashManagement = false
     // Structured product fields
     @State private var structuredProductLinkedAssets = ""
     @State private var structuredProductInvestmentAmount: Double = 0
@@ -717,6 +718,14 @@ struct AddTransactionView: View {
                 selectedDividendAssetID = nil
                 selectedSellAssetID = nil
                 selectedPaymentInstitution = nil
+            case .deposit:
+                selectedDividendAssetID = nil
+                selectedSellAssetID = nil
+                selectedPaymentInstitution = nil
+                selectedInterestSource = .demand
+                if !isEditingFixedDepositTransaction {
+                    selectedDepositCategory = .demand
+                }
             case .insurance:
                 // Initialize with one beneficiary if empty
                 if beneficiaries.isEmpty {
@@ -810,8 +819,37 @@ struct AddTransactionView: View {
                 Text(message)
             }
         }
+        .sheet(isPresented: $showingCashManagement) {
+            CashOverviewView(portfolio: portfolio, initialTab: .fixedDeposits)
+                .environment(\.managedObjectContext, viewContext)
+        }
     }
     
+    private var isEditingFixedDepositTransaction: Bool {
+        guard selectedTransactionType == .deposit else { return false }
+        guard let transaction = transactionToEdit else { return false }
+        guard let asset = transaction.asset else { return false }
+
+        if asset.isFixedDeposit {
+            return true
+        }
+
+        let symbolCategory = DepositCategory.resolve(from: asset.symbol)
+        let nameCategory = DepositCategory.resolve(from: asset.name)
+        return symbolCategory == .fixed || nameCategory == .fixed
+    }
+
+    private var depositCategoriesForPicker: [DepositCategory] {
+        if isEditingFixedDepositTransaction {
+            return selectedDepositCategory == .fixed ? [.fixed] : [.demand]
+        }
+        return [.demand]
+    }
+
+    private var shouldShowFixedDepositCreationHint: Bool {
+        selectedTransactionType == .deposit && transactionToEdit == nil
+    }
+
     private var isFormValid: Bool {
         let hasValidInstitution = selectedInstitution != nil || !tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasQuantityValidationError = quantityValidationError != nil
@@ -834,6 +872,9 @@ struct AddTransactionView: View {
             }
             return !assetSymbol.isEmpty && quantity > 0 && price > 0 && hasValidInstitution
         case .deposit:
+            if isEditingFixedDepositTransaction {
+                return false
+            }
             return amount != 0 && hasValidInstitution
         case .depositWithdrawal:
             return amount > 0 && hasValidInstitution
@@ -1710,22 +1751,34 @@ struct AddTransactionView: View {
             DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
 
             if selectedTransactionType == .deposit {
-                Picker("Symbol", selection: $selectedDepositCategory) {
-                    ForEach(DepositCategory.allCases, id: \.self) { category in
-                        Text(category.displayTitle).tag(category)
+                if isEditingFixedDepositTransaction {
+                    fixedDepositLegacyNotice
+                } else {
+                    Picker("Symbol", selection: $selectedDepositCategory) {
+                        ForEach(depositCategoriesForPicker, id: \.self) { category in
+                            Text(category.displayTitle).tag(category)
+                        }
                     }
-                }
-                .pickerStyle(MenuPickerStyle())
+                    .pickerStyle(MenuPickerStyle())
+                    .onAppear {
+                        if !depositCategoriesForPicker.contains(selectedDepositCategory),
+                           let first = depositCategoriesForPicker.first {
+                            selectedDepositCategory = first
+                        }
+                    }
 
-                HStack {
-                    Text("Interest Rate")
-                    Spacer()
-                    TextField("0", value: $depositInterestRate, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .frame(width: 120)
-                    Text("%")
-                        .foregroundColor(.secondary)
+                    HStack {
+                        Text("Interest Rate")
+                        Spacer()
+                        TextField("0", value: $depositInterestRate, format: .number)
+                            .keyboardType(.decimalPad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .frame(width: 120)
+                        Text("%")
+                            .foregroundColor(.secondary)
+                    }
+
+                    fixedDepositCreationHint
                 }
             } else if isStructuredProductTransaction {
                 TextField("Linked Assets", text: $structuredProductLinkedAssets)
@@ -1959,6 +2012,67 @@ struct AddTransactionView: View {
             TextField("Notes (optional)", text: $notes, axis: .vertical)
                 .lineLimit(3...6)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
+        }
+    }
+
+    @ViewBuilder
+    private var fixedDepositLegacyNotice: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label {
+                Text("Edit fixed deposits in Cash Management")
+                    .fontWeight(.semibold)
+            } icon: {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+            }
+
+            Text("This transaction belongs to a fixed deposit. Manage its details from Cash Management to ensure maturity, term, and rate stay in sync.")
+                .font(.callout)
+                .foregroundColor(.secondary)
+
+            Button {
+                showingCashManagement = true
+            } label: {
+                Text("Open Cash Management")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+
+    @ViewBuilder
+    private var fixedDepositCreationHint: some View {
+        if shouldShowFixedDepositCreationHint {
+            VStack(alignment: .leading, spacing: 8) {
+                Label("Looking for fixed deposits?", systemImage: "lightbulb")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: "arrow.right")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Create and manage fixed deposits from Cash Management. This ensures value date, term, and maturity stay accurate.")
+                            .font(.callout)
+                            .foregroundColor(.secondary)
+
+                        Button {
+                            showingCashManagement = true
+                        } label: {
+                            Text("Open Cash Management")
+                                .font(.subheadline)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+            }
+            .padding(.top, 4)
         }
     }
 
@@ -2271,6 +2385,7 @@ struct AddTransactionView: View {
 
             if currentSymbol == targetSymbol {
                 asset.lastPriceUpdate = Date()
+                asset.depositSubtypeEnum = category.depositSubtype
                 return asset
             }
         }
@@ -2283,6 +2398,7 @@ struct AddTransactionView: View {
             existingAsset.name = category.assetName
             existingAsset.assetType = AssetType.deposit.rawValue
             existingAsset.lastPriceUpdate = Date()
+            existingAsset.depositSubtypeEnum = category.depositSubtype
             return existingAsset
         }
 
@@ -2294,6 +2410,7 @@ struct AddTransactionView: View {
         newAsset.createdAt = Date()
         newAsset.lastPriceUpdate = Date()
         newAsset.currentPrice = 0
+        newAsset.depositSubtypeEnum = category.depositSubtype
         return newAsset
     }
 
@@ -2546,6 +2663,13 @@ enum DepositCategory: String, CaseIterable {
 
     var assetName: String {
         displayTitle
+    }
+
+    var depositSubtype: Asset.DepositSubtype {
+        switch self {
+        case .demand: return .demand
+        case .fixed: return .fixed
+        }
     }
 
     static func resolve(from value: String?) -> DepositCategory? {
