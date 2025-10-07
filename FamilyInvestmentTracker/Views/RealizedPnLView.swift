@@ -50,21 +50,16 @@ struct RealizedPnLView: View {
     private var totalRealized: Double {
         // Total = (sold assets' income-included P&L) + deposit interest + active holdings income
 
-        var total: Double = 0
-
-        // Add sold assets' income-included P&L
         let soldAssets = getAssetsWithRealizedTransactions()
-        total += soldAssets.reduce(0) { $0 + $1.incomeIncludedPnL }
+        let soldAssetsTotal = soldAssets.reduce(0) { $0 + $1.incomeIncludedPnL }
 
-        // Add deposit interest
         let depositInterest = getDepositInterest()
-        total += depositInterest.reduce(0) { $0 + $1.realizedPnL }
+        let depositTotal = depositInterest.reduce(0) { $0 + $1.realizedPnL }
 
-        // Add dividends & interest from active holdings
         let activeHoldingsIncome = getPureDividendsAndInterest()
-        total += activeHoldingsIncome.reduce(0) { $0 + $1.incomeIncludedPnL }
+        let activeIncomeTotal = activeHoldingsIncome.reduce(0) { $0 + $1.incomeIncludedPnL }
 
-        return total
+        return soldAssetsTotal + depositTotal + activeIncomeTotal
     }
 
     // Asset type grouping

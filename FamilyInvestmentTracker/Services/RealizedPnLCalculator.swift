@@ -22,10 +22,15 @@ struct RealizedPnLCalculator {
         let depositInterest = depositInterestItems(for: portfolio,
                                                    start: startOfDay,
                                                    end: inclusiveEnd)
+        let activeIncome = pureDividendsAndInterest(for: portfolio,
+                                                    start: startOfDay,
+                                                    end: inclusiveEnd,
+                                                    soldAssets: Set(assetData.map { $0.asset }))
 
         let assetTotal = assetData.reduce(0) { $0 + $1.incomeIncludedPnL }
         let depositTotal = depositInterest.reduce(0) { $0 + $1.amount }
-        return assetTotal + depositTotal
+        let activeIncomeTotal = activeIncome.reduce(0) { $0 + $1.amount }
+        return assetTotal + depositTotal + activeIncomeTotal
     }
 
     private static func assetsWithRealizedTransactions(for portfolio: Portfolio,
@@ -113,6 +118,36 @@ struct RealizedPnLCalculator {
         let transactionCurrency = Currency(rawValue: transactionCurrencyCode ?? portfolioCurrency.rawValue) ?? portfolioCurrency
         return currencyService.convertAmount(amount, from: transactionCurrency, to: portfolioCurrency)
     }
+
+    private static func pureDividendsAndInterest(for portfolio: Portfolio,
+                                                 start: Date,
+                                                 end: Date,
+                                                 soldAssets: Set<Asset>) -> [ActiveIncomeItem] {
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? Currency.usd.rawValue) ?? .usd
+
+        return transactions.reduce(into: [Asset: Double]()) { result, transaction in
+            guard let date = transaction.transactionDate else { return }
+            guard date >= start && date <= end else { return }
+            guard let asset = transaction.asset else { return }
+
+            guard !soldAssets.contains(asset) else { return }
+
+            guard let type = TransactionType(rawValue: transaction.type ?? ""),
+                  type == .dividend || type == .interest else { return }
+
+            guard asset.assetType != AssetType.deposit.rawValue else { return }
+
+            let net = transaction.amount - transaction.fees - transaction.tax
+            let convertedAmount = convertToPortfolioCurrency(net,
+                                                             transactionCurrencyCode: transaction.currency,
+                                                             portfolio: portfolio)
+            result[asset, default: 0] += convertedAmount
+        }.map { asset, amount in
+            let symbol = asset.symbol ?? asset.name ?? "Unknown"
+            return ActiveIncomeItem(symbol: symbol, amount: amount)
+        }
+    }
 }
 
 private struct CalculatorAssetRealizedData {
@@ -123,5 +158,10 @@ private struct CalculatorAssetRealizedData {
 }
 
 private struct DepositInterestItem {
+    let amount: Double
+}
+
+private struct ActiveIncomeItem {
+    let symbol: String
     let amount: Double
 }
