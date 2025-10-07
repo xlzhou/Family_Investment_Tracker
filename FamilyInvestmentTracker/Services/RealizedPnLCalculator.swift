@@ -4,15 +4,57 @@ import CoreData
 struct RealizedPnLCalculator {
     private static let currencyService = CurrencyService.shared
 
+    struct RealizedAssetItem {
+        let asset: Asset
+        var realizedPnL: Double
+        var incomeAmount: Double
+        var incomeIncludedPnL: Double
+    }
+
+    struct DepositInterestItem {
+        let symbol: String
+        let amount: Double
+    }
+
+    struct ActiveIncomeItem {
+        let asset: Asset
+        let symbol: String
+        let name: String
+        let amount: Double
+    }
+
+    struct Breakdown {
+        let soldAssets: [RealizedAssetItem]
+        let depositInterest: [DepositInterestItem]
+        let activeIncome: [ActiveIncomeItem]
+
+        var total: Double {
+            let soldTotal = soldAssets.reduce(0) { $0 + $1.incomeIncludedPnL }
+            let depositTotal = depositInterest.reduce(0) { $0 + $1.amount }
+            let activeTotal = activeIncome.reduce(0) { $0 + $1.amount }
+            return soldTotal + depositTotal + activeTotal
+        }
+    }
+
     static func totalRealizedPnL(for portfolio: Portfolio,
                                  startDate: Date,
                                  endDate: Date,
                                  context: NSManagedObjectContext) -> Double {
+        breakdown(for: portfolio,
+                   startDate: startDate,
+                   endDate: endDate,
+                   context: context).total
+    }
+
+    static func breakdown(for portfolio: Portfolio,
+                          startDate: Date,
+                          endDate: Date,
+                          context: NSManagedObjectContext) -> Breakdown {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: startDate)
         let endStart = calendar.startOfDay(for: endDate)
         guard let inclusiveEnd = calendar.date(byAdding: DateComponents(day: 1, second: -1), to: endStart) else {
-            return 0
+            return Breakdown(soldAssets: [], depositInterest: [], activeIncome: [])
         }
 
         let assetData = assetsWithRealizedTransactions(for: portfolio,
@@ -27,16 +69,15 @@ struct RealizedPnLCalculator {
                                                     end: inclusiveEnd,
                                                     soldAssets: Set(assetData.map { $0.asset }))
 
-        let assetTotal = assetData.reduce(0) { $0 + $1.incomeIncludedPnL }
-        let depositTotal = depositInterest.reduce(0) { $0 + $1.amount }
-        let activeIncomeTotal = activeIncome.reduce(0) { $0 + $1.amount }
-        return assetTotal + depositTotal + activeIncomeTotal
+        return Breakdown(soldAssets: assetData,
+                         depositInterest: depositInterest,
+                         activeIncome: activeIncome)
     }
 
     private static func assetsWithRealizedTransactions(for portfolio: Portfolio,
                                                        start: Date,
                                                        end: Date,
-                                                       context: NSManagedObjectContext) -> [CalculatorAssetRealizedData] {
+                                                       context: NSManagedObjectContext) -> [RealizedAssetItem] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
 
         let sellTransactions = transactions.filter { transaction in
@@ -45,15 +86,15 @@ struct RealizedPnLCalculator {
             return TransactionType(rawValue: transaction.type ?? "") == .sell
         }
 
-        var assetDataMap: [Asset: CalculatorAssetRealizedData] = [:]
+        var assetDataMap: [Asset: RealizedAssetItem] = [:]
 
         for transaction in sellTransactions {
             guard let asset = transaction.asset else { continue }
             if assetDataMap[asset] == nil {
-                assetDataMap[asset] = CalculatorAssetRealizedData(asset: asset,
-                                                                  realizedPnL: 0,
-                                                                  incomeAmount: 0,
-                                                                  incomeIncludedPnL: 0)
+                assetDataMap[asset] = RealizedAssetItem(asset: asset,
+                                                         realizedPnL: 0,
+                                                         incomeAmount: 0,
+                                                         incomeIncludedPnL: 0)
             }
 
             let realizedGain = transaction.realizedGainAmount
@@ -83,6 +124,7 @@ struct RealizedPnLCalculator {
         }
 
         return Array(assetDataMap.values).filter { $0.realizedPnL != 0 || $0.incomeIncludedPnL != 0 }
+            .sorted { ($0.asset.symbol ?? $0.asset.name ?? "") < ($1.asset.symbol ?? $1.asset.name ?? "") }
     }
 
     private static func depositInterestItems(for portfolio: Portfolio,
@@ -90,25 +132,36 @@ struct RealizedPnLCalculator {
                                              end: Date) -> [DepositInterestItem] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
 
-        return transactions.compactMap { transaction -> DepositInterestItem? in
-            guard let date = transaction.transactionDate else { return nil }
-            guard date >= start && date <= end else { return nil }
+        var depositGroups: [String: Double] = [:]
+
+        for transaction in transactions {
+            guard let date = transaction.transactionDate else { continue }
+            guard date >= start && date <= end else { continue }
 
             guard let type = TransactionType(rawValue: transaction.type ?? ""), type == .interest else {
-                return nil
+                continue
             }
 
             guard let asset = transaction.asset,
                   asset.assetType == AssetType.deposit.rawValue else {
-                return nil
+                continue
             }
+
+            let institutionName = transaction.institution?.name ?? "Unknown Institution"
+            let isFromFixedDeposit = asset.isFixedDeposit == true
+            let depositType = isFromFixedDeposit ? "Fixed Deposits" : "Demand Deposits"
+            let key = "\(institutionName) - \(depositType)"
 
             let net = transaction.amount - transaction.fees - transaction.tax
             let convertedAmount = convertToPortfolioCurrency(net,
                                                              transactionCurrencyCode: transaction.currency,
                                                              portfolio: portfolio)
-            return DepositInterestItem(amount: convertedAmount)
+            depositGroups[key, default: 0] += convertedAmount
         }
+
+        return depositGroups.map { key, amount in
+            DepositInterestItem(symbol: key, amount: amount)
+        }.sorted { $0.symbol < $1.symbol }
     }
 
     private static func convertToPortfolioCurrency(_ amount: Double,
@@ -124,7 +177,6 @@ struct RealizedPnLCalculator {
                                                  end: Date,
                                                  soldAssets: Set<Asset>) -> [ActiveIncomeItem] {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
-        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? Currency.usd.rawValue) ?? .usd
 
         return transactions.reduce(into: [Asset: Double]()) { result, transaction in
             guard let date = transaction.transactionDate else { return }
@@ -145,23 +197,11 @@ struct RealizedPnLCalculator {
             result[asset, default: 0] += convertedAmount
         }.map { asset, amount in
             let symbol = asset.symbol ?? asset.name ?? "Unknown"
-            return ActiveIncomeItem(symbol: symbol, amount: amount)
-        }
+            let name = asset.name ?? "Unknown"
+            return ActiveIncomeItem(asset: asset,
+                                    symbol: symbol,
+                                    name: name,
+                                    amount: amount)
+        }.sorted { $0.symbol < $1.symbol }
     }
-}
-
-private struct CalculatorAssetRealizedData {
-    let asset: Asset
-    var realizedPnL: Double
-    var incomeAmount: Double
-    var incomeIncludedPnL: Double
-}
-
-private struct DepositInterestItem {
-    let amount: Double
-}
-
-private struct ActiveIncomeItem {
-    let symbol: String
-    let amount: Double
 }

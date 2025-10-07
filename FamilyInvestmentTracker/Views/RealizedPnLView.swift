@@ -47,19 +47,15 @@ struct RealizedPnLView: View {
         }
     }
 
+    private var breakdown: RealizedPnLCalculator.Breakdown {
+        RealizedPnLCalculator.breakdown(for: portfolio,
+                                        startDate: startDate,
+                                        endDate: endDate,
+                                        context: viewContext)
+    }
+
     private var totalRealized: Double {
-        // Total = (sold assets' income-included P&L) + deposit interest + active holdings income
-
-        let soldAssets = getAssetsWithRealizedTransactions()
-        let soldAssetsTotal = soldAssets.reduce(0) { $0 + $1.incomeIncludedPnL }
-
-        let depositInterest = getDepositInterest()
-        let depositTotal = depositInterest.reduce(0) { $0 + $1.realizedPnL }
-
-        let activeHoldingsIncome = getPureDividendsAndInterest()
-        let activeIncomeTotal = activeHoldingsIncome.reduce(0) { $0 + $1.incomeIncludedPnL }
-
-        return soldAssetsTotal + depositTotal + activeIncomeTotal
+        breakdown.total
     }
 
     // Asset type grouping
@@ -80,9 +76,7 @@ struct RealizedPnLView: View {
         groups["Dividends & Interest"] = []
 
         // Get unique assets with realized transactions
-        let assetsWithRealized = getAssetsWithRealizedTransactions()
-
-        for assetData in assetsWithRealized {
+        for assetData in breakdown.soldAssets {
             let groupName = getGroupName(for: assetData.asset)
             let item = AssetGroupItem(
                 asset: assetData.asset,
@@ -96,15 +90,31 @@ struct RealizedPnLView: View {
         }
 
         // Add deposit interest
-        let depositInterest = getDepositInterest()
-        for depositItem in depositInterest {
-            groups["Deposits", default: []].append(depositItem)
+        for depositItem in breakdown.depositInterest {
+            groups["Deposits", default: []].append(
+                AssetGroupItem(
+                    asset: nil,
+                    symbol: depositItem.symbol,
+                    name: "Interest Income",
+                    realizedPnL: depositItem.amount,
+                    incomeAmount: 0,
+                    incomeIncludedPnL: depositItem.amount
+                )
+            )
         }
 
         // Add pure dividends & interest (not tied to specific holdings)
-        let pureIncome = getPureDividendsAndInterest()
-        for incomeItem in pureIncome {
-            groups["Dividends & Interest", default: []].append(incomeItem)
+        for incomeItem in breakdown.activeIncome {
+            groups["Dividends & Interest", default: []].append(
+                AssetGroupItem(
+                    asset: incomeItem.asset,
+                    symbol: incomeItem.symbol,
+                    name: incomeItem.name,
+                    realizedPnL: 0,
+                    incomeAmount: incomeItem.amount,
+                    incomeIncludedPnL: incomeItem.amount
+                )
+            )
         }
 
         // Sort items within each group
@@ -316,168 +326,9 @@ struct RealizedPnLView: View {
         }
     }
 
-    private func getAssetsWithRealizedTransactions() -> [AssetRealizedData] {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: startDate)
-        let endStart = calendar.startOfDay(for: endDate)
-        guard let end = calendar.date(byAdding: DateComponents(day: 1, second: -1), to: endStart) else {
-            return []
-        }
-
-        var assetDataMap: [Asset: AssetRealizedData] = [:]
-
-        // Only get SELL transactions and dividend/interest for sold assets within date range
-        let sellTransactions = allTransactions.filter { transaction in
-            guard let date = transaction.transactionDate else { return false }
-            guard date >= start && date <= end else { return false }
-            return TransactionType(rawValue: transaction.type ?? "") == .sell
-        }
-
-        // For each sell transaction, collect the realized P&L
-        for transaction in sellTransactions {
-            guard let asset = transaction.asset else { continue }
-
-            if assetDataMap[asset] == nil {
-                assetDataMap[asset] = AssetRealizedData(asset: asset, realizedPnL: 0, incomeAmount: 0, incomeIncludedPnL: 0)
-            }
-
-            let realizedGain = transaction.realizedGainAmount
-            assetDataMap[asset]?.realizedPnL += realizedGain
-            assetDataMap[asset]?.incomeIncludedPnL += realizedGain
-        }
-
-        // Now add dividends/interest ONLY for assets that were sold in this period
-        let soldAssets = Set(assetDataMap.keys)
-        let incomeTransactions = allTransactions.filter { transaction in
-            guard let date = transaction.transactionDate else { return false }
-            guard date >= start && date <= end else { return false }
-            guard let asset = transaction.asset else { return false }
-            guard soldAssets.contains(asset) else { return false } // Only for sold assets
-
-            let type = TransactionType(rawValue: transaction.type ?? "")
-            return type == .dividend || type == .interest
-        }
-
-        for transaction in incomeTransactions {
-            guard let asset = transaction.asset else { continue }
-            let net = transaction.amount - transaction.fees - transaction.tax
-            let convertedAmount = convertToPortfolioCurrency(net, currencyCode: transaction.currency)
-            assetDataMap[asset]?.incomeAmount += convertedAmount
-            assetDataMap[asset]?.incomeIncludedPnL += convertedAmount
-        }
-
-        return Array(assetDataMap.values).filter { $0.realizedPnL != 0 || $0.incomeIncludedPnL != 0 }
-    }
-
-    private func getDepositInterest() -> [AssetGroupItem] {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: startDate)
-        let endStart = calendar.startOfDay(for: endDate)
-        guard let end = calendar.date(byAdding: DateComponents(day: 1, second: -1), to: endStart) else {
-            return []
-        }
-
-        var depositGroups: [String: Double] = [:]
-
-        // Get INTEREST transactions only from DEPOSIT assets (not principal deposits)
-        let interestTransactions = allTransactions.filter { transaction in
-            guard let date = transaction.transactionDate else { return false }
-            guard date >= start && date <= end else { return false }
-            guard let asset = transaction.asset else { return false }
-            guard asset.assetType == AssetType.deposit.rawValue else { return false }
-
-            let type = TransactionType(rawValue: transaction.type ?? "")
-            return type == .interest
-        }
-
-        for transaction in interestTransactions {
-            let institutionName = transaction.institution?.name ?? "Unknown Institution"
-
-            // Determine if this is from a fixed deposit or demand deposit
-            let isFromFixedDeposit = transaction.asset?.assetType == AssetType.deposit.rawValue &&
-                                   transaction.asset?.isFixedDeposit == true
-            let depositType = isFromFixedDeposit ? "Fixed Deposits" : "Demand Deposits"
-            let key = "\(institutionName) - \(depositType)"
-
-            let net = transaction.amount - transaction.fees - transaction.tax
-            let convertedAmount = convertToPortfolioCurrency(net, currencyCode: transaction.currency)
-            depositGroups[key, default: 0] += convertedAmount
-        }
-
-        return depositGroups.map { key, amount in
-            AssetGroupItem(
-                asset: nil,
-                symbol: key,
-                name: "Interest Income",
-                realizedPnL: amount,
-                incomeAmount: 0, // For deposits, the amount IS the income
-                incomeIncludedPnL: amount
-            )
-        }.sorted { $0.symbol < $1.symbol }
-    }
-
-    private func getPureDividendsAndInterest() -> [AssetGroupItem] {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: startDate)
-        let endStart = calendar.startOfDay(for: endDate)
-        guard let end = calendar.date(byAdding: DateComponents(day: 1, second: -1), to: endStart) else {
-            return []
-        }
-
-        var incomeGroups: [Asset: Double] = [:]
-
-        // Get dividend/interest transactions for assets with no sells in period
-        let incomeTransactions = allTransactions.filter { transaction in
-            guard let date = transaction.transactionDate else { return false }
-            guard date >= start && date <= end else { return false }
-
-            let type = TransactionType(rawValue: transaction.type ?? "")
-            return type == .dividend || type == .interest
-        }
-
-        for transaction in incomeTransactions {
-            guard let asset = transaction.asset else { continue }
-
-            // Skip deposit assets - they're handled in Deposits section
-            guard asset.assetType != AssetType.deposit.rawValue else { continue }
-
-            // Check if this asset has any sell transactions in the period
-            let hasSells = allTransactions.contains { sellTransaction in
-                guard let sellDate = sellTransaction.transactionDate else { return false }
-                guard sellDate >= start && sellDate <= end else { return false }
-                guard sellTransaction.asset == asset else { return false }
-                return TransactionType(rawValue: sellTransaction.type ?? "") == .sell
-            }
-
-            // Only include in pure income if no sells occurred (these are still active holdings)
-            if !hasSells {
-                let net = transaction.amount - transaction.fees - transaction.tax
-                let convertedAmount = convertToPortfolioCurrency(net, currencyCode: transaction.currency)
-                incomeGroups[asset, default: 0] += convertedAmount
-            }
-        }
-
-        return incomeGroups.map { asset, amount in
-            AssetGroupItem(
-                asset: asset,
-                symbol: asset.symbol ?? "Unknown",
-                name: asset.name ?? "Unknown Asset",
-                realizedPnL: 0, // No sells, so no realized P&L
-                incomeAmount: amount,
-                incomeIncludedPnL: amount
-            )
-        }.sorted { $0.symbol < $1.symbol }
-    }
 }
 
 // MARK: - Supporting Data Structures
-
-struct AssetRealizedData {
-    let asset: Asset
-    var realizedPnL: Double
-    var incomeAmount: Double
-    var incomeIncludedPnL: Double
-}
 
 struct AssetGroupItem {
     let asset: Asset?
