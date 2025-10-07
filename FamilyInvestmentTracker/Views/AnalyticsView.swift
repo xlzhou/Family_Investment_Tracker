@@ -3,26 +3,72 @@ import Foundation
 import Charts
 import CoreData
 
+private enum AssetTypePalette {
+    static func color(for typeName: String) -> Color {
+        if let assetType = AssetType(rawValue: typeName) {
+            switch assetType {
+            case .stock: return .blue
+            case .etf: return .green
+            case .bond: return .orange
+            case .mutualFund: return .purple
+            case .cryptocurrency: return .yellow
+            case .preciousMetal: return .brown
+            case .insurance: return .pink
+            case .structuredProduct: return .cyan
+            case .deposit: return .gray
+            case .other: return .teal
+            }
+        }
+
+        let normalized = typeName.trimmingCharacters(in: .whitespacesAndNewlines)
+        if normalized.lowercased().contains("fixed deposit") {
+            return .gray
+        }
+
+        let hash = abs(normalized.hashValue)
+        let hue = Double(hash % 360) / 360.0
+        return Color(hue: hue, saturation: 0.45, brightness: 0.85)
+    }
+}
+
 struct AnalyticsView: View {
     @ObservedObject var portfolio: Portfolio
     @StateObject private var viewModel = PortfolioViewModel()
     @Environment(\.managedObjectContext) private var viewContext
     @State private var refreshID = UUID()
-    
+    @State private var performanceHistory: [PerformanceDataPoint] = []
+    @State private var dividendHistory: [DividendDataPoint] = []
+    @State private var isLoadingPerformance = false
+    @State private var isLoadingDividends = false
+    @State private var performanceSnapshot: PortfolioPerformance?
+    @State private var realizedPnLYTD: Double = 0
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 // Portfolio Performance Summary
-                PerformanceSummaryView(portfolio: portfolio, viewModel: viewModel)
-                
+                PerformanceSummaryView(
+                    portfolio: portfolio,
+                    performance: performanceSnapshot ?? viewModel.calculatePortfolioPerformance(portfolio: portfolio),
+                    realizedPnLYTD: realizedPnLYTD
+                )
+
                 // Asset Allocation Chart
                 AssetAllocationChartView(portfolio: portfolio, viewModel: viewModel)
-                
+
                 // Performance Over Time Chart
-                PerformanceChartView(portfolio: portfolio)
-                
+                PerformanceChartView(
+                    data: performanceHistory,
+                    isLoading: isLoadingPerformance,
+                    currencySymbol: portfolioCurrency.symbol
+                )
+
                 // Dividend History Chart
-                DividendHistoryView(portfolio: portfolio)
+                DividendHistoryView(
+                    data: dividendHistory,
+                    isLoading: isLoadingDividends,
+                    currencySymbol: portfolioCurrency.symbol
+                )
             }
             .padding()
         }
@@ -32,20 +78,53 @@ struct AnalyticsView: View {
             let refreshed = notification.userInfo?[NSRefreshedObjectsKey] as? Set<NSManagedObject> ?? []
             let inserted = notification.userInfo?[NSInsertedObjectsKey] as? Set<NSManagedObject> ?? []
             let relevant = updated.union(refreshed).union(inserted)
-            if relevant.contains(where: { $0.objectID == portfolio.objectID }) {
+            if relevant.contains(where: { $0.objectID == portfolio.objectID || ($0 as? Transaction)?.portfolio == portfolio || ($0 as? Holding)?.portfolio == portfolio }) {
                 refreshID = UUID()
             }
         }
+        .task {
+            viewModel.invalidateAnalyticsCache(for: portfolio)
+            await loadAnalyticsData()
+        }
+        .onChange(of: refreshID) { _, _ in
+            viewModel.invalidateAnalyticsCache(for: portfolio)
+            Task { await loadAnalyticsData() }
+        }
+    }
+
+    private var portfolioCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? Currency.usd.rawValue) ?? .usd
+    }
+
+    @MainActor
+    private func loadAnalyticsData() async {
+        isLoadingPerformance = true
+        isLoadingDividends = true
+
+        let summary = viewModel.calculatePortfolioPerformance(portfolio: portfolio)
+        let performance = viewModel.performanceHistory(for: portfolio)
+        let dividends = viewModel.dividendHistory(for: portfolio)
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfYear = calendar.date(from: calendar.dateComponents([.year], from: now)) ?? now
+        let realizedYTD = RealizedPnLCalculator.totalRealizedPnL(for: portfolio,
+                                                                 startDate: startOfYear,
+                                                                 endDate: now,
+                                                                 context: viewContext)
+
+        performanceHistory = performance
+        dividendHistory = dividends
+        performanceSnapshot = summary
+        realizedPnLYTD = realizedYTD
+        isLoadingPerformance = false
+        isLoadingDividends = false
     }
 }
 
 struct PerformanceSummaryView: View {
     let portfolio: Portfolio
-    let viewModel: PortfolioViewModel
-    
-    private var performance: PortfolioPerformance {
-        viewModel.calculatePortfolioPerformance(portfolio: portfolio)
-    }
+    let performance: PortfolioPerformance
+    let realizedPnLYTD: Double
 
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -90,11 +169,11 @@ struct PerformanceSummaryView: View {
                 )
                 
                 PerformanceCardView(
-                    title: "Realized P&L",
-                    value: Formatters.signedCurrency(performance.realizedGainLoss, symbol: currencySymbol),
-                    color: performance.realizedGainLoss >= 0 ? .green : .red
+                    title: "Realized P&L (YTD)",
+                    value: Formatters.signedCurrency(realizedPnLYTD, symbol: currencySymbol),
+                    color: realizedPnLYTD >= 0 ? .green : .red
                 )
-                
+
                 PerformanceCardView(
                     title: "Total Dividends",
                     value: Formatters.currency(performance.totalDividends, symbol: currencySymbol),
@@ -253,26 +332,7 @@ struct AssetAllocationChartView: View {
     }
     
     private func colorForAssetType(_ type: String) -> Color {
-        switch type {
-        case "Stock":
-            return .blue
-        case "ETF":
-            return .green
-        case "Bond":
-            return .orange
-        case "Mutual Fund":
-            return .purple
-        case "Cryptocurrency":
-            return .yellow
-        case "Deposit":
-            return .gray
-        case "Cash":
-            return .teal
-        case "Structured Product":
-            return .brown
-        default:
-            return .pink
-        }
+        AssetTypePalette.color(for: type)
     }
 
     private func colorForInstitution(_ name: String) -> Color {
@@ -284,57 +344,53 @@ struct AssetAllocationChartView: View {
 }
 
 struct PerformanceChartView: View {
-    let portfolio: Portfolio
-    
-    private var performanceData: [PerformanceDataPoint] {
-        // Generate sample performance data
-        // In a real app, this would come from historical data
-        let calendar = Calendar.current
-        let endDate = Date()
-        
-        return (0...30).compactMap { dayOffset in
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: endDate) else { return nil }
-            
-            // Simulate performance data
-            let baseValue = portfolio.totalValue
-            let variation = Double.random(in: -0.1...0.1)
-            let value = baseValue * (1 + variation)
-            
-            return PerformanceDataPoint(date: date, value: value)
-        }.reversed()
-    }
-    
+    let data: [PerformanceDataPoint]
+    let isLoading: Bool
+    let currencySymbol: String
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Portfolio Performance (30 Days)")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
-            Chart(performanceData, id: \.date) { dataPoint in
-                LineMark(
-                    x: .value("Date", dataPoint.date),
-                    y: .value("Value", dataPoint.value)
-                )
-                .foregroundStyle(.blue)
-                .lineStyle(StrokeStyle(lineWidth: 2))
-                
-                AreaMark(
-                    x: .value("Date", dataPoint.date),
-                    y: .value("Value", dataPoint.value)
-                )
-                .foregroundStyle(.blue.opacity(0.1))
-            }
-            .frame(height: 200)
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .day, count: 7)) { _ in
-                    AxisGridLine()
-                    AxisValueLabel(format: .dateTime.month().day())
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 160)
+            } else if data.count <= 1 {
+                Text("Not enough history to display performance.")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 160)
+            } else {
+                Chart(data, id: \.date) { dataPoint in
+                    LineMark(
+                        x: .value("Date", dataPoint.date),
+                        y: .value("Value", dataPoint.value)
+                    )
+                    .foregroundStyle(.blue)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+
+                    AreaMark(
+                        x: .value("Date", dataPoint.date),
+                        y: .value("Value", dataPoint.value)
+                    )
+                    .foregroundStyle(.blue.opacity(0.1))
                 }
-            }
-            .chartYAxis {
-                AxisMarks { _ in
-                    AxisGridLine()
-                    AxisValueLabel()
+                .frame(height: 200)
+                .chartXAxis {
+                    AxisMarks(values: .stride(by: .day, count: 7)) { _ in
+                        AxisGridLine()
+                        AxisValueLabel(format: .dateTime.month().day())
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisGridLine()
+                        if let number = value.as(Double.self) {
+                            AxisValueLabel(Formatters.currency(number, symbol: currencySymbol, fractionDigits: 0))
+                        } else {
+                            AxisValueLabel()
+                        }
+                    }
                 }
             }
         }
@@ -346,48 +402,47 @@ struct PerformanceChartView: View {
 }
 
 struct DividendHistoryView: View {
-    let portfolio: Portfolio
-    
-    private var dividendData: [DividendDataPoint] {
-        let calendar = Calendar.current
-        let currentDate = Date()
-        
-        // Generate sample dividend data for the last 12 months
-        return (0...11).compactMap { monthOffset in
-            guard let date = calendar.date(byAdding: .month, value: -monthOffset, to: currentDate) else { return nil }
-            
-            // Simulate dividend payments
-            let dividendAmount = Double.random(in: 0...200)
-            
-            return DividendDataPoint(month: date, amount: dividendAmount)
-        }.reversed()
-    }
+    let data: [DividendDataPoint]
+    let isLoading: Bool
+    let currencySymbol: String
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Dividend History (12 Months)")
                 .font(.title2)
                 .fontWeight(.semibold)
-            
-            Chart(dividendData, id: \.month) { dataPoint in
-                BarMark(
-                    x: .value("Month", dataPoint.month),
-                    y: .value("Dividends", dataPoint.amount)
-                )
-                .foregroundStyle(.purple)
-                .cornerRadius(4)
-            }
-            .frame(height: 200)
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .month, count: 2)) { _ in
-                    AxisGridLine()
-                    AxisValueLabel(format: .dateTime.month(.abbreviated))
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 160)
+            } else if data.isEmpty {
+                Text("No dividend or interest income recorded in this period.")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 160)
+            } else {
+                Chart(data, id: \.month) { dataPoint in
+                    BarMark(
+                        x: .value("Month", dataPoint.month),
+                        y: .value("Income", dataPoint.amount)
+                    )
+                    .foregroundStyle(.purple)
+                    .cornerRadius(4)
                 }
-            }
-            .chartYAxis {
-                AxisMarks { _ in
-                    AxisGridLine()
-                    AxisValueLabel()
+                .frame(height: 200)
+                .chartXAxis {
+                    AxisMarks(values: .stride(by: .month, count: 2)) { _ in
+                        AxisGridLine()
+                        AxisValueLabel(format: .dateTime.month(.abbreviated))
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisGridLine()
+                        if let number = value.as(Double.self) {
+                            AxisValueLabel(Formatters.currency(number, symbol: currencySymbol, fractionDigits: 0))
+                        } else {
+                            AxisValueLabel()
+                        }
+                    }
                 }
             }
         }

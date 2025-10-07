@@ -4,8 +4,22 @@ import SwiftUI
 
 class PortfolioViewModel: ObservableObject {
     @Published var isUpdatingPrices = false
-    
+
     private let marketDataService = MarketDataService.shared
+    private let currencyService = CurrencyService.shared
+
+    private struct PerformanceCacheKey: Hashable {
+        let portfolioURI: String
+        let days: Int
+    }
+
+    private struct DividendCacheKey: Hashable {
+        let portfolioURI: String
+        let months: Int
+    }
+
+    private var performanceHistoryCache: [PerformanceCacheKey: [PerformanceDataPoint]] = [:]
+    private var dividendHistoryCache: [DividendCacheKey: [DividendDataPoint]] = [:]
     
     func updatePortfolioPrices(portfolio: Portfolio, context: NSManagedObjectContext) {
         guard !isUpdatingPrices else { return }
@@ -75,35 +89,49 @@ extension PortfolioViewModel {
     func calculatePortfolioPerformance(portfolio: Portfolio) -> PortfolioPerformance {
         let holdings = portfolio.holdings?.allObjects as? [Holding] ?? []
         
-        var totalCurrentValue: Double = 0
+        let context = portfolio.managedObjectContext ?? PersistenceController.shared.container.viewContext
+
+        var holdingsCurrentValue: Double = 0
         var totalCostBasis: Double = 0
+        var unrealizedGainLoss: Double = 0
         var totalDividends: Double = 0
         var totalRealizedGains: Double = 0
-        
+
         for holding in holdings {
             guard let asset = holding.asset else { continue }
 
+            // Deposit assets are represented via cash balances, not holdings valuation
+            if asset.assetType == AssetType.deposit.rawValue {
+                continue
+            }
+
             // For insurance assets, use cash value; for others, use market value
             if asset.assetType == "Insurance" {
-                totalCurrentValue += (holding.value(forKey: "cashValue") as? Double ?? 0)
+                let cashValue = (holding.value(forKey: "cashValue") as? Double) ?? 0
+                holdingsCurrentValue += cashValue
                 // For insurance, cost basis is typically the premiums paid (stored as amount)
                 // We'll use a simplified approach here
                 totalCostBasis += 0 // Insurance premiums don't count as cost basis in traditional sense
+                let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: context)
+                unrealizedGainLoss += cashValue - paidPremium
             } else {
-                totalCurrentValue += holding.quantity * asset.currentPrice
-                totalCostBasis += holding.quantity * holding.averageCostBasis
+                let currentValue = holding.quantity * asset.currentPrice
+                let costBasis = holding.quantity * holding.averageCostBasis
+                holdingsCurrentValue += currentValue
+                totalCostBasis += costBasis
+                unrealizedGainLoss += currentValue - costBasis
             }
 
             totalDividends += holding.totalDividends
             totalRealizedGains += holding.realizedGainLoss
         }
-        
-        totalCurrentValue += portfolio.resolvedCashBalance()
 
-        let unrealizedGainLoss = totalCurrentValue - totalCostBasis
+        let totalCashBalance = portfolio.totalCashBalance
+        let totalCurrentValue = holdingsCurrentValue + totalCashBalance
+
         let totalReturn = unrealizedGainLoss + totalRealizedGains + totalDividends
         let totalReturnPercentage = totalCostBasis > 0 ? (totalReturn / totalCostBasis) * 100 : 0
-        
+
         return PortfolioPerformance(
             currentValue: totalCurrentValue,
             costBasis: totalCostBasis,
@@ -219,6 +247,192 @@ extension PortfolioViewModel {
             )
         }.sorted { $0.value > $1.value }
     }
+
+    @MainActor
+    func performanceHistory(for portfolio: Portfolio, days: Int = 90) -> [PerformanceDataPoint] {
+        let portfolioURI = portfolio.objectID.uriRepresentation().absoluteString
+        let cacheKey = PerformanceCacheKey(portfolioURI: portfolioURI, days: days)
+        if let cached = performanceHistoryCache[cacheKey] {
+            return cached
+        }
+
+        let history = computePerformanceHistory(for: portfolio, days: days)
+        performanceHistoryCache[cacheKey] = history
+        return history
+    }
+
+    @MainActor
+    func dividendHistory(for portfolio: Portfolio, months: Int = 12) -> [DividendDataPoint] {
+        let portfolioURI = portfolio.objectID.uriRepresentation().absoluteString
+        let cacheKey = DividendCacheKey(portfolioURI: portfolioURI, months: months)
+        if let cached = dividendHistoryCache[cacheKey] {
+            return cached
+        }
+
+        let history = computeDividendHistory(for: portfolio, months: months)
+        dividendHistoryCache[cacheKey] = history
+        return history
+    }
+
+    @MainActor
+    func invalidateAnalyticsCache(for portfolio: Portfolio) {
+        let uri = portfolio.objectID.uriRepresentation().absoluteString
+        performanceHistoryCache.keys
+            .filter { $0.portfolioURI == uri }
+            .forEach { performanceHistoryCache.removeValue(forKey: $0) }
+        dividendHistoryCache.keys
+            .filter { $0.portfolioURI == uri }
+            .forEach { dividendHistoryCache.removeValue(forKey: $0) }
+    }
+
+    private func computePerformanceHistory(for portfolio: Portfolio, days: Int) -> [PerformanceDataPoint] {
+        guard days > 0 else { return [] }
+
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -days, to: endDate) else { return [] }
+
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let sortedTransactions = transactions.sorted { lhs, rhs in
+            let leftDate = lhs.transactionDate ?? lhs.createdAt ?? Date.distantPast
+            let rightDate = rhs.transactionDate ?? rhs.createdAt ?? Date.distantPast
+            return leftDate < rightDate
+        }
+
+        var assetQuantities: [NSManagedObjectID: Double] = [:]
+        var assetReferenceCache: [NSManagedObjectID: Asset] = [:]
+        var cashBalance: Double = 0
+
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? Currency.usd.rawValue) ?? .usd
+
+        func asset(for id: NSManagedObjectID) -> Asset? {
+            if let cached = assetReferenceCache[id] { return cached }
+            guard let asset = try? portfolio.managedObjectContext?.existingObject(with: id) as? Asset else { return nil }
+            assetReferenceCache[id] = asset
+            return asset
+        }
+
+        func currentValueEstimate() -> Double {
+            var total = cashBalance
+            for (assetID, quantity) in assetQuantities where abs(quantity) > 1e-6 {
+                guard let asset = asset(for: assetID) else { continue }
+                let price = asset.currentPrice
+                total += quantity * price
+            }
+            return total
+        }
+
+        var history: [PerformanceDataPoint] = []
+        var initialRecorded = false
+
+        for transaction in sortedTransactions {
+            apply(transaction: transaction,
+                  to: &assetQuantities,
+                  cashBalance: &cashBalance,
+                  portfolioCurrency: portfolioCurrency)
+
+            let transactionDate = transaction.transactionDate ?? transaction.createdAt ?? Date()
+
+            if transactionDate < startDate { continue }
+
+            if !initialRecorded {
+                let initialValue = currentValueEstimate()
+                history.append(PerformanceDataPoint(date: startDate, value: initialValue))
+                initialRecorded = true
+            }
+
+            let value = currentValueEstimate()
+            history.append(PerformanceDataPoint(date: min(transactionDate, endDate), value: value))
+        }
+
+        if history.isEmpty {
+            let currentPerformance = calculatePortfolioPerformance(portfolio: portfolio)
+            let baseline = PerformanceDataPoint(date: startDate, value: currentPerformance.currentValue)
+            let endPoint = PerformanceDataPoint(date: endDate, value: currentPerformance.currentValue)
+            return [baseline, endPoint]
+        }
+
+        // Ensure final point reflects latest portfolio value
+        let currentPerformance = calculatePortfolioPerformance(portfolio: portfolio)
+        if let last = history.last, abs(last.value - currentPerformance.currentValue) > 0.01 {
+            history.append(PerformanceDataPoint(date: endDate, value: currentPerformance.currentValue))
+        } else if let last = history.last, last.date < endDate {
+            history.append(PerformanceDataPoint(date: endDate, value: currentPerformance.currentValue))
+        }
+
+        return history
+            .sorted { $0.date < $1.date }
+            .uniqued(by: { $0.date })
+    }
+
+    private func computeDividendHistory(for portfolio: Portfolio, months: Int) -> [DividendDataPoint] {
+        guard months > 0 else { return [] }
+
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startMonth = calendar.date(byAdding: .month, value: -(months - 1), to: endDate) else { return [] }
+
+        var monthBuckets: [Date: Double] = [:]
+        let currentMonthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: startMonth)) ?? startMonth
+
+        for offset in 0..<months {
+            if let bucketDate = calendar.date(byAdding: .month, value: offset, to: currentMonthStart) {
+                monthBuckets[bucketDate] = 0
+            }
+        }
+
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let portfolioCurrency = Currency(rawValue: portfolio.mainCurrency ?? Currency.usd.rawValue) ?? .usd
+
+        for transaction in transactions {
+            guard let type = TransactionType(rawValue: transaction.type ?? "") else { continue }
+            guard type == .dividend || type == .interest else { continue }
+            let date = transaction.transactionDate ?? transaction.createdAt ?? Date()
+            if date < currentMonthStart || date > endDate { continue }
+
+            let bucketDate = calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+            let netAmount = transaction.amount - transaction.fees - transaction.tax
+            let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+            let convertedAmount = currencyService.convertAmount(netAmount, from: transactionCurrency, to: portfolioCurrency)
+            monthBuckets[bucketDate, default: 0] += convertedAmount
+        }
+
+        let sortedMonths = monthBuckets.keys.sorted()
+        return sortedMonths.map { month in
+            DividendDataPoint(month: month, amount: monthBuckets[month] ?? 0)
+        }
+    }
+
+    private func apply(transaction: Transaction,
+                       to assetQuantities: inout [NSManagedObjectID: Double],
+                       cashBalance: inout Double,
+                       portfolioCurrency: Currency) {
+        guard let type = TransactionType(rawValue: transaction.type ?? "") else { return }
+        let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
+        let convertedFees = currencyService.convertAmount(transaction.fees, from: transactionCurrency, to: portfolioCurrency)
+        let convertedTax = currencyService.convertAmount(transaction.tax, from: transactionCurrency, to: portfolioCurrency)
+
+        switch type {
+        case .buy:
+            guard let asset = transaction.asset else { return }
+            let convertedPrice = currencyService.convertAmount(transaction.price, from: transactionCurrency, to: portfolioCurrency)
+            let totalCost = (transaction.quantity * convertedPrice) + convertedFees + convertedTax
+            assetQuantities[asset.objectID, default: 0] += transaction.quantity
+            cashBalance -= totalCost
+        case .sell:
+            guard let asset = transaction.asset else { return }
+            let netProceeds = transaction.amount - transaction.fees - transaction.tax
+            let convertedProceeds = currencyService.convertAmount(netProceeds, from: transactionCurrency, to: portfolioCurrency)
+            assetQuantities[asset.objectID, default: 0] -= transaction.quantity
+            cashBalance += convertedProceeds
+        case .dividend, .interest, .deposit, .depositWithdrawal:
+            let netAmount = transaction.amount - transaction.fees - transaction.tax
+            let convertedNet = currencyService.convertAmount(netAmount, from: transactionCurrency, to: portfolioCurrency)
+            cashBalance += convertedNet
+        default:
+            break
+        }
+    }
 }
 
 struct PortfolioPerformance {
@@ -241,6 +455,20 @@ struct InstitutionAllocation {
     let name: String
     let value: Double
     let percentage: Double
+}
+
+private extension Array {
+    func uniqued<T: Hashable>(by key: (Element) -> T) -> [Element] {
+        var seen: Set<T> = []
+        var reversedResult: [Element] = []
+        for element in self.reversed() {
+            let identifier = key(element)
+            if seen.insert(identifier).inserted {
+                reversedResult.append(element)
+            }
+        }
+        return reversedResult.reversed()
+    }
 }
 
 private extension PortfolioViewModel {
