@@ -29,6 +29,7 @@ struct RealizedPnLView: View {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
 
+
     private var filteredRealizedTransactions: [Transaction] {
         let calendar = Calendar.current
         let start = calendar.startOfDay(for: startDate)
@@ -42,13 +43,12 @@ struct RealizedPnLView: View {
             guard date >= start && date <= end else { return false }
 
             let type = TransactionType(rawValue: transaction.type ?? "")
-            return type == .sell || type == .dividend || type == .interest || type == .deposit || type == .depositWithdrawal
+            return type == .sell || type == .dividend || type == .interest
         }
     }
 
     private var totalRealized: Double {
-        // Option 1: (sold assets' income-included P&L) + deposit interest
-        // Excludes "Dividends & Interest" section to avoid double counting
+        // Total = (sold assets' income-included P&L) + deposit interest + active holdings income
 
         var total: Double = 0
 
@@ -59,6 +59,10 @@ struct RealizedPnLView: View {
         // Add deposit interest
         let depositInterest = getDepositInterest()
         total += depositInterest.reduce(0) { $0 + $1.realizedPnL }
+
+        // Add dividends & interest from active holdings
+        let activeHoldingsIncome = getPureDividendsAndInterest()
+        total += activeHoldingsIncome.reduce(0) { $0 + $1.incomeIncludedPnL }
 
         return total
     }
@@ -138,7 +142,7 @@ struct RealizedPnLView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
-                        Text("Includes: sold assets P&L + dividends/interest from sold assets + deposit interest")
+                        Text("Includes: sold assets P&L + all dividends/interest + deposit interest")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -148,7 +152,7 @@ struct RealizedPnLView: View {
                 ForEach(["Stocks", "ETFs", "Bonds", "Mutual Funds", "Cryptocurrency", "Precious Metals", "Insurance", "Structured Products", "Other", "Deposits", "Dividends & Interest"], id: \.self) { groupName in
                     if let items = groupedByAssetType[groupName], !items.isEmpty {
                         Section(header: HStack {
-                            Text(groupName)
+                            Text(groupName == "Dividends & Interest" ? "Dividends & Interest*" : groupName)
                             Spacer()
                             let groupTotal = items.reduce(0) { $0 + $1.incomeIncludedPnL }
                             Text(Formatters.signedCurrency(groupTotal, symbol: portfolioCurrency.symbol))
@@ -198,7 +202,15 @@ struct RealizedPnLView: View {
                         }
                     }
                 }
-
+                // Explanatory note for asterisk
+                if let dividendsItems = groupedByAssetType["Dividends & Interest"], !dividendsItems.isEmpty {
+                    Section {
+                        Text("* Income from active holdings, included in total above")
+                            .font(.footnote)
+                            .foregroundColor(.secondary)
+                            .italic()
+                    }
+                }
                 if !filteredRealizedTransactions.isEmpty {
                     Section(header: Text("Transactions")) {
                         ForEach(filteredRealizedTransactions, id: \.objectID) { transaction in
@@ -231,6 +243,8 @@ struct RealizedPnLView: View {
                         }
                     }
                 }
+
+                
             }
             .navigationTitle("Realized P&L")
             .navigationBarTitleDisplayMode(.inline)
@@ -254,13 +268,6 @@ struct RealizedPnLView: View {
         case .dividend, .interest:
             let net = transaction.amount - transaction.fees - transaction.tax
             return convertToPortfolioCurrency(net, currencyCode: transaction.currency)
-        case .deposit, .depositWithdrawal:
-            // Only count positive deposit amounts as interest income
-            if transaction.amount > 0 {
-                let net = transaction.amount - transaction.fees - transaction.tax
-                return convertToPortfolioCurrency(net, currencyCode: transaction.currency)
-            }
-            return 0
         default:
             return 0
         }
@@ -283,6 +290,7 @@ struct RealizedPnLView: View {
         let transactionCurrency = Currency(rawValue: currencyCode ?? portfolioCurrency.rawValue) ?? portfolioCurrency
         return currencyService.convertAmount(amount, from: transactionCurrency, to: portfolioCurrency)
     }
+
 
     private func getGroupName(for asset: Asset) -> String {
         guard let assetType = AssetType(rawValue: asset.assetType ?? "") else {
@@ -376,10 +384,12 @@ struct RealizedPnLView: View {
 
         var depositGroups: [String: Double] = [:]
 
-        // Get INTEREST transactions only (not principal deposits)
+        // Get INTEREST transactions only from DEPOSIT assets (not principal deposits)
         let interestTransactions = allTransactions.filter { transaction in
             guard let date = transaction.transactionDate else { return false }
             guard date >= start && date <= end else { return false }
+            guard let asset = transaction.asset else { return false }
+            guard asset.assetType == AssetType.deposit.rawValue else { return false }
 
             let type = TransactionType(rawValue: transaction.type ?? "")
             return type == .interest
@@ -432,6 +442,9 @@ struct RealizedPnLView: View {
 
         for transaction in incomeTransactions {
             guard let asset = transaction.asset else { continue }
+
+            // Skip deposit assets - they're handled in Deposits section
+            guard asset.assetType != AssetType.deposit.rawValue else { continue }
 
             // Check if this asset has any sell transactions in the period
             let hasSells = allTransactions.contains { sellTransaction in

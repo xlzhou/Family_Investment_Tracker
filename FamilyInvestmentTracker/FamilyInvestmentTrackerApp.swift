@@ -1,8 +1,10 @@
 import SwiftUI
+import CoreData
 
 @main
 struct FamilyInvestmentTrackerApp: App {
     let persistenceController = PersistenceController.shared
+    
 
     var body: some Scene {
         WindowGroup {
@@ -11,3 +13,4 @@ struct FamilyInvestmentTrackerApp: App {
         }
     }
 }
+
