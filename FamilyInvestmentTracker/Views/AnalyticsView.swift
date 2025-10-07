@@ -41,7 +41,7 @@ struct AnalyticsView: View {
     @State private var isLoadingPerformance = false
     @State private var isLoadingDividends = false
     @State private var performanceSnapshot: PortfolioPerformance?
-    @State private var realizedPnLYTD: Double = 0
+    @State private var realizedPnLLifetime: Double = 0
     @State private var isShowingRealizedPnL = false
 
     var body: some View {
@@ -51,7 +51,7 @@ struct AnalyticsView: View {
                 PerformanceSummaryView(
                     portfolio: portfolio,
                     performance: performanceSnapshot ?? viewModel.calculatePortfolioPerformance(portfolio: portfolio),
-                    realizedPnLYTD: realizedPnLYTD,
+                    realizedPnLLifetime: realizedPnLLifetime,
                     onShowRealizedPnL: { isShowingRealizedPnL = true }
                 )
 
@@ -110,18 +110,13 @@ struct AnalyticsView: View {
         let summary = viewModel.calculatePortfolioPerformance(portfolio: portfolio)
         let performance = viewModel.performanceHistory(for: portfolio)
         let dividends = viewModel.dividendHistory(for: portfolio)
-        let calendar = Calendar.current
-        let now = Date()
-        let startOfYear = calendar.date(from: calendar.dateComponents([.year], from: now)) ?? now
-        let realizedYTD = RealizedPnLCalculator.totalRealizedPnL(for: portfolio,
-                                                                 startDate: startOfYear,
-                                                                 endDate: now,
-                                                                 context: viewContext)
-
+        let realizedLifetime = RealizedPnLCalculator.totalRealizedPnLLifetime(for: portfolio,
+                                                                             context: viewContext)
+        print("[Analytics] Lifetime Realized P&L:", realizedLifetime)
         performanceHistory = performance
         dividendHistory = dividends
         performanceSnapshot = summary
-        realizedPnLYTD = realizedYTD
+        realizedPnLLifetime = realizedLifetime
         isLoadingPerformance = false
         isLoadingDividends = false
     }
@@ -130,7 +125,7 @@ struct AnalyticsView: View {
 struct PerformanceSummaryView: View {
     let portfolio: Portfolio
     let performance: PortfolioPerformance
-    let realizedPnLYTD: Double
+    let realizedPnLLifetime: Double
     let onShowRealizedPnL: () -> Void
 
     private var portfolioCurrency: Currency {
@@ -176,9 +171,9 @@ struct PerformanceSummaryView: View {
                 )
                 
                 PerformanceCardView(
-                    title: "Realized P&L (YTD)",
-                    value: Formatters.signedCurrency(realizedPnLYTD, symbol: currencySymbol),
-                    color: realizedPnLYTD >= 0 ? .green : .red,
+                    title: "Realized P&L (Lifetime)",
+                    value: Formatters.signedCurrency(realizedPnLLifetime, symbol: currencySymbol),
+                    color: realizedPnLLifetime >= 0 ? .green : .red,
                     action: onShowRealizedPnL
                 )
 

@@ -74,6 +74,28 @@ struct RealizedPnLCalculator {
                          activeIncome: activeIncome)
     }
 
+    static func totalRealizedPnLLifetime(for portfolio: Portfolio,
+                                         context: NSManagedObjectContext) -> Double {
+        guard let bounds = transactionDateBounds(for: portfolio) else {
+            return 0
+        }
+        return totalRealizedPnL(for: portfolio,
+                                startDate: bounds.start,
+                                endDate: bounds.end,
+                                context: context)
+    }
+
+    static func breakdownLifetime(for portfolio: Portfolio,
+                                  context: NSManagedObjectContext) -> Breakdown {
+        guard let bounds = transactionDateBounds(for: portfolio) else {
+            return Breakdown(soldAssets: [], depositInterest: [], activeIncome: [])
+        }
+        return breakdown(for: portfolio,
+                         startDate: bounds.start,
+                         endDate: bounds.end,
+                         context: context)
+    }
+
     private static func assetsWithRealizedTransactions(for portfolio: Portfolio,
                                                        start: Date,
                                                        end: Date,
@@ -203,5 +225,21 @@ struct RealizedPnLCalculator {
                                     name: name,
                                     amount: amount)
         }.sorted { $0.symbol < $1.symbol }
+    }
+
+    private static func transactionDateBounds(for portfolio: Portfolio) -> (start: Date, end: Date)? {
+        let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
+        let dates = transactions.compactMap { transaction -> Date? in
+            if let date = transaction.transactionDate {
+                return date
+            }
+            return transaction.createdAt
+        }
+
+        guard let earliest = dates.min() else {
+            return nil
+        }
+
+        return (start: earliest, end: Date())
     }
 }
