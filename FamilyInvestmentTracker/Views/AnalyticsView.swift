@@ -42,6 +42,7 @@ struct AnalyticsView: View {
     @State private var isLoadingDividends = false
     @State private var performanceSnapshot: PortfolioPerformance?
     @State private var realizedPnLYTD: Double = 0
+    @State private var isShowingRealizedPnL = false
 
     var body: some View {
         ScrollView {
@@ -50,7 +51,8 @@ struct AnalyticsView: View {
                 PerformanceSummaryView(
                     portfolio: portfolio,
                     performance: performanceSnapshot ?? viewModel.calculatePortfolioPerformance(portfolio: portfolio),
-                    realizedPnLYTD: realizedPnLYTD
+                    realizedPnLYTD: realizedPnLYTD,
+                    onShowRealizedPnL: { isShowingRealizedPnL = true }
                 )
 
                 // Asset Allocation Chart
@@ -90,6 +92,10 @@ struct AnalyticsView: View {
             viewModel.invalidateAnalyticsCache(for: portfolio)
             Task { await loadAnalyticsData() }
         }
+        .sheet(isPresented: $isShowingRealizedPnL) {
+            RealizedPnLView(portfolio: portfolio)
+                .environment(\.managedObjectContext, viewContext)
+        }
     }
 
     private var portfolioCurrency: Currency {
@@ -125,6 +131,7 @@ struct PerformanceSummaryView: View {
     let portfolio: Portfolio
     let performance: PortfolioPerformance
     let realizedPnLYTD: Double
+    let onShowRealizedPnL: () -> Void
 
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -171,7 +178,8 @@ struct PerformanceSummaryView: View {
                 PerformanceCardView(
                     title: "Realized P&L (YTD)",
                     value: Formatters.signedCurrency(realizedPnLYTD, symbol: currencySymbol),
-                    color: realizedPnLYTD >= 0 ? .green : .red
+                    color: realizedPnLYTD >= 0 ? .green : .red,
+                    action: onShowRealizedPnL
                 )
 
                 PerformanceCardView(
@@ -192,13 +200,37 @@ struct PerformanceCardView: View {
     let title: String
     let value: String
     let color: Color
-    
+    let action: (() -> Void)?
+
+    init(title: String,
+         value: String,
+         color: Color,
+         action: (() -> Void)? = nil) {
+        self.title = title
+        self.value = value
+        self.color = color
+        self.action = action
+    }
+
     var body: some View {
+        Group {
+            if let action {
+                Button(action: action) {
+                    cardContent
+                }
+                .buttonStyle(.plain)
+            } else {
+                cardContent
+            }
+        }
+    }
+
+    private var cardContent: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Text(value)
                 .font(.title3)
                 .fontWeight(.semibold)
