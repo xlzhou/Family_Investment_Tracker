@@ -1,0 +1,160 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/CashOverviewView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Cash Management",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash Type",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash by Institution & Currency",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 236
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total cash is calculated by summing all institution cash balances.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active Fixed Deposits",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "Matured Fixed Deposits",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 358
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Overview",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 159
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Cash Holdings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash balances will appear here when you make deposit transactions.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Cash",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 303
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Fixed Deposits",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create your first fixed deposit to start earning guaranteed returns.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ Cash",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 465
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 453
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 475
+        }
+      }
+    ]
+  },
+  "version": 1
+}

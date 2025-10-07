@@ -1,17 +1,24 @@
 {
-  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/CloudShareManager.swift" : {
-    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CloudShareManager.swiftconstvalues",
-    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CloudShareManager.d",
-    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CloudShareManager.dia",
-    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CloudShareManager.o",
-    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CloudShareManager.swiftdeps"
+  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Models/Holding+Identifier.swift" : {
+    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Holding+Identifier.swiftconstvalues",
+    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Holding+Identifier.d",
+    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Holding+Identifier.dia",
+    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Holding+Identifier.o",
+    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Holding+Identifier.swiftdeps"
   },
-  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/CurrencyService.swift" : {
-    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CurrencyService.swiftconstvalues",
-    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CurrencyService.d",
-    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CurrencyService.dia",
-    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CurrencyService.o",
-    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/CurrencyService.swiftdeps"
+  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Models/Transaction+RealizedGain.swift" : {
+    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Transaction+RealizedGain.swiftconstvalues",
+    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Transaction+RealizedGain.d",
+    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Transaction+RealizedGain.dia",
+    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Transaction+RealizedGain.o",
+    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Transaction+RealizedGain.swiftdeps"
+  },
+  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/BackupService.swift" : {
+    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/BackupService.swiftconstvalues",
+    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/BackupService.d",
+    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/BackupService.dia",
+    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/BackupService.o",
+    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/BackupService.swiftdeps"
   },
   "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/ExportService.swift" : {
     "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/ExportService.swiftconstvalues",
@@ -20,19 +27,19 @@
     "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/ExportService.o",
     "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/ExportService.swiftdeps"
   },
-  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/MarketDataService.swift" : {
-    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/MarketDataService.swiftconstvalues",
-    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/MarketDataService.d",
-    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/MarketDataService.dia",
-    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/MarketDataService.o",
-    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/MarketDataService.swiftdeps"
+  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/Institution+Cash.swift" : {
+    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Institution+Cash.swiftconstvalues",
+    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Institution+Cash.d",
+    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Institution+Cash.dia",
+    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Institution+Cash.o",
+    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/Institution+Cash.swiftdeps"
   },
-  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Services/TransactionImpactService.swift" : {
-    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/TransactionImpactService.swiftconstvalues",
-    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/TransactionImpactService.d",
-    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/TransactionImpactService.dia",
-    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/TransactionImpactService.o",
-    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/TransactionImpactService.swiftdeps"
+  "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/ViewModels/PortfolioViewModel.swift" : {
+    "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/PortfolioViewModel.swiftconstvalues",
+    "dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/PortfolioViewModel.d",
+    "diagnostics" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/PortfolioViewModel.dia",
+    "object" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/PortfolioViewModel.o",
+    "swift-dependencies" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/PortfolioViewModel.swiftdeps"
   },
   "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/RealizedPnLView.swift" : {
     "const-values" : "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/build/FamilyInvestmentTracker.build/Debug-iphoneos/FamilyInvestmentTracker.build/Objects-normal/arm64/RealizedPnLView.swiftconstvalues",

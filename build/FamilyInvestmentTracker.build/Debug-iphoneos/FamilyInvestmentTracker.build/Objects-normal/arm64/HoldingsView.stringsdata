@@ -7,7 +7,7 @@
         "key": "No Holdings",
         "location": {
           "startingColumn": 26,
-          "startingLine": 34
+          "startingLine": 41
         }
       },
       {
@@ -15,7 +15,7 @@
         "key": "Start by adding your first transaction",
         "location": {
           "startingColumn": 26,
-          "startingLine": 38
+          "startingLine": 45
         }
       },
       {
@@ -23,15 +23,15 @@
         "key": "Clear",
         "location": {
           "startingColumn": 24,
-          "startingLine": 147
+          "startingLine": 189
         }
       },
       {
         "comment": "",
         "key": "All Asset Types",
         "location": {
-          "startingColumn": 24,
-          "startingLine": 115
+          "startingColumn": 30,
+          "startingLine": 132
         }
       },
       {
@@ -39,15 +39,47 @@
         "key": "All Institutions",
         "location": {
           "startingColumn": 24,
-          "startingLine": 131
+          "startingLine": 173
         }
       },
       {
         "comment": "",
-        "key": "Linked Assets: %@",
+        "key": "Filtered Results Summary",
         "location": {
           "startingColumn": 22,
-          "startingLine": 416
+          "startingLine": 267
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld holdings",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Value",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unrealized P&L",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Dividends",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 302
         }
       },
       {
@@ -55,164 +87,36 @@
         "key": "Cash Value",
         "location": {
           "startingColumn": 30,
-          "startingLine": 284
+          "startingLine": 441
         }
       },
       {
         "comment": "",
-        "key": "Policy Type",
+        "key": "Unrealized P/L",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 446
+        }
+      },
+      {
+        "comment": "",
+        "key": "Basic Insured Amount",
         "location": {
           "startingColumn": 30,
-          "startingLine": 304
+          "startingLine": 464
         }
       },
       {
         "comment": "",
-        "key": "Insurance Policy",
+        "key": "Policy Holder",
         "location": {
           "startingColumn": 30,
-          "startingLine": 307
+          "startingLine": 475
         }
       },
       {
         "comment": "",
-        "key": "Policyholder",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 315
-        }
-      },
-      {
-        "comment": "",
-        "key": "Policy Owner",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 318
-        }
-      },
-      {
-        "comment": "",
-        "key": "Death Benefit",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 326
-        }
-      },
-      {
-        "comment": "",
-        "key": "Insurance",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 329
-        }
-      },
-      {
-        "comment": "",
-        "key": "Investment Amount",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 335
-        }
-      },
-      {
-        "comment": "",
-        "key": "Interest Rate",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 346
-        }
-      },
-      {
-        "comment": "",
-        "key": "Current Price",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 357
-        }
-      },
-      {
-        "comment": "",
-        "key": "Shares",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 371
-        }
-      },
-      {
-        "comment": "",
-        "key": "Avg Cost",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 382
-        }
-      },
-      {
-        "comment": "",
-        "key": "Current Price",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 393
-        }
-      },
-      {
-        "comment": "",
-        "key": "Total Dividends:",
-        "location": {
-          "startingColumn": 26,
-          "startingLine": 423
-        }
-      },
-      {
-        "comment": "",
-        "key": "Update Cash Value",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 512
-        }
-      },
-      {
-        "comment": "",
-        "key": "Update Cash Value",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 469
-        }
-      },
-      {
-        "comment": "",
-        "key": "Policy Information",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 482
-        }
-      },
-      {
-        "comment": "",
-        "key": "Current Cash Value",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 471
-        }
-      },
-      {
-        "comment": "",
-        "key": "0.00",
-        "location": {
-          "startingColumn": 35,
-          "startingLine": 473
-        }
-      },
-      {
-        "comment": "",
-        "key": "Policy Type",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 484
-        }
-      },
-      {
-        "comment": "",
-        "key": "Insurance Policy",
+        "key": "Paid Premium",
         "location": {
           "startingColumn": 30,
           "startingLine": 486
@@ -220,10 +124,146 @@
       },
       {
         "comment": "",
+        "key": "Linked Assets: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 504
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quantity",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 496
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 513
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Dividends/Interest:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 537
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quantity",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 550
+        }
+      },
+      {
+        "comment": "",
+        "key": "Avg Cost",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 561
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Price",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 574
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Dividends/Interest:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 600
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update Cash Value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 731
+        }
+      },
+      {
+        "comment": "",
+        "key": "Update Cash Value",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 683
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 701
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 692
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Cash Value",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 686
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 687
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Type",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 703
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insurance Policy",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 705
+        }
+      },
+      {
+        "comment": "",
         "key": "Policyholder",
         "location": {
           "startingColumn": 30,
-          "startingLine": 491
+          "startingLine": 710
         }
       },
       {
@@ -231,7 +271,7 @@
         "key": "Policy Owner",
         "location": {
           "startingColumn": 30,
-          "startingLine": 493
+          "startingLine": 712
         }
       },
       {
@@ -239,7 +279,7 @@
         "key": "Previous Cash Value",
         "location": {
           "startingColumn": 30,
-          "startingLine": 498
+          "startingLine": 717
         }
       },
       {
@@ -247,7 +287,7 @@
         "key": "Cancel",
         "location": {
           "startingColumn": 28,
-          "startingLine": 516
+          "startingLine": 735
         }
       },
       {
@@ -255,7 +295,7 @@
         "key": "Save",
         "location": {
           "startingColumn": 28,
-          "startingLine": 522
+          "startingLine": 741
         }
       }
     ]

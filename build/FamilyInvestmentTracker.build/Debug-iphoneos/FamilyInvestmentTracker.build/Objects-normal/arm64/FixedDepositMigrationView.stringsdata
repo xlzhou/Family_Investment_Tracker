@@ -1,0 +1,184 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/FixedDepositMigrationView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Fixed Deposit Enhancement",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reset",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Skip",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Analyzing your deposit assets...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Migration Complete!",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your deposit assets have been successfully updated to use the new fixed deposit system.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Continue",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enhanced Fixed Deposit Support",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "We've improved how the app handles fixed deposits! Your existing deposit transactions will remain as cash deposits. You can now create dedicated fixed deposits using the new system.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "What's New",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Migration Summary",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total deposit assets to update:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Likely fixed deposits:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "Likely demand deposits:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Suggested Actions",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "This will enable the new fixed deposit features. Your existing deposit transactions will remain unchanged as cash deposits.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enabling...",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Fixed Deposits",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 313
+        }
+      }
+    ]
+  },
+  "version": 1
+}

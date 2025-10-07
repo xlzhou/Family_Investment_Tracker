@@ -7,7 +7,7 @@
         "key": "Portfolio Settings",
         "location": {
           "startingColumn": 30,
-          "startingLine": 178
+          "startingLine": 169
         }
       },
       {
@@ -39,7 +39,7 @@
         "key": "Trading Institutions",
         "location": {
           "startingColumn": 34,
-          "startingLine": 77
+          "startingLine": 68
         }
       },
       {
@@ -47,7 +47,7 @@
         "key": "Institution names are shared across all portfolios.",
         "location": {
           "startingColumn": 34,
-          "startingLine": 78
+          "startingLine": 69
         }
       },
       {
@@ -55,7 +55,7 @@
         "key": "Danger Zone",
         "location": {
           "startingColumn": 38,
-          "startingLine": 123
+          "startingLine": 114
         }
       },
       {
@@ -63,7 +63,7 @@
         "key": "Resetting clears this portfolio's holdings, transactions, cash balance, and analytics calculations. Institutions stay available for other portfolios.",
         "location": {
           "startingColumn": 67,
-          "startingLine": 123
+          "startingLine": 114
         }
       },
       {
@@ -71,7 +71,7 @@
         "key": "Statistics",
         "location": {
           "startingColumn": 38,
-          "startingLine": 140
+          "startingLine": 131
         }
       },
       {
@@ -108,26 +108,10 @@
       },
       {
         "comment": "",
-        "key": "Current Exchange Rates",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 66
-        }
-      },
-      {
-        "comment": "",
-        "key": "View Rates",
-        "location": {
-          "startingColumn": 32,
-          "startingLine": 68
-        }
-      },
-      {
-        "comment": "",
         "key": "Institution name",
         "location": {
           "startingColumn": 43,
-          "startingLine": 83
+          "startingLine": 74
         }
       },
       {
@@ -135,7 +119,7 @@
         "key": "Save",
         "location": {
           "startingColumn": 40,
-          "startingLine": 85
+          "startingLine": 76
         }
       },
       {
@@ -143,7 +127,7 @@
         "key": "Cancel",
         "location": {
           "startingColumn": 40,
-          "startingLine": 89
+          "startingLine": 80
         }
       },
       {
@@ -151,7 +135,7 @@
         "key": "Delete",
         "location": {
           "startingColumn": 40,
-          "startingLine": 104
+          "startingLine": 95
         }
       },
       {
@@ -159,7 +143,7 @@
         "key": "Add new institution",
         "location": {
           "startingColumn": 35,
-          "startingLine": 114
+          "startingLine": 105
         }
       },
       {
@@ -167,7 +151,7 @@
         "key": "Add",
         "location": {
           "startingColumn": 32,
-          "startingLine": 116
+          "startingLine": 107
         }
       },
       {
@@ -175,7 +159,7 @@
         "key": "Reset Portfolio Data",
         "location": {
           "startingColumn": 30,
-          "startingLine": 127
+          "startingLine": 118
         }
       },
       {
@@ -183,7 +167,7 @@
         "key": "Delete Portfolio",
         "location": {
           "startingColumn": 34,
-          "startingLine": 135
+          "startingLine": 126
         }
       },
       {
@@ -191,7 +175,7 @@
         "key": "Portfolio Owner",
         "location": {
           "startingColumn": 30,
-          "startingLine": 142
+          "startingLine": 133
         }
       },
       {
@@ -199,7 +183,7 @@
         "key": "Loading...",
         "location": {
           "startingColumn": 34,
-          "startingLine": 149
+          "startingLine": 140
         }
       },
       {
@@ -207,7 +191,7 @@
         "key": "Total Holdings",
         "location": {
           "startingColumn": 30,
-          "startingLine": 155
+          "startingLine": 146
         }
       },
       {
@@ -215,7 +199,7 @@
         "key": "%lld",
         "location": {
           "startingColumn": 30,
-          "startingLine": 157
+          "startingLine": 148
         }
       },
       {
@@ -223,7 +207,7 @@
         "key": "Total Transactions",
         "location": {
           "startingColumn": 30,
-          "startingLine": 162
+          "startingLine": 153
         }
       },
       {
@@ -231,7 +215,7 @@
         "key": "%lld",
         "location": {
           "startingColumn": 30,
-          "startingLine": 164
+          "startingLine": 155
         }
       },
       {
@@ -239,7 +223,7 @@
         "key": "Created",
         "location": {
           "startingColumn": 30,
-          "startingLine": 169
+          "startingLine": 160
         }
       },
       {
@@ -247,7 +231,7 @@
         "key": "Cancel",
         "location": {
           "startingColumn": 28,
-          "startingLine": 182
+          "startingLine": 173
         }
       },
       {
@@ -255,7 +239,7 @@
         "key": "Done",
         "location": {
           "startingColumn": 28,
-          "startingLine": 188
+          "startingLine": 179
         }
       },
       {
@@ -263,7 +247,7 @@
         "key": "Delete Institution",
         "location": {
           "startingColumn": 33,
-          "startingLine": 200
+          "startingLine": 191
         }
       },
       {
@@ -271,7 +255,7 @@
         "key": "Are you sure you want to delete \"%@\"? This action cannot be undone.",
         "location": {
           "startingColumn": 35,
-          "startingLine": 201
+          "startingLine": 192
         }
       },
       {
@@ -279,7 +263,7 @@
         "key": "Delete",
         "location": {
           "startingColumn": 54,
-          "startingLine": 202
+          "startingLine": 193
         }
       },
       {
@@ -287,7 +271,7 @@
         "key": "Reset Portfolio Data",
         "location": {
           "startingColumn": 33,
-          "startingLine": 214
+          "startingLine": 205
         }
       },
       {
@@ -295,7 +279,7 @@
         "key": "This removes all holdings, transactions, cash, and analytics data for this portfolio. Institutions remain untouched. This cannot be undone.",
         "location": {
           "startingColumn": 35,
-          "startingLine": 215
+          "startingLine": 206
         }
       },
       {
@@ -303,7 +287,7 @@
         "key": "Reset",
         "location": {
           "startingColumn": 54,
-          "startingLine": 216
+          "startingLine": 207
         }
       },
       {
@@ -311,7 +295,7 @@
         "key": "Delete Portfolio",
         "location": {
           "startingColumn": 33,
-          "startingLine": 223
+          "startingLine": 214
         }
       },
       {
@@ -319,7 +303,7 @@
         "key": "This will permanently delete \"%@\" and all its data. This action cannot be undone.",
         "location": {
           "startingColumn": 35,
-          "startingLine": 224
+          "startingLine": 215
         }
       },
       {
@@ -327,7 +311,7 @@
         "key": "Delete",
         "location": {
           "startingColumn": 54,
-          "startingLine": 225
+          "startingLine": 216
         }
       }
     ]

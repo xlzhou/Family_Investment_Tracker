@@ -1,0 +1,176 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/FixedDepositManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%@%% p.a.",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Withdraw",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "Early Withdraw",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "Withdraw",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "Early Withdrawal",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deposit Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "Withdrawal Details",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Early withdrawal may incur penalties. Please confirm the accrued interest and penalty amounts with your institution.",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 249
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deposit Name",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Value",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Matured",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "Withdrawal Amount",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "Accrued Interest",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution Penalty",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Withdraw",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 271
+        }
+      }
+    ]
+  },
+  "version": 1
+}

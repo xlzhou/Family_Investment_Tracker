@@ -7,7 +7,7 @@
         "key": "Family Investment Tracker",
         "location": {
           "startingColumn": 22,
-          "startingLine": 16
+          "startingLine": 17
         }
       },
       {
@@ -15,23 +15,127 @@
         "key": "Secure access to your family's investment portfolio",
         "location": {
           "startingColumn": 22,
-          "startingLine": 21
+          "startingLine": 22
         }
       },
       {
         "comment": "",
-        "key": "Unlock with %@",
+        "key": "Authenticated",
         "location": {
-          "startingColumn": 30,
-          "startingLine": 38
+          "startingColumn": 26,
+          "startingLine": 41
         }
       },
       {
         "comment": "",
-        "key": "Use Passcode",
+        "key": "Set Up App Password",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create password",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Minimum 8 characters",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Letters, numbers, and special characters",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Password Strength:",
         "location": {
           "startingColumn": 30,
-          "startingLine": 55
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Password",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter Password",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Password",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlock",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Account Locked",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "Too many failed attempts",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 201
+        }
+      },
+      {
+        "comment": "",
+        "key": "Time remaining: %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 217
         }
       }
     ]

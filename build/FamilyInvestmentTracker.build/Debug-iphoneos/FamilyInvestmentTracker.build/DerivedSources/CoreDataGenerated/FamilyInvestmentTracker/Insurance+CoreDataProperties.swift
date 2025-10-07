@@ -2,7 +2,7 @@
 //  Insurance+CoreDataProperties.swift
 //  
 //
-//  Created by 周晓凌 on 2025/9/22.
+//  Created by 周晓凌 on 2025/10/7.
 //
 //  This file was automatically generated and should not be edited.
 //
@@ -19,29 +19,30 @@ extension Insurance {
         return NSFetchRequest<Insurance>(entityName: "Insurance")
     }
 
+    @NSManaged public var additionalPaymentAmount: Double
+    @NSManaged public var basicInsuredAmount: Double
+    @NSManaged public var canWithdrawPremiums: Bool
+    @NSManaged public var contactNumber: String?
+    @NSManaged public var coverageExpirationDate: Date?
+    @NSManaged public var createdAt: Date?
+    @NSManaged public var deathBenefit: Double
+    @NSManaged public var estimatedMaturityBenefit: Double
+    @NSManaged public var hasSupplementaryInsurance: Bool
     @NSManaged public var id: UUID?
     @NSManaged public var insuranceType: String?
-    @NSManaged public var policyholder: String?
     @NSManaged public var insuredPerson: String?
-    @NSManaged public var basicInsuredAmount: Double
-    @NSManaged public var additionalPaymentAmount: Double
-    @NSManaged public var deathBenefit: Double
     @NSManaged public var isParticipating: Bool
-    @NSManaged public var hasSupplementaryInsurance: Bool
-    @NSManaged public var premiumPaymentTerm: Int32
+    @NSManaged public var maturityBenefitRedemptionDate: Date?
+    @NSManaged public var maxWithdrawalPercentage: Double
+    @NSManaged public var policyholder: String?
     @NSManaged public var premiumPaymentStatus: String?
+    @NSManaged public var premiumPaymentTerm: Int32
     @NSManaged public var premiumPaymentType: String?
     @NSManaged public var singlePremium: Double
+    @NSManaged public var firstDiscountedPremium: Double
     @NSManaged public var totalPremium: Double
-    @NSManaged public var coverageExpirationDate: Date?
-    @NSManaged public var maturityBenefitRedemptionDate: Date?
-    @NSManaged public var estimatedMaturityBenefit: Double
-    @NSManaged public var canWithdrawPremiums: Bool
-    @NSManaged public var maxWithdrawalPercentage: Double
-    @NSManaged public var contactNumber: String?
-    @NSManaged public var createdAt: Date?
-    @NSManaged public var beneficiaries: NSSet?
     @NSManaged public var asset: Asset?
+    @NSManaged public var beneficiaries: NSSet?
 
 }
 

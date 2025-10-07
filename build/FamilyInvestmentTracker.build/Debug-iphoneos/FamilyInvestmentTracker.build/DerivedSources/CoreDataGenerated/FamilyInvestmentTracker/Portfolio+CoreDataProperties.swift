@@ -2,7 +2,7 @@
 //  Portfolio+CoreDataProperties.swift
 //  
 //
-//  Created by 周晓凌 on 2025/9/22.
+//  Created by 周晓凌 on 2025/10/7.
 //
 //  This file was automatically generated and should not be edited.
 //
@@ -19,18 +19,35 @@ extension Portfolio {
         return NSFetchRequest<Portfolio>(entityName: "Portfolio")
     }
 
+    @NSManaged public var cashBalance: Double
     @NSManaged public var createdAt: Date?
+    @NSManaged public var enforcesCashDiscipline: Bool
     @NSManaged public var id: UUID?
     @NSManaged public var mainCurrency: String?
     @NSManaged public var name: String?
     @NSManaged public var ownerID: String?
-    @NSManaged public var cashBalance: Double
-    @NSManaged public var enforcesCashDiscipline: Bool
     @NSManaged public var totalValue: Double
     @NSManaged public var updatedAt: Date?
+    @NSManaged public var currencyCashBalances: NSSet?
     @NSManaged public var holdings: NSSet?
     @NSManaged public var transactions: NSSet?
-    @NSManaged public var institutionCashBalances: NSSet?
+
+}
+
+// MARK: Generated accessors for currencyCashBalances
+extension Portfolio {
+
+    @objc(addCurrencyCashBalancesObject:)
+    @NSManaged public func addToCurrencyCashBalances(_ value: PortfolioInstitutionCurrencyCash)
+
+    @objc(removeCurrencyCashBalancesObject:)
+    @NSManaged public func removeFromCurrencyCashBalances(_ value: PortfolioInstitutionCurrencyCash)
+
+    @objc(addCurrencyCashBalances:)
+    @NSManaged public func addToCurrencyCashBalances(_ values: NSSet)
+
+    @objc(removeCurrencyCashBalances:)
+    @NSManaged public func removeFromCurrencyCashBalances(_ values: NSSet)
 
 }
 
@@ -65,23 +82,6 @@ extension Portfolio {
 
     @objc(removeTransactions:)
     @NSManaged public func removeFromTransactions(_ values: NSSet)
-
-}
-
-// MARK: Generated accessors for institutionCashBalances
-extension Portfolio {
-
-    @objc(addInstitutionCashBalancesObject:)
-    @NSManaged public func addToInstitutionCashBalances(_ value: PortfolioInstitutionCash)
-
-    @objc(removeInstitutionCashBalancesObject:)
-    @NSManaged public func removeFromInstitutionCashBalances(_ value: PortfolioInstitutionCash)
-
-    @objc(addInstitutionCashBalances:)
-    @NSManaged public func addToInstitutionCashBalances(_ values: NSSet)
-
-    @objc(removeInstitutionCashBalances:)
-    @NSManaged public func removeFromInstitutionCashBalances(_ values: NSSet)
 
 }
 

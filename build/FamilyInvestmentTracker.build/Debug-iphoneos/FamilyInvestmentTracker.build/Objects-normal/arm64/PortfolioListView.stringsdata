@@ -23,7 +23,7 @@
         "key": "Owner: %@",
         "location": {
           "startingColumn": 26,
-          "startingLine": 212
+          "startingLine": 220
         }
       },
       {
@@ -31,7 +31,7 @@
         "key": "Total Value",
         "location": {
           "startingColumn": 22,
-          "startingLine": 225
+          "startingLine": 233
         }
       },
       {
@@ -39,20 +39,12 @@
         "key": "Holdings",
         "location": {
           "startingColumn": 26,
-          "startingLine": 238
+          "startingLine": 246
         }
       },
       {
         "comment": "",
         "key": "%lld",
-        "location": {
-          "startingColumn": 26,
-          "startingLine": 242
-        }
-      },
-      {
-        "comment": "",
-        "key": "Transactions",
         "location": {
           "startingColumn": 26,
           "startingLine": 250
@@ -60,10 +52,18 @@
       },
       {
         "comment": "",
+        "key": "Transactions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
         "key": "%lld",
         "location": {
           "startingColumn": 26,
-          "startingLine": 254
+          "startingLine": 262
         }
       }
     ]

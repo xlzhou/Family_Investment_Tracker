@@ -2,7 +2,7 @@
 //  Holding+CoreDataProperties.swift
 //  
 //
-//  Created by 周晓凌 on 2025/9/22.
+//  Created by 周晓凌 on 2025/10/7.
 //
 //  This file was automatically generated and should not be edited.
 //
@@ -20,13 +20,14 @@ extension Holding {
     }
 
     @NSManaged public var averageCostBasis: Double
+    @NSManaged public var cashValue: Double
     @NSManaged public var id: UUID?
     @NSManaged public var quantity: Double
     @NSManaged public var realizedGainLoss: Double
     @NSManaged public var totalDividends: Double
-    @NSManaged public var cashValue: Double
     @NSManaged public var updatedAt: Date?
     @NSManaged public var asset: Asset?
+    @NSManaged public var institution: Institution?
     @NSManaged public var portfolio: Portfolio?
 
 }

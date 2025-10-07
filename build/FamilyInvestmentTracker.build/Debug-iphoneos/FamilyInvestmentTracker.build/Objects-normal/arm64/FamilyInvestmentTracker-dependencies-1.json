@@ -60,6 +60,11 @@
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphoneos\/prebuilt-modules\/26.0\/CoreVideo.swiftmodule\/arm64e-apple-ios.swiftmodule"
   },
   {
+    "isFramework" : true,
+    "moduleName" : "CryptoKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphoneos\/prebuilt-modules\/26.0\/CryptoKit.swiftmodule\/arm64e-apple-ios.swiftmodule"
+  },
+  {
     "isFramework" : false,
     "moduleName" : "Darwin",
     "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/iphoneos\/prebuilt-modules\/26.0\/Darwin.swiftmodule\/arm64e-apple-ios.swiftmodule"
@@ -221,434 +226,434 @@
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/Accessibility.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Accessibility-50AYVM4KXFZIL33VP27U1CIJ1.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Accessibility-EX0JA7T2K8D4CS9PJ6HM9LO6A.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Accessibility"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CFNetwork.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CFNetwork-7RJPF03FG0UYEKWW2ROD5QNR2.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CFNetwork-D18TMNMAD0DSNYI0YQFQ8V5UV.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CFNetwork"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CloudKit.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CloudKit-333F7Q1MXU1WNNLSA62NWU5RU.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CloudKit-C3LO9MTKRM7YTAR1ULX0D6O65.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CloudKit"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreData.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreData-EMOTZM29KP97L9TPLBT5DHNYN.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreData-7Y61TB76GTPCOI2M5KQFA6FOG.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreData"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreFoundation.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreFoundation-1B275R3UBOXEF3TM4M5I5O7Z7.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreFoundation-AEMDBCFCVYL3EMG1Z3TY5JIWS.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreFoundation"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreGraphics.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreGraphics-6D3RRA1XWHQE6D4Y5GXBAFE7C.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreGraphics-4PG8A10AOC9MEO3848AEXIEB0.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreGraphics"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreImage.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreImage-7ASE4ROEQY8G0H2970DB03IOX.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreImage-EUPBBVUO9A3PKWUBDDZUI7NI5.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreImage"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreLocation.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreLocation-8PULVX5D76UTXREB8NP362RBY.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreLocation-EVJA6YCZW0S9AQNHEFZCGGBVM.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreLocation"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreText.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreText-6D19ML38UGDMG6LM09B3KFJZ3.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreText-20917E1QOZEQANIC67BZM25D7.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreText"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreTransferable.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreTransferable-9HTRY3PKQ5HCDW9625XJUC40W.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreTransferable-EAVZ28R29A5H6Z8O246BI74TI.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreTransferable"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/CoreVideo.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreVideo-60BSABN0IC3GF3TQ5VXZZY2RW.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/CoreVideo-7YSG3IQY01CRKD6N8RE3TPMO1.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "CoreVideo"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/Darwin.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Darwin-E6BS5YFML0NX716LRIBJIJRJI.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Darwin-DKE6W84644N8GEX9O7CKL81EC.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Darwin"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/DataDetection.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/DataDetection-ER17955SSNDQUCSAO6B0DEVDA.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/DataDetection-8K2R7A2T9LUA1LP1603TOLLLM.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "DataDetection"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/DeveloperToolsSupport.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/DeveloperToolsSupport-20VNTNV2E1BVTRFCLUFD4UW6H.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/DeveloperToolsSupport-4L5ALI41SKQWFGIB2W8KEYPJJ.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "DeveloperToolsSupport"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/dispatch.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Dispatch-743KGDNCIGI1OVKOQDIBMF1H2.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Dispatch-3UE22JBI4YX52VBUKCN45MLR8.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Dispatch"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/FileProvider.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/FileProvider-EQ9Y3ZIIG0II9G272428RC91R.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/FileProvider-8VTALOD52D5XNY26HTBG3R92I.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "FileProvider"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/Foundation.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Foundation-BAP0UHCGI03GM1KPZ54A1L0EM.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Foundation-7AQ7KX0M1F1MXMYP3EGPQ5XQN.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Foundation"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/IOSurface.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/IOSurface-7DIJG8U7Z3X8KLX6SEGMRA9NS.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/IOSurface-AVQD1GMVTIPEFL2DDBSCLURA0.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "IOSurface"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/ImageIO.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ImageIO-EM8KXNWFGX85GED7ZZ4QR8M2C.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ImageIO-ELIL1Q7MB2BLEDG3VMVWLG5CJ.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "ImageIO"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/LocalAuthentication.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/LocalAuthentication-8CZTT4NTA2D3H66ROKYOT1P62.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/LocalAuthentication-5HU4B821U2YOPWRSNP142QMG5.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "LocalAuthentication"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/DarwinBasic.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/MachO-B9BDUOD14KH9LL4SEBAYOB4YK.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/MachO-D7TSI8I4AG5MO43GFX7A9CGCU.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "MachO"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/Metal.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Metal-6AR0V22Y2E2P8S18XAOUVTUQ9.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Metal-1W5EWGROZAXXREV0EITN8KHHY.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Metal"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/OSLog.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/OSLog-EYQE3CUTCWXXCT9XELRSCOI8D.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/OSLog-CM5APMISTVF979H92H7LPD2FB.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "OSLog"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/ObjectiveC.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ObjectiveC-BMSPZUJC9QMNW8KXT64E5D4I0.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ObjectiveC-BBQ7XQO6O9W4IKQCF78GLRJ38.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "ObjectiveC"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/OpenGLES.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/OpenGLES-8HCZIDGI005HK3VJ3M5KV8TKK.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/OpenGLES-1RICH80MT157QJNYPFPDNN35M.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "OpenGLES"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/PDFKit.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/PDFKit-DS5QAJCCDJO7EUI6CIN3U6ZPC.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/PDFKit-7K2105IGWQG58S1CMC6AIYP0O.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "PDFKit"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/QuartzCore.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/QuartzCore-9XXVKQ2WSHC329WHMH9ZDK3G9.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/QuartzCore-A46BWNRYR3HQRSKH87CI3J2EJ.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "QuartzCore"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/Security.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Security-6FYAU5YO37W1TPZ53GB19VN7Y.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Security-1T88ZTPIHP37DM5JGJ1MIKY.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Security"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/Spatial\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Spatial-2CHI84ASR0AI3DBF3SUI2APUO.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Spatial-D6JW3MYIMB582A1KFXBT0PHOY.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Spatial"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/SwiftShims-3WCDAA6FJ4ZO6P4YA4OGRDMVU.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/SwiftShims-38U8W1BAOX0YVTZ0QPNKRV7XN.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "SwiftShims"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/SwiftUI.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/SwiftUI-EE79JB70C7OS4PNOK9B9XUA9N.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/SwiftUI-CG0OTCUH6E6MYA4Q1H7VNFPDZ.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "SwiftUI"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/SwiftUICore.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/SwiftUICore-59LQYXSOMP5AIXLMVMUE203TQ.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/SwiftUICore-1OIMV5VQL60MOZ4IBOMLMVOWH.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "SwiftUICore"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/Symbols.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Symbols-DWLOTCFOJF77B7P692DFW0K8S.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/Symbols-AIVC2OPDS1KWEKBQ8PPRA7RHI.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "Symbols"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/UIKit.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UIKit-DJUFMM0DEL3WWSFTBMGNUISXA.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UIKit-BBOQTZ3R50Q6EVRQN0OXZXXS2.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "UIKit"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/SubFrameworks\/UIUtilities.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UIUtilities-9YANUJ96TMGQ21J500NIIPK2R.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UIUtilities-7Y2BRI04EMA68NIAX9HXIILGC.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "UIUtilities"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/UniformTypeIdentifiers.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UniformTypeIdentifiers-4QRLX85TSYA0HERL8CX21GSSC.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UniformTypeIdentifiers-99M8U016AQSIMB8SDJI3WDVUO.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "UniformTypeIdentifiers"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/UserNotifications.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UserNotifications-4P67CIGW1UDDW6P3KMESEI94A.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/UserNotifications-12KOZBFULPLEQV2711QIVAZVU.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "UserNotifications"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/xpc.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/XPC-E0G5MG5DEV4PP0AALJ9LW9FR8.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/XPC-A8E059LOG42DBTQWKUR59MBOS.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "XPC"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/DarwinFoundation1.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_AvailabilityInternal-1TCDX9993LSN215S1LFD6HQUK.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_AvailabilityInternal-5CRKA4GQTLTOBLJEO4PR81JF9.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_AvailabilityInternal"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_float-1DOB8ROT9NK9AEPV48HA3QHWW.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_float-2ZYF7GSGM6JC56FDC1I467YBH.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_float"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_intrinsics-9QGSUFAGS6RZRL4D5YF97Z59I.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_intrinsics-CZWL7G6S3UFZOUWEWEIZEDZQP.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_intrinsics"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_inttypes-CRMKAVNXUGT5YSNZUR5Q7PQ02.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_inttypes-D9FVV6CAE77VDD8E5TRGUZLMM.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_inttypes"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_limits-84JUKRDCI843P2BXHIC4XNOKY.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_limits-2EDZB9EIGFGER3M8LO096GAYS.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_limits"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdarg-7474I1NGR1WWTJXUPS5I6BE0A.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdarg-AJXA2SKKH36CCICYA42U7GJSC.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_stdarg"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdatomic-BTPO8YS5O0Y0MT4I3CHTLZASM.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdatomic-4I3O1WS7SDTP8JKOWE5RDU07G.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_stdatomic"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdbool-22ESTQX8F2I534F6R7KV6MBI0.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdbool-617DIT5ZSQ4L08MARD2OHGVCX.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_stdbool"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stddef-CC4SRNBN6N0Y0P0H2GDGITZ9V.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stddef-9B3BZ6TTTJPB6NT431KAZPIBP.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_stddef"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdint-2WCV7KM2HQ2S9FP7YA731K7JD.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_stdint-6KU6QMDWCVAMMZW23I7WXZ86.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_stdint"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_tgmath-CHADCU3K5OB6MVPW7ZUWLQMG9.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_Builtin_tgmath-BSCXMB60ES1TYVBIZJWFDFCLP.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_Builtin_tgmath"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/_CoreData_CloudKit.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_CoreData_CloudKit-DOA3QF5NF6C0VUOBBSKNL32VU.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_CoreData_CloudKit-83L5CX41CJZPKGJ9AEOIP7FCT.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_CoreData_CloudKit"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/DarwinFoundation1.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_DarwinFoundation1-CRKKT2NTGTBR1TCZS6KUW65RA.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_DarwinFoundation1-6Q0JB22DEZWPKZNJ1F2YTCVMB.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_DarwinFoundation1"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/DarwinFoundation2.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_DarwinFoundation2-7VUN2HOT0N7W0QR9S6QBE0IKS.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_DarwinFoundation2-RNRA8ZSYXCGKG7FF17OHWX4W.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_DarwinFoundation2"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/DarwinFoundation3.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_DarwinFoundation3-47JWGDRCIYJ0O7WSH2ZJZ4UA5.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_DarwinFoundation3-ASU4RSS5RN8NH9NEE8N9YSNWH.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_DarwinFoundation3"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/System\/Library\/Frameworks\/_LocationEssentials.framework\/Modules\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_LocationEssentials-7BJIZZ8ZP8D8FDYTC1JUDLDUK.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_LocationEssentials-CZMSWN4VNQUKOVUVGYWLDHYGL.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_LocationEssentials"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_SwiftConcurrencyShims-DJBE6AATJETLKI3A7F13ZASMP.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/_SwiftConcurrencyShims-B49PCFV0UJ7AEXOLC3867BVSB.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "_SwiftConcurrencyShims"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/os.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/os-5XXDPJE7SUL5Y4Y5D7NZHAR7A.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/os-KO0P1QYTILQD1W364SJ3I8K4.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "os"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/os.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/os_object-1RX5D1IHTH0XWGX9DZ0DFQ010.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/os_object-5NR9M57GBU2KAEZAEN48B9F6X.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "os_object"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/os.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/os_workgroup-ES0BV64QBE5MTVW6H9SDL7FVH.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/os_workgroup-5DEGGIL8ST911AIRGA7KH9GKD.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "os_workgroup"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ptrauth-811QN91ANYUW56OOHUBTSZE1X.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ptrauth-5O1NDI3GBBPDIQMJ6G60TH358.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "ptrauth"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/17\/include\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ptrcheck-ENLKCY84S49M0QC5ZI9LTTOHU.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/ptrcheck-3B63Z36D5DBQQRBV7SAKGR7L.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "ptrcheck"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/simd\/module.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/simd-EW1N4SB7NMVTBBPAE9WIAVFY5.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/simd-71HK7EY3JBGBD3VOUBIPG7M6L.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "simd"
   },
   {
     "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/iPhoneOS.platform\/Developer\/SDKs\/iPhoneOS.sdk\/usr\/include\/DarwinFoundation2.modulemap",
-    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/sys_types-2ILJPB4ZKLHISVOSMZN9R84AC.pcm",
+    "clangModulePath" : "\/Users\/zhouxiaoling\/Documents\/code\/Family_Investment_Tracker\/build\/SwiftExplicitPrecompiledModules\/sys_types-3EBUQ8TC3Y6XN87C6N8FTGPBA.pcm",
     "isBridgingHeaderDependency" : false,
     "isFramework" : false,
     "moduleName" : "sys_types"

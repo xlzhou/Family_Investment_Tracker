@@ -7,7 +7,7 @@
         "key": "Transaction",
         "location": {
           "startingColumn": 30,
-          "startingLine": 215
+          "startingLine": 514
         }
       },
       {
@@ -15,7 +15,7 @@
         "key": "Overview",
         "location": {
           "startingColumn": 38,
-          "startingLine": 54
+          "startingLine": 336
         }
       },
       {
@@ -23,7 +23,7 @@
         "key": "Costs",
         "location": {
           "startingColumn": 38,
-          "startingLine": 171
+          "startingLine": 470
         }
       },
       {
@@ -31,23 +31,23 @@
         "key": "Notes",
         "location": {
           "startingColumn": 42,
-          "startingLine": 210
+          "startingLine": 509
         }
       },
       {
         "comment": "",
         "key": "Dividend Source",
         "location": {
-          "startingColumn": 51,
-          "startingLine": 108
+          "startingColumn": 55,
+          "startingLine": 394
         }
       },
       {
         "comment": "",
         "key": "Asset",
         "location": {
-          "startingColumn": 71,
-          "startingLine": 108
+          "startingColumn": 75,
+          "startingLine": 394
         }
       },
       {
@@ -55,7 +55,7 @@
         "key": "Type",
         "location": {
           "startingColumn": 30,
-          "startingLine": 56
+          "startingLine": 338
         }
       },
       {
@@ -63,7 +63,7 @@
         "key": "Date",
         "location": {
           "startingColumn": 30,
-          "startingLine": 62
+          "startingLine": 344
         }
       },
       {
@@ -71,23 +71,31 @@
         "key": "Maturity Date",
         "location": {
           "startingColumn": 34,
-          "startingLine": 69
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paid Premium",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 359
         }
       },
       {
         "comment": "",
         "key": "Trade Amount",
         "location": {
-          "startingColumn": 30,
-          "startingLine": 76
+          "startingColumn": 34,
+          "startingLine": 367
         }
       },
       {
         "comment": "",
-        "key": "Net Cash Flow",
+        "key": "Settlement Amount",
         "location": {
-          "startingColumn": 30,
-          "startingLine": 82
+          "startingColumn": 34,
+          "startingLine": 373
         }
       },
       {
@@ -95,103 +103,111 @@
         "key": "Payment Institution",
         "location": {
           "startingColumn": 34,
-          "startingLine": 90
+          "startingLine": 382
         }
       },
       {
         "comment": "",
-        "key": "Payment Deducted",
+        "key": "Fixed Deposit",
         "location": {
-          "startingColumn": 34,
-          "startingLine": 98
-        }
-      },
-      {
-        "comment": "",
-        "key": "Yes",
-        "location": {
-          "startingColumn": 45,
-          "startingLine": 101
-        }
-      },
-      {
-        "comment": "",
-        "key": "No",
-        "location": {
-          "startingColumn": 53,
-          "startingLine": 101
+          "startingColumn": 30,
+          "startingLine": 567
         }
       },
       {
         "comment": "",
         "key": "Symbol",
         "location": {
-          "startingColumn": 30,
-          "startingLine": 110
+          "startingColumn": 34,
+          "startingLine": 396
         }
       },
       {
         "comment": "",
         "key": "Name",
         "location": {
-          "startingColumn": 30,
-          "startingLine": 116
+          "startingColumn": 34,
+          "startingLine": 402
         }
       },
       {
         "comment": "",
         "key": "Interest Rate",
         "location": {
-          "startingColumn": 34,
-          "startingLine": 123
+          "startingColumn": 38,
+          "startingLine": 409
         }
       },
       {
         "comment": "",
         "key": "Price",
         "location": {
-          "startingColumn": 34,
-          "startingLine": 129
-        }
-      },
-      {
-        "comment": "",
-        "key": "Investment Amount",
-        "location": {
-          "startingColumn": 34,
-          "startingLine": 136
-        }
-      },
-      {
-        "comment": "",
-        "key": "Interest Rate",
-        "location": {
-          "startingColumn": 34,
-          "startingLine": 142
-        }
-      },
-      {
-        "comment": "",
-        "key": "Linked Assets",
-        "location": {
           "startingColumn": 38,
-          "startingLine": 149
+          "startingLine": 415
         }
       },
       {
         "comment": "",
         "key": "Quantity",
         "location": {
-          "startingColumn": 34,
-          "startingLine": 157
+          "startingColumn": 38,
+          "startingLine": 422
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price per Share",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 428
+        }
+      },
+      {
+        "comment": "",
+        "key": "Investment Amount",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 434
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "Linked Assets",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 447
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quantity",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 455
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash Value",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 461
         }
       },
       {
         "comment": "",
         "key": "Price",
         "location": {
-          "startingColumn": 34,
-          "startingLine": 163
+          "startingColumn": 67,
+          "startingLine": 461
         }
       },
       {
@@ -199,7 +215,7 @@
         "key": "Fees",
         "location": {
           "startingColumn": 30,
-          "startingLine": 173
+          "startingLine": 472
         }
       },
       {
@@ -207,7 +223,7 @@
         "key": "Tax",
         "location": {
           "startingColumn": 30,
-          "startingLine": 179
+          "startingLine": 478
         }
       },
       {
@@ -215,7 +231,7 @@
         "key": "Institution",
         "location": {
           "startingColumn": 30,
-          "startingLine": 185
+          "startingLine": 484
         }
       },
       {
@@ -223,7 +239,7 @@
         "key": "Realized P&L",
         "location": {
           "startingColumn": 34,
-          "startingLine": 192
+          "startingLine": 491
         }
       },
       {
@@ -231,7 +247,7 @@
         "key": "Insurance Details",
         "location": {
           "startingColumn": 30,
-          "startingLine": 237
+          "startingLine": 658
         }
       },
       {
@@ -239,7 +255,7 @@
         "key": "Financial Details",
         "location": {
           "startingColumn": 30,
-          "startingLine": 275
+          "startingLine": 696
         }
       },
       {
@@ -247,7 +263,7 @@
         "key": "Premium Details",
         "location": {
           "startingColumn": 30,
-          "startingLine": 284
+          "startingLine": 705
         }
       },
       {
@@ -255,7 +271,7 @@
         "key": "Coverage & Benefits",
         "location": {
           "startingColumn": 30,
-          "startingLine": 316
+          "startingLine": 740
         }
       },
       {
@@ -263,7 +279,7 @@
         "key": "Beneficiaries",
         "location": {
           "startingColumn": 34,
-          "startingLine": 339
+          "startingLine": 763
         }
       },
       {
@@ -271,15 +287,151 @@
         "key": "Close",
         "location": {
           "startingColumn": 28,
-          "startingLine": 219
+          "startingLine": 518
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payments",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 524
         }
       },
       {
         "comment": "",
         "key": "Edit",
         "location": {
-          "startingColumn": 28,
-          "startingLine": 222
+          "startingColumn": 36,
+          "startingLine": 528
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manage",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 535
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 541
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fixed deposit details unavailable.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 650
+        }
+      },
+      {
+        "comment": "",
+        "key": "Symbol",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 570
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 576
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 583
+        }
+      },
+      {
+        "comment": "",
+        "key": "Principal",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 590
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value Date",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 606
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maturity Date",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 614
+        }
+      },
+      {
+        "comment": "",
+        "key": "Term",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 622
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 630
+        }
+      },
+      {
+        "comment": "",
+        "key": "Early Withdrawal",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 637
+        }
+      },
+      {
+        "comment": "",
+        "key": "Allowed",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 639
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not allowed",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 639
+        }
+      },
+      {
+        "comment": "",
+        "key": "Manage Fixed Deposit",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 645
         }
       },
       {
@@ -287,7 +439,7 @@
         "key": "Policy Symbol",
         "location": {
           "startingColumn": 22,
-          "startingLine": 239
+          "startingLine": 660
         }
       },
       {
@@ -295,7 +447,7 @@
         "key": "Policy Type",
         "location": {
           "startingColumn": 22,
-          "startingLine": 245
+          "startingLine": 666
         }
       },
       {
@@ -303,7 +455,7 @@
         "key": "Policyholder",
         "location": {
           "startingColumn": 22,
-          "startingLine": 251
+          "startingLine": 672
         }
       },
       {
@@ -311,15 +463,15 @@
         "key": "Insured Person",
         "location": {
           "startingColumn": 22,
-          "startingLine": 257
+          "startingLine": 678
         }
       },
       {
         "comment": "",
-        "key": "Contact Number",
+        "key": "Policy Number",
         "location": {
           "startingColumn": 26,
-          "startingLine": 264
+          "startingLine": 685
         }
       },
       {
@@ -327,7 +479,7 @@
         "key": "Payment Type",
         "location": {
           "startingColumn": 22,
-          "startingLine": 288
+          "startingLine": 709
         }
       },
       {
@@ -335,7 +487,7 @@
         "key": "Payment Status",
         "location": {
           "startingColumn": 22,
-          "startingLine": 294
+          "startingLine": 715
         }
       },
       {
@@ -343,7 +495,7 @@
         "key": "Payment Term",
         "location": {
           "startingColumn": 26,
-          "startingLine": 303
+          "startingLine": 727
         }
       },
       {
@@ -351,7 +503,7 @@
         "key": "%d years",
         "location": {
           "startingColumn": 26,
-          "startingLine": 305
+          "startingLine": 729
         }
       },
       {
@@ -359,7 +511,7 @@
         "key": "Max Withdrawal %",
         "location": {
           "startingColumn": 26,
-          "startingLine": 327
+          "startingLine": 751
         }
       },
       {
@@ -367,7 +519,7 @@
         "key": "%@%%",
         "location": {
           "startingColumn": 26,
-          "startingLine": 329
+          "startingLine": 753
         }
       },
       {
@@ -375,7 +527,7 @@
         "key": "%@%%",
         "location": {
           "startingColumn": 30,
-          "startingLine": 345
+          "startingLine": 769
         }
       },
       {
@@ -383,7 +535,7 @@
         "key": "Yes",
         "location": {
           "startingColumn": 37,
-          "startingLine": 366
+          "startingLine": 790
         }
       },
       {
@@ -391,7 +543,415 @@
         "key": "No",
         "location": {
           "startingColumn": 45,
-          "startingLine": 366
+          "startingLine": 790
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Management",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Schedule",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment History",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1199
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1104
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Payment",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Policy Type",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Term",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1139
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d years",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Annual Premium",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1146
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Premium",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Progress",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1163
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1165
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paid: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1173
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remaining: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1179
+        }
+      },
+      {
+        "comment": "",
+        "key": "Next Payment Due",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1187
+        }
+      },
+      {
+        "comment": "",
+        "key": "No payments recorded",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1201
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paid from: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1290
+        }
+      },
+      {
+        "comment": "",
+        "key": "Initial Policy Purchase",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1263
+        }
+      },
+      {
+        "comment": "",
+        "key": "Premium Payment",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1268
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Discount Applied",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1404
+        }
+      },
+      {
+        "comment": "",
+        "key": "Premium Payment",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1386
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1413
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Institution",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1504
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Summary",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1527
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1390
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1394
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1405
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Date",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1414
+        }
+      },
+      {
+        "comment": "",
+        "key": "Currency",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1416
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes (optional)",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 1441
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expected Amount",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1424
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Amount",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1431
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 1433
+        }
+      },
+      {
+        "comment": "",
+        "key": "First Payment Discount",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1449
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apply discount for early or lump sum payment",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 1449
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apply Discount",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1450
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount Type",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1453
+        }
+      },
+      {
+        "comment": "",
+        "key": "Percentage",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1454
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fixed Amount",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1455
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount Percentage",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1462
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1468
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 1464
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount Amount",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1474
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 1476
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount Savings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1487
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1505
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Institution",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1506
+        }
+      },
+      {
+        "comment": "",
+        "key": "Available Balance",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1516
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cash will be deducted from the selected payment institution when saved",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1538
+        }
+      },
+      {
+        "comment": "",
+        "key": "Final Payment Amount",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1530
         }
       }
     ]

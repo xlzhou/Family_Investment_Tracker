@@ -7,7 +7,7 @@
         "key": "Restore Complete",
         "location": {
           "startingColumn": 16,
-          "startingLine": 347
+          "startingLine": 398
         }
       },
       {
@@ -15,7 +15,7 @@
         "key": "Settings",
         "location": {
           "startingColumn": 30,
-          "startingLine": 318
+          "startingLine": 363
         }
       },
       {
@@ -23,7 +23,7 @@
         "key": "Profile",
         "location": {
           "startingColumn": 38,
-          "startingLine": 30
+          "startingLine": 33
         }
       },
       {
@@ -31,63 +31,7 @@
         "key": "This name will be shown to family members when you share portfolios.",
         "location": {
           "startingColumn": 63,
-          "startingLine": 30
-        }
-      },
-      {
-        "comment": "",
-        "key": "iCloud Sync",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 42
-        }
-      },
-      {
-        "comment": "",
-        "key": "Securely sync your portfolio data across all your devices using iCloud.",
-        "location": {
-          "startingColumn": 67,
-          "startingLine": 42
-        }
-      },
-      {
-        "comment": "",
-        "key": "Data Export",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 120
-        }
-      },
-      {
-        "comment": "",
-        "key": "Export your portfolio data for backup or analysis.",
-        "location": {
-          "startingColumn": 67,
-          "startingLine": 120
-        }
-      },
-      {
-        "comment": "",
-        "key": "Backup & Restore",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 141
-        }
-      },
-      {
-        "comment": "",
-        "key": "Create a full JSON backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.",
-        "location": {
-          "startingColumn": 72,
-          "startingLine": 141
-        }
-      },
-      {
-        "comment": "",
-        "key": "App Information",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 195
+          "startingLine": 33
         }
       },
       {
@@ -95,7 +39,7 @@
         "key": "Dashboard",
         "location": {
           "startingColumn": 38,
-          "startingLine": 211
+          "startingLine": 44
         }
       },
       {
@@ -103,7 +47,7 @@
         "key": "Choose the currency used for totals in the Investment Portfolios view.",
         "location": {
           "startingColumn": 65,
-          "startingLine": 211
+          "startingLine": 44
         }
       },
       {
@@ -111,15 +55,71 @@
         "key": "Currency Exchange Rates",
         "location": {
           "startingColumn": 38,
-          "startingLine": 221
+          "startingLine": 54
         }
       },
       {
         "comment": "",
-        "key": "Real-time exchange rates are fetched from Frankfurter API and cached locally for offline use.",
+        "key": "Real-time exchange rates are fetched from Yahoo Finance API and cached locally for offline use.",
         "location": {
           "startingColumn": 79,
-          "startingLine": 221
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "iCloud Sync",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "Securely sync your portfolio data across all your devices using iCloud.",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "Backup & Restore",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create a full JSON backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Data Export",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export your portfolio data for backup or analysis.",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "App Information",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 314
         }
       },
       {
@@ -127,7 +127,7 @@
         "key": "Security",
         "location": {
           "startingColumn": 38,
-          "startingLine": 304
+          "startingLine": 331
         }
       },
       {
@@ -135,7 +135,7 @@
         "key": "Display Name",
         "location": {
           "startingColumn": 30,
-          "startingLine": 32
+          "startingLine": 35
         }
       },
       {
@@ -143,135 +143,7 @@
         "key": "Enter your name",
         "location": {
           "startingColumn": 35,
-          "startingLine": 33
-        }
-      },
-      {
-        "comment": "",
-        "key": "",
-        "location": {
-          "startingColumn": 32,
-          "startingLine": 70
-        }
-      },
-      {
-        "comment": "",
-        "key": "iCloud Sync",
-        "location": {
-          "startingColumn": 34,
-          "startingLine": 48
-        }
-      },
-      {
-        "comment": "",
-        "key": "Enabled",
-        "location": {
-          "startingColumn": 42,
-          "startingLine": 53
-        }
-      },
-      {
-        "comment": "",
-        "key": "Available",
-        "location": {
-          "startingColumn": 42,
-          "startingLine": 57
-        }
-      },
-      {
-        "comment": "",
-        "key": "Last Sync",
-        "location": {
-          "startingColumn": 34,
-          "startingLine": 85
-        }
-      },
-      {
-        "comment": "",
-        "key": "Never",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 95
-        }
-      },
-      {
-        "comment": "",
-        "key": "Sync Now",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 112
-        }
-      },
-      {
-        "comment": "",
-        "key": "Export Portfolio Data",
-        "location": {
-          "startingColumn": 34,
-          "startingLine": 128
-        }
-      },
-      {
-        "comment": "",
-        "key": "Creating Backup...",
-        "location": {
-          "startingColumn": 53,
-          "startingLine": 151
-        }
-      },
-      {
-        "comment": "",
-        "key": "Create Full Backup",
-        "location": {
-          "startingColumn": 76,
-          "startingLine": 151
-        }
-      },
-      {
-        "comment": "",
-        "key": "Restoring Backup...",
-        "location": {
-          "startingColumn": 48,
-          "startingLine": 172
-        }
-      },
-      {
-        "comment": "",
-        "key": "Restore From Backup",
-        "location": {
-          "startingColumn": 72,
-          "startingLine": 172
-        }
-      },
-      {
-        "comment": "",
-        "key": "Version",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 197
-        }
-      },
-      {
-        "comment": "",
-        "key": "1.0.0",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 199
-        }
-      },
-      {
-        "comment": "",
-        "key": "Build",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 204
-        }
-      },
-      {
-        "comment": "",
-        "key": "1",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 206
+          "startingLine": 36
         }
       },
       {
@@ -279,7 +151,7 @@
         "key": "Summary Currency",
         "location": {
           "startingColumn": 28,
-          "startingLine": 212
+          "startingLine": 45
         }
       },
       {
@@ -287,7 +159,7 @@
         "key": "Exchange Rates",
         "location": {
           "startingColumn": 34,
-          "startingLine": 227
+          "startingLine": 67
         }
       },
       {
@@ -295,7 +167,7 @@
         "key": "Updating...",
         "location": {
           "startingColumn": 38,
-          "startingLine": 231
+          "startingLine": 71
         }
       },
       {
@@ -303,7 +175,7 @@
         "key": "Updated %@",
         "location": {
           "startingColumn": 38,
-          "startingLine": 235
+          "startingLine": 75
         }
       },
       {
@@ -311,7 +183,7 @@
         "key": "No data",
         "location": {
           "startingColumn": 38,
-          "startingLine": 239
+          "startingLine": 79
         }
       },
       {
@@ -319,7 +191,7 @@
         "key": "From %@",
         "location": {
           "startingColumn": 46,
-          "startingLine": 269
+          "startingLine": 109
         }
       },
       {
@@ -327,7 +199,151 @@
         "key": "1 %@ → %@ %@",
         "location": {
           "startingColumn": 62,
-          "startingLine": 281
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "iCloud Sync",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enabled",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Available",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 159
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last Sync",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 187
+        }
+      },
+      {
+        "comment": "",
+        "key": "Never",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Now",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 214
+        }
+      },
+      {
+        "comment": "",
+        "key": "Creating Backup...",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Full Backup",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restoring Backup...",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore From Backup",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Fixed Deposit Migration",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 270
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Portfolio Data",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "1.0.0",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Build",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "1",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change Password",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 339
         }
       },
       {
@@ -335,7 +351,7 @@
         "key": "Sign Out",
         "location": {
           "startingColumn": 34,
-          "startingLine": 312
+          "startingLine": 357
         }
       },
       {
@@ -343,7 +359,7 @@
         "key": "Done",
         "location": {
           "startingColumn": 28,
-          "startingLine": 322
+          "startingLine": 367
         }
       },
       {
@@ -351,7 +367,7 @@
         "key": "OK",
         "location": {
           "startingColumn": 20,
-          "startingLine": 348
+          "startingLine": 399
         }
       },
       {
@@ -359,7 +375,71 @@
         "key": "Your data has been restored successfully.",
         "location": {
           "startingColumn": 18,
-          "startingLine": 350
+          "startingLine": 401
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change Password",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 565
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change Password",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Password",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 507
+        }
+      },
+      {
+        "comment": "",
+        "key": "Confirm New Password",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 527
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Password",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 511
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Minimum 8 characters",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 517
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Letters, numbers, and special characters",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 521
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 569
         }
       }
     ]

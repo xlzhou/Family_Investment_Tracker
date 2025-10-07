@@ -2,7 +2,7 @@
 //  Asset+CoreDataProperties.swift
 //  
 //
-//  Created by 周晓凌 on 2025/9/22.
+//  Created by 周晓凌 on 2025/10/7.
 //
 //  This file was automatically generated and should not be edited.
 //
@@ -22,16 +22,20 @@ extension Asset {
     @NSManaged public var assetType: String?
     @NSManaged public var createdAt: Date?
     @NSManaged public var currentPrice: Double
+    @NSManaged public var autoFetchPriceEnabled: Bool
     @NSManaged public var id: UUID?
     @NSManaged public var interestRate: Double
     @NSManaged public var lastPriceUpdate: Date?
-    @NSManaged public var name: String?
     @NSManaged public var linkedAssets: String?
+    @NSManaged public var name: String?
     @NSManaged public var symbol: String?
+    @NSManaged public var depositSubtype: String?
+    @NSManaged public var maturityDate: Date?
+    @NSManaged public var allowEarlyWithdrawal: Bool
     @NSManaged public var holdings: NSSet?
-    @NSManaged public var transactions: NSSet?
-    @NSManaged public var insurance: Insurance?
     @NSManaged public var institutionAvailabilities: NSSet?
+    @NSManaged public var insurance: Insurance?
+    @NSManaged public var transactions: NSSet?
 
 }
 
@@ -52,23 +56,6 @@ extension Asset {
 
 }
 
-// MARK: Generated accessors for transactions
-extension Asset {
-
-    @objc(addTransactionsObject:)
-    @NSManaged public func addToTransactions(_ value: Transaction)
-
-    @objc(removeTransactionsObject:)
-    @NSManaged public func removeFromTransactions(_ value: Transaction)
-
-    @objc(addTransactions:)
-    @NSManaged public func addToTransactions(_ values: NSSet)
-
-    @objc(removeTransactions:)
-    @NSManaged public func removeFromTransactions(_ values: NSSet)
-
-}
-
 // MARK: Generated accessors for institutionAvailabilities
 extension Asset {
 
@@ -83,6 +70,23 @@ extension Asset {
 
     @objc(removeInstitutionAvailabilities:)
     @NSManaged public func removeFromInstitutionAvailabilities(_ values: NSSet)
+
+}
+
+// MARK: Generated accessors for transactions
+extension Asset {
+
+    @objc(addTransactionsObject:)
+    @NSManaged public func addToTransactions(_ value: Transaction)
+
+    @objc(removeTransactionsObject:)
+    @NSManaged public func removeFromTransactions(_ value: Transaction)
+
+    @objc(addTransactions:)
+    @NSManaged public func addToTransactions(_ values: NSSet)
+
+    @objc(removeTransactions:)
+    @NSManaged public func removeFromTransactions(_ values: NSSet)
 
 }
 

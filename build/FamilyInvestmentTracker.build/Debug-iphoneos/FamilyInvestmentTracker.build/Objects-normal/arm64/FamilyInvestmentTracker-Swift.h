@@ -342,16 +342,20 @@ SWIFT_CLASS_NAMED("Asset")
 @property (nonatomic, copy) NSString * _Nullable assetType;
 @property (nonatomic, copy) NSDate * _Nullable createdAt;
 @property (nonatomic) double currentPrice;
+@property (nonatomic) BOOL autoFetchPriceEnabled;
 @property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic) double interestRate;
 @property (nonatomic, copy) NSDate * _Nullable lastPriceUpdate;
-@property (nonatomic, copy) NSString * _Nullable name;
 @property (nonatomic, copy) NSString * _Nullable linkedAssets;
+@property (nonatomic, copy) NSString * _Nullable name;
 @property (nonatomic, copy) NSString * _Nullable symbol;
+@property (nonatomic, copy) NSString * _Nullable depositSubtype;
+@property (nonatomic, copy) NSDate * _Nullable maturityDate;
+@property (nonatomic) BOOL allowEarlyWithdrawal;
 @property (nonatomic, strong) NSSet * _Nullable holdings;
-@property (nonatomic, strong) NSSet * _Nullable transactions;
-@property (nonatomic, strong) Insurance * _Nullable insurance;
 @property (nonatomic, strong) NSSet * _Nullable institutionAvailabilities;
+@property (nonatomic, strong) Insurance * _Nullable insurance;
+@property (nonatomic, strong) NSSet * _Nullable transactions;
 @end
 
 SWIFT_CLASS_NAMED("Beneficiary")
@@ -360,10 +364,10 @@ SWIFT_CLASS_NAMED("Beneficiary")
 @end
 
 @interface Beneficiary (SWIFT_EXTENSION(FamilyInvestmentTracker))
+@property (nonatomic, copy) NSDate * _Nullable createdAt;
 @property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSString * _Nullable name;
 @property (nonatomic) double percentage;
-@property (nonatomic, copy) NSDate * _Nullable createdAt;
 @property (nonatomic, strong) Insurance * _Nullable insurance;
 @end
 
@@ -372,16 +376,18 @@ SWIFT_CLASS_NAMED("Holding")
 - (nonnull instancetype)initWithEntity:(NSEntityDescription * _Nonnull)entity insertIntoManagedObjectContext:(NSManagedObjectContext * _Nullable)context OBJC_DESIGNATED_INITIALIZER;
 @end
 
+@class Institution;
 @class Portfolio;
 @interface Holding (SWIFT_EXTENSION(FamilyInvestmentTracker))
 @property (nonatomic) double averageCostBasis;
+@property (nonatomic) double cashValue;
 @property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic) double quantity;
 @property (nonatomic) double realizedGainLoss;
 @property (nonatomic) double totalDividends;
-@property (nonatomic) double cashValue;
 @property (nonatomic, copy) NSDate * _Nullable updatedAt;
 @property (nonatomic, strong) Asset * _Nullable asset;
+@property (nonatomic, strong) Institution * _Nullable institution;
 @property (nonatomic, strong) Portfolio * _Nullable portfolio;
 @end
 
@@ -397,12 +403,19 @@ SWIFT_CLASS_NAMED("Institution")
 - (void)removeAssetAvailabilities:(NSSet * _Nonnull)values;
 @end
 
-@class PortfolioInstitutionCash;
 @interface Institution (SWIFT_EXTENSION(FamilyInvestmentTracker))
-- (void)addPortfolioCashBalancesObject:(PortfolioInstitutionCash * _Nonnull)value;
-- (void)removePortfolioCashBalancesObject:(PortfolioInstitutionCash * _Nonnull)value;
-- (void)addPortfolioCashBalances:(NSSet * _Nonnull)values;
-- (void)removePortfolioCashBalances:(NSSet * _Nonnull)values;
+- (void)addHoldingsObject:(Holding * _Nonnull)value;
+- (void)removeHoldingsObject:(Holding * _Nonnull)value;
+- (void)addHoldings:(NSSet * _Nonnull)values;
+- (void)removeHoldings:(NSSet * _Nonnull)values;
+@end
+
+@class PortfolioInstitutionCurrencyCash;
+@interface Institution (SWIFT_EXTENSION(FamilyInvestmentTracker))
+- (void)addPortfolioCurrencyCashBalancesObject:(PortfolioInstitutionCurrencyCash * _Nonnull)value;
+- (void)removePortfolioCurrencyCashBalancesObject:(PortfolioInstitutionCurrencyCash * _Nonnull)value;
+- (void)addPortfolioCurrencyCashBalances:(NSSet * _Nonnull)values;
+- (void)removePortfolioCurrencyCashBalances:(NSSet * _Nonnull)values;
 @end
 
 @interface Institution (SWIFT_EXTENSION(FamilyInvestmentTracker))
@@ -413,13 +426,13 @@ SWIFT_CLASS_NAMED("Institution")
 @end
 
 @interface Institution (SWIFT_EXTENSION(FamilyInvestmentTracker))
+@property (nonatomic, copy) NSDate * _Nullable createdAt;
 @property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSString * _Nullable name;
-@property (nonatomic, copy) NSDate * _Nullable createdAt;
-@property (nonatomic) double cashBalance;
-@property (nonatomic, strong) NSSet * _Nullable transactions;
 @property (nonatomic, strong) NSSet * _Nullable assetAvailabilities;
-@property (nonatomic, strong) NSSet * _Nullable portfolioCashBalances;
+@property (nonatomic, strong) NSSet * _Nullable portfolioCurrencyCashBalances;
+@property (nonatomic, strong) NSSet * _Nullable holdings;
+@property (nonatomic, strong) NSSet * _Nullable transactions;
 @end
 
 SWIFT_CLASS_NAMED("InstitutionAssetAvailability")
@@ -428,11 +441,11 @@ SWIFT_CLASS_NAMED("InstitutionAssetAvailability")
 @end
 
 @interface InstitutionAssetAvailability (SWIFT_EXTENSION(FamilyInvestmentTracker))
-@property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSDate * _Nullable createdAt;
+@property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSDate * _Nullable lastTransactionDate;
-@property (nonatomic, strong) Institution * _Nullable institution;
 @property (nonatomic, strong) Asset * _Nullable asset;
+@property (nonatomic, strong) Institution * _Nullable institution;
 @end
 
 SWIFT_CLASS_NAMED("Insurance")
@@ -448,34 +461,42 @@ SWIFT_CLASS_NAMED("Insurance")
 @end
 
 @interface Insurance (SWIFT_EXTENSION(FamilyInvestmentTracker))
+@property (nonatomic) double additionalPaymentAmount;
+@property (nonatomic) double basicInsuredAmount;
+@property (nonatomic) BOOL canWithdrawPremiums;
+@property (nonatomic, copy) NSString * _Nullable contactNumber;
+@property (nonatomic, copy) NSDate * _Nullable coverageExpirationDate;
+@property (nonatomic, copy) NSDate * _Nullable createdAt;
+@property (nonatomic) double deathBenefit;
+@property (nonatomic) double estimatedMaturityBenefit;
+@property (nonatomic) BOOL hasSupplementaryInsurance;
 @property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSString * _Nullable insuranceType;
-@property (nonatomic, copy) NSString * _Nullable policyholder;
 @property (nonatomic, copy) NSString * _Nullable insuredPerson;
-@property (nonatomic) double basicInsuredAmount;
-@property (nonatomic) double additionalPaymentAmount;
-@property (nonatomic) double deathBenefit;
 @property (nonatomic) BOOL isParticipating;
-@property (nonatomic) BOOL hasSupplementaryInsurance;
-@property (nonatomic) int32_t premiumPaymentTerm;
+@property (nonatomic, copy) NSDate * _Nullable maturityBenefitRedemptionDate;
+@property (nonatomic) double maxWithdrawalPercentage;
+@property (nonatomic, copy) NSString * _Nullable policyholder;
 @property (nonatomic, copy) NSString * _Nullable premiumPaymentStatus;
+@property (nonatomic) int32_t premiumPaymentTerm;
 @property (nonatomic, copy) NSString * _Nullable premiumPaymentType;
 @property (nonatomic) double singlePremium;
+@property (nonatomic) double firstDiscountedPremium;
 @property (nonatomic) double totalPremium;
-@property (nonatomic, copy) NSDate * _Nullable coverageExpirationDate;
-@property (nonatomic, copy) NSDate * _Nullable maturityBenefitRedemptionDate;
-@property (nonatomic) double estimatedMaturityBenefit;
-@property (nonatomic) BOOL canWithdrawPremiums;
-@property (nonatomic) double maxWithdrawalPercentage;
-@property (nonatomic, copy) NSString * _Nullable contactNumber;
-@property (nonatomic, copy) NSDate * _Nullable createdAt;
-@property (nonatomic, strong) NSSet * _Nullable beneficiaries;
 @property (nonatomic, strong) Asset * _Nullable asset;
+@property (nonatomic, strong) NSSet * _Nullable beneficiaries;
 @end
 
 SWIFT_CLASS_NAMED("Portfolio")
 @interface Portfolio : NSManagedObject
 - (nonnull instancetype)initWithEntity:(NSEntityDescription * _Nonnull)entity insertIntoManagedObjectContext:(NSManagedObjectContext * _Nullable)context OBJC_DESIGNATED_INITIALIZER;
+@end
+
+@interface Portfolio (SWIFT_EXTENSION(FamilyInvestmentTracker))
+- (void)addCurrencyCashBalancesObject:(PortfolioInstitutionCurrencyCash * _Nonnull)value;
+- (void)removeCurrencyCashBalancesObject:(PortfolioInstitutionCurrencyCash * _Nonnull)value;
+- (void)addCurrencyCashBalances:(NSSet * _Nonnull)values;
+- (void)removeCurrencyCashBalances:(NSSet * _Nonnull)values;
 @end
 
 @interface Portfolio (SWIFT_EXTENSION(FamilyInvestmentTracker))
@@ -486,13 +507,6 @@ SWIFT_CLASS_NAMED("Portfolio")
 @end
 
 @interface Portfolio (SWIFT_EXTENSION(FamilyInvestmentTracker))
-- (void)addInstitutionCashBalancesObject:(PortfolioInstitutionCash * _Nonnull)value;
-- (void)removeInstitutionCashBalancesObject:(PortfolioInstitutionCash * _Nonnull)value;
-- (void)addInstitutionCashBalances:(NSSet * _Nonnull)values;
-- (void)removeInstitutionCashBalances:(NSSet * _Nonnull)values;
-@end
-
-@interface Portfolio (SWIFT_EXTENSION(FamilyInvestmentTracker))
 - (void)addTransactionsObject:(Transaction * _Nonnull)value;
 - (void)removeTransactionsObject:(Transaction * _Nonnull)value;
 - (void)addTransactions:(NSSet * _Nonnull)values;
@@ -500,32 +514,33 @@ SWIFT_CLASS_NAMED("Portfolio")
 @end
 
 @interface Portfolio (SWIFT_EXTENSION(FamilyInvestmentTracker))
+@property (nonatomic) double cashBalance;
 @property (nonatomic, copy) NSDate * _Nullable createdAt;
+@property (nonatomic) BOOL enforcesCashDiscipline;
 @property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSString * _Nullable mainCurrency;
 @property (nonatomic, copy) NSString * _Nullable name;
 @property (nonatomic, copy) NSString * _Nullable ownerID;
-@property (nonatomic) double cashBalance;
-@property (nonatomic) BOOL enforcesCashDiscipline;
 @property (nonatomic) double totalValue;
 @property (nonatomic, copy) NSDate * _Nullable updatedAt;
+@property (nonatomic, strong) NSSet * _Nullable currencyCashBalances;
 @property (nonatomic, strong) NSSet * _Nullable holdings;
 @property (nonatomic, strong) NSSet * _Nullable transactions;
-@property (nonatomic, strong) NSSet * _Nullable institutionCashBalances;
 @end
 
-SWIFT_CLASS_NAMED("PortfolioInstitutionCash")
-@interface PortfolioInstitutionCash : NSManagedObject
+SWIFT_CLASS_NAMED("PortfolioInstitutionCurrencyCash")
+@interface PortfolioInstitutionCurrencyCash : NSManagedObject
 - (nonnull instancetype)initWithEntity:(NSEntityDescription * _Nonnull)entity insertIntoManagedObjectContext:(NSManagedObjectContext * _Nullable)context OBJC_DESIGNATED_INITIALIZER;
 @end
 
-@interface PortfolioInstitutionCash (SWIFT_EXTENSION(FamilyInvestmentTracker))
-@property (nonatomic, copy) NSUUID * _Nullable id;
-@property (nonatomic) double cashBalance;
+@interface PortfolioInstitutionCurrencyCash (SWIFT_EXTENSION(FamilyInvestmentTracker))
+@property (nonatomic) double amount;
 @property (nonatomic, copy) NSDate * _Nullable createdAt;
+@property (nonatomic, copy) NSString * _Nullable currency;
+@property (nonatomic, copy) NSUUID * _Nullable id;
 @property (nonatomic, copy) NSDate * _Nullable updatedAt;
-@property (nonatomic, strong) Portfolio * _Nullable portfolio;
 @property (nonatomic, strong) Institution * _Nullable institution;
+@property (nonatomic, strong) Portfolio * _Nullable portfolio;
 @end
 
 SWIFT_CLASS_NAMED("Transaction")
@@ -535,25 +550,30 @@ SWIFT_CLASS_NAMED("Transaction")
 
 @interface Transaction (SWIFT_EXTENSION(FamilyInvestmentTracker))
 @property (nonatomic) double amount;
+@property (nonatomic) BOOL autoFetchPrice;
 @property (nonatomic, copy) NSDate * _Nullable createdAt;
 @property (nonatomic, copy) NSString * _Nullable currency;
 @property (nonatomic) double fees;
 @property (nonatomic, copy) NSUUID * _Nullable id;
-@property (nonatomic, copy) NSString * _Nullable transactionCode;
+@property (nonatomic) double interestRate;
+@property (nonatomic, copy) NSDate * _Nullable maturityDate;
 @property (nonatomic, copy) NSString * _Nullable notes;
-@property (nonatomic) double price;
-@property (nonatomic) double quantity;
 @property (nonatomic) BOOL paymentDeducted;
 @property (nonatomic) double paymentDeductedAmount;
 @property (nonatomic, copy) NSString * _Nullable paymentInstitutionName;
+@property (nonatomic) double price;
+@property (nonatomic) double quantity;
 @property (nonatomic) double realizedGain;
-@property (nonatomic, copy) NSDate * _Nullable maturityDate;
-@property (nonatomic) double interestRate;
 @property (nonatomic) double tax;
 @property (nonatomic, copy) NSString * _Nullable tradingInstitution;
+@property (nonatomic, copy) NSString * _Nullable transactionCode;
 @property (nonatomic, copy) NSDate * _Nullable transactionDate;
 @property (nonatomic, copy) NSString * _Nullable type;
-@property (nonatomic) BOOL autoFetchPrice;
+@property (nonatomic, copy) NSUUID * _Nullable linkedInsuranceAssetID;
+@property (nonatomic, copy) NSUUID * _Nullable linkedTransactionID;
+@property (nonatomic, copy) NSUUID * _Nullable parentDepositAssetID;
+@property (nonatomic) double accruedInterest;
+@property (nonatomic) double institutionPenalty;
 @property (nonatomic, strong) Asset * _Nullable asset;
 @property (nonatomic, strong) Institution * _Nullable institution;
 @property (nonatomic, strong) Portfolio * _Nullable portfolio;

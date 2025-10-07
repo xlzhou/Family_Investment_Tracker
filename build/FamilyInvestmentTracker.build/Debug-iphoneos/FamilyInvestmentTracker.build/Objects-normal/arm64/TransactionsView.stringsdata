@@ -7,7 +7,7 @@
         "key": "Delete Transaction",
         "location": {
           "startingColumn": 16,
-          "startingLine": 147
+          "startingLine": 169
         }
       },
       {
@@ -15,7 +15,7 @@
         "key": "Filter",
         "location": {
           "startingColumn": 20,
-          "startingLine": 86
+          "startingLine": 112
         }
       },
       {
@@ -23,7 +23,7 @@
         "key": "No Transactions",
         "location": {
           "startingColumn": 26,
-          "startingLine": 106
+          "startingLine": 132
         }
       },
       {
@@ -31,7 +31,7 @@
         "key": "Add your first transaction using the + button",
         "location": {
           "startingColumn": 26,
-          "startingLine": 110
+          "startingLine": 136
         }
       },
       {
@@ -39,7 +39,7 @@
         "key": "Delete",
         "location": {
           "startingColumn": 40,
-          "startingLine": 126
+          "startingLine": 152
         }
       },
       {
@@ -47,7 +47,7 @@
         "key": "Cancel",
         "location": {
           "startingColumn": 20,
-          "startingLine": 148
+          "startingLine": 170
         }
       },
       {
@@ -55,7 +55,7 @@
         "key": "Delete",
         "location": {
           "startingColumn": 20,
-          "startingLine": 151
+          "startingLine": 173
         }
       },
       {
@@ -63,15 +63,7 @@
         "key": "Are you sure you want to delete this %@? This action cannot be undone.",
         "location": {
           "startingColumn": 22,
-          "startingLine": 159
-        }
-      },
-      {
-        "comment": "",
-        "key": "Realized P&L",
-        "location": {
-          "startingColumn": 27,
-          "startingLine": 167
+          "startingLine": 181
         }
       },
       {
@@ -79,7 +71,7 @@
         "key": "Clear",
         "location": {
           "startingColumn": 24,
-          "startingLine": 295
+          "startingLine": 339
         }
       },
       {
@@ -87,7 +79,7 @@
         "key": "All Asset Types",
         "location": {
           "startingColumn": 24,
-          "startingLine": 248
+          "startingLine": 261
         }
       },
       {
@@ -95,7 +87,15 @@
         "key": "All Institutions",
         "location": {
           "startingColumn": 24,
-          "startingLine": 264
+          "startingLine": 277
+        }
+      },
+      {
+        "comment": "",
+        "key": "All Years",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 293
         }
       },
       {
@@ -103,7 +103,7 @@
         "key": "Insurance",
         "location": {
           "startingColumn": 30,
-          "startingLine": 503
+          "startingLine": 622
         }
       },
       {
@@ -111,7 +111,7 @@
         "key": "%@ @ %@",
         "location": {
           "startingColumn": 34,
-          "startingLine": 517
+          "startingLine": 636
         }
       }
     ]

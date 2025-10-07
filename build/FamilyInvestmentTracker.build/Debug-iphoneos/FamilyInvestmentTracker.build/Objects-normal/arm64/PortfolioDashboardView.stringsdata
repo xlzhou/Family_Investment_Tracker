@@ -7,7 +7,7 @@
         "key": "View",
         "location": {
           "startingColumn": 20,
-          "startingLine": 31
+          "startingLine": 36
         }
       },
       {
@@ -15,7 +15,7 @@
         "key": "Holdings",
         "location": {
           "startingColumn": 22,
-          "startingLine": 32
+          "startingLine": 37
         }
       },
       {
@@ -23,7 +23,7 @@
         "key": "Transactions",
         "location": {
           "startingColumn": 22,
-          "startingLine": 33
+          "startingLine": 38
         }
       },
       {
@@ -31,7 +31,7 @@
         "key": "Analytics",
         "location": {
           "startingColumn": 22,
-          "startingLine": 34
+          "startingLine": 39
         }
       },
       {
@@ -39,7 +39,7 @@
         "key": "Share Portfolio",
         "location": {
           "startingColumn": 30,
-          "startingLine": 226
+          "startingLine": 372
         }
       },
       {
@@ -47,7 +47,7 @@
         "key": "Share %@",
         "location": {
           "startingColumn": 22,
-          "startingLine": 188
+          "startingLine": 334
         }
       },
       {
@@ -55,7 +55,7 @@
         "key": "Invite family members to collaborate on this portfolio. You'll be able to choose who has access in the next step.",
         "location": {
           "startingColumn": 22,
-          "startingLine": 192
+          "startingLine": 338
         }
       },
       {
@@ -63,7 +63,7 @@
         "key": "Start Sharing",
         "location": {
           "startingColumn": 30,
-          "startingLine": 212
+          "startingLine": 358
         }
       },
       {
@@ -71,7 +71,7 @@
         "key": "Close",
         "location": {
           "startingColumn": 28,
-          "startingLine": 229
+          "startingLine": 375
         }
       },
       {
@@ -79,7 +79,7 @@
         "key": "Total Value",
         "location": {
           "startingColumn": 18,
-          "startingLine": 273
+          "startingLine": 419
         }
       },
       {
@@ -87,7 +87,7 @@
         "key": "Holdings",
         "location": {
           "startingColumn": 26,
-          "startingLine": 283
+          "startingLine": 429
         }
       },
       {
@@ -95,7 +95,7 @@
         "key": "%lld",
         "location": {
           "startingColumn": 26,
-          "startingLine": 286
+          "startingLine": 432
         }
       },
       {
@@ -103,7 +103,7 @@
         "key": "Transactions",
         "location": {
           "startingColumn": 26,
-          "startingLine": 292
+          "startingLine": 438
         }
       },
       {
@@ -111,71 +111,7 @@
         "key": "%lld",
         "location": {
           "startingColumn": 26,
-          "startingLine": 295
-        }
-      },
-      {
-        "comment": "",
-        "key": "Cash Holdings",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 488
-        }
-      },
-      {
-        "comment": "",
-        "key": "No Cash Holdings",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 426
-        }
-      },
-      {
-        "comment": "",
-        "key": "Cash balances will appear here when you make deposit transactions.",
-        "location": {
-          "startingColumn": 30,
-          "startingLine": 430
-        }
-      },
-      {
-        "comment": "",
-        "key": "Cash by Institution",
-        "location": {
-          "startingColumn": 46,
-          "startingLine": 440
-        }
-      },
-      {
-        "comment": "",
-        "key": "Total cash is calculated by summing all institution cash balances.",
-        "location": {
-          "startingColumn": 46,
-          "startingLine": 468
-        }
-      },
-      {
-        "comment": "",
-        "key": "Last updated recently",
-        "location": {
-          "startingColumn": 46,
-          "startingLine": 447
-        }
-      },
-      {
-        "comment": "",
-        "key": "Total Cash",
-        "location": {
-          "startingColumn": 38,
-          "startingLine": 470
-        }
-      },
-      {
-        "comment": "",
-        "key": "Done",
-        "location": {
-          "startingColumn": 28,
-          "startingLine": 492
+          "startingLine": 441
         }
       }
     ]

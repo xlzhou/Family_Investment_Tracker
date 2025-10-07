@@ -1,0 +1,256 @@
+{
+  "source": "/Users/zhouxiaoling/Documents/code/Family_Investment_Tracker/FamilyInvestmentTracker/Views/AddFixedDepositView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Add Fixed Deposit",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insufficient Cash",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fixed Deposit Details",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Options",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Currency",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deposit Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "Symbol (auto-generated)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Term",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld year%@ (%lld months)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld month%@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Interest Rate (%)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maturity Date",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Allow Early Withdrawal",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ available: %@\nRequired: %@\n\nIf you do not want cash to be deducted when creating a fixed deposit, go to portfolio settings and turn off 'Enforce Cash Discipline'.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose Institution",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 412
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Institution",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 421
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Institution",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 381
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add New Institution",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 407
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 416
+        }
+      },
+      {
+        "comment": "",
+        "key": "Institution Name",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 422
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 423
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 426
+        }
+      }
+    ]
+  },
+  "version": 1
+}
