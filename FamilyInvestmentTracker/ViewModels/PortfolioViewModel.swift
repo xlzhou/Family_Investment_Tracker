@@ -94,8 +94,13 @@ extension PortfolioViewModel {
         var holdingsCurrentValue: Double = 0
         var totalCostBasis: Double = 0
         var unrealizedGainLoss: Double = 0
-        var totalDividends: Double = 0
-        var totalRealizedGains: Double = 0
+        let realizedBreakdown = RealizedPnLCalculator.breakdownLifetime(for: portfolio,
+                                                                        context: context)
+        let totalDividends: Double = realizedBreakdown.activeIncome.reduce(0) { $0 + $1.amount } +
+                                     realizedBreakdown.depositInterest.reduce(0) { $0 + $1.amount }
+        let totalRealizedGains = realizedBreakdown.soldAssets.reduce(0) { $0 + $1.incomeIncludedPnL }
+        print("[PortfolioPerformance] Lifetime realized via calculator:", totalRealizedGains,
+              "Dividends/interest:", totalDividends)
 
         for holding in holdings {
             guard let asset = holding.asset else { continue }
@@ -122,8 +127,6 @@ extension PortfolioViewModel {
                 unrealizedGainLoss += currentValue - costBasis
             }
 
-            totalDividends += holding.totalDividends
-            totalRealizedGains += holding.realizedGainLoss
         }
 
         let totalCashBalance = portfolio.totalCashBalance
