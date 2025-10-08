@@ -61,6 +61,7 @@
 		E7C3DCF02E7E881900FC092A /* InstitutionAssetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C3DCEF2E7E881900FC092A /* InstitutionAssetService.swift */; };
 		F70A2E2BE7324FD9938E12DB /* FamilyInvestmentTracker.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 34312004A3BC4B16A37E5324 /* FamilyInvestmentTracker.xcdatamodeld */; };
 		FBD0CCD82D2847218E69009D /* PortfolioViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EDE449667EB4F12AF20AC12 /* PortfolioViewModel.swift */; };
+		F5A6B7C8D9E00123456789B2 /* RealizedGainRepairService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E00123456789B1 /* RealizedGainRepairService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Identifier.swift"; sourceTree = "<group>"; };
 		3D046EC644910D6BDC69E714 /* RealizedPnLView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealizedPnLView.swift; sourceTree = "<group>"; };
 		F5A6B7C8D9E00123456789AB /* RealizedPnLCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealizedPnLCalculator.swift; sourceTree = "<group>"; };
+		F5A6B7C8D9E00123456789B1 /* RealizedGainRepairService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealizedGainRepairService.swift; sourceTree = "<group>"; };
 		46CA597ABF61463EBB88272F /* PortfolioListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioListView.swift; sourceTree = "<group>"; };
 		4E3FD956593F495A808BA082 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
 		F4E3D2C1B0A9988776655443 /* InsurancePaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsurancePaymentService.swift; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				C3D4E5F6A7B8091A92ABCDEF /* FixedDepositService.swift */,
 				C2D3E4F5A6B7081991ABCDEF /* FixedDepositMigrationService.swift */,
 				F5A6B7C8D9E00123456789AB /* RealizedPnLCalculator.swift */,
+				F5A6B7C8D9E00123456789B1 /* RealizedGainRepairService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -378,6 +381,7 @@
 				C4D5E6F7G8H9I0J1K2L3M4N5 /* PortfolioOwnershipService.swift in Sources */,
 				A2C3D4E5F6A7B8090C1D2E3F /* DashboardSettingsService.swift in Sources */,
 				F5A6B7C8D9E00123456789AC /* RealizedPnLCalculator.swift in Sources */,
+				F5A6B7C8D9E00123456789B2 /* RealizedGainRepairService.swift in Sources */,
 				96B7992AEA38485CB1E59864 /* AuthenticationManager.swift in Sources */,
 				B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */,
 				E1D2C3B4A5968778695A4B3C /* InsurancePaymentService.swift in Sources */,

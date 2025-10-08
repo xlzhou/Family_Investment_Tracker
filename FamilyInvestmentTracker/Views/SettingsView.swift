@@ -25,6 +25,9 @@ struct SettingsView: View {
     @State private var showAllExchangeRates = false
     @State private var showingChangePassword = false
     @State private var showingMigration = false
+    @State private var isRepairingRealizedGains = false
+    @State private var realizedGainRepairMessage: String?
+    @State private var realizedGainRepairError: String?
     
     var body: some View {
         NavigationView {
@@ -277,6 +280,25 @@ struct SettingsView: View {
                     }
                     .disabled(isCreatingBackup || isRestoring)
 
+                    Button(action: triggerRealizedGainRepair) {
+                        HStack {
+                            if isRepairingRealizedGains {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "hammer.circle")
+                                    .foregroundColor(.green)
+                            }
+                            Text(isRepairingRealizedGains ? "Rebuilding Realized P&L..." : "Rebuild Realized P&L")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .disabled(isCreatingBackup || isRestoring || isRepairingRealizedGains)
+
                     if let message = restoreMessage {
                         Text(message)
                             .font(.caption)
@@ -284,6 +306,16 @@ struct SettingsView: View {
                     }
                     if let errorMessage = restoreError {
                         Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    if let realizedMessage = realizedGainRepairMessage {
+                        Text(realizedMessage)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    if let realizedError = realizedGainRepairError {
+                        Text(realizedError)
                             .font(.caption)
                             .foregroundColor(.red)
                     }
@@ -407,6 +439,44 @@ struct SettingsView: View {
         }
         .onChange(of: selectedDashboardCurrency) { _, newValue in
             dashboardSettings.updateCurrency(newValue)
+        }
+    }
+
+    private func triggerRealizedGainRepair() {
+        guard !isRepairingRealizedGains else { return }
+        isRepairingRealizedGains = true
+        realizedGainRepairMessage = nil
+        realizedGainRepairError = nil
+
+        Task {
+            do {
+                let summary = try await RealizedGainRepairService.shared.repairAllPortfolios(in: viewContext)
+                let message: String
+                if summary.updatedHoldingsCount == 0 {
+                    message = "All holdings are already up to date."
+                    print("[RealizedGainRepair] No adjustments required.")
+                } else {
+                    let deltaText = Formatters.signedCurrency(summary.totalDelta)
+                    message = "Updated \(summary.updatedHoldingsCount) holdings (net adjustment: \(deltaText))."
+                    for holding in summary.holdings {
+                        let institutionSuffix = holding.institutionName.map { " (\($0))" } ?? ""
+                        let detail = "[RealizedGainRepair] \(holding.portfolioName) — \(holding.assetName)\(institutionSuffix): was \(Formatters.signedCurrency(holding.previousValue)), now \(Formatters.signedCurrency(holding.recalculatedValue)) (delta \(Formatters.signedCurrency(holding.delta)))"
+                        print(detail)
+                    }
+                }
+
+                await MainActor.run {
+                    realizedGainRepairMessage = message
+                    realizedGainRepairError = nil
+                    isRepairingRealizedGains = false
+                }
+            } catch {
+                await MainActor.run {
+                    realizedGainRepairError = error.localizedDescription
+                    realizedGainRepairMessage = nil
+                    isRepairingRealizedGains = false
+                }
+            }
         }
     }
 
