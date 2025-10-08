@@ -4,8 +4,14 @@ final class DashboardSettingsService: ObservableObject {
     static let shared = DashboardSettingsService()
 
     @Published private(set) var dashboardCurrency: Currency
+    @Published var includeInsuranceInPerformance: Bool {
+        didSet {
+            UserDefaults.standard.set(includeInsuranceInPerformance, forKey: includeInsuranceKey)
+        }
+    }
 
     private let storageKey = "DashboardCurrencyCode"
+    private let includeInsuranceKey = "IncludeInsuranceInPerformance"
     private var hasStoredValue = false
 
     private init() {
@@ -15,6 +21,13 @@ final class DashboardSettingsService: ObservableObject {
             hasStoredValue = true
         } else {
             dashboardCurrency = .usd
+        }
+
+        if UserDefaults.standard.object(forKey: includeInsuranceKey) != nil {
+            includeInsuranceInPerformance = UserDefaults.standard.bool(forKey: includeInsuranceKey)
+        } else {
+            includeInsuranceInPerformance = true
+            UserDefaults.standard.set(true, forKey: includeInsuranceKey)
         }
     }
 

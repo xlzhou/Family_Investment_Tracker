@@ -86,7 +86,8 @@ class PortfolioViewModel: ObservableObject {
 }
 
 extension PortfolioViewModel {
-    func calculatePortfolioPerformance(portfolio: Portfolio) -> PortfolioPerformance {
+    func calculatePortfolioPerformance(portfolio: Portfolio,
+                                       includeInsuranceInPerformance: Bool = DashboardSettingsService.shared.includeInsuranceInPerformance) -> PortfolioPerformance {
         let holdings = portfolio.holdings?.allObjects as? [Holding] ?? []
         
         let context = portfolio.managedObjectContext ?? PersistenceController.shared.container.viewContext
@@ -104,31 +105,32 @@ extension PortfolioViewModel {
 
             // Deposit assets are represented via cash balances, not holdings valuation
             if asset.assetType == AssetType.deposit.rawValue {
+                totalDividends += holding.totalDividends
                 continue
             }
 
-            // For insurance assets, use cash value; for others, use market value
-            if asset.assetType == "Insurance" {
+            if asset.assetType == AssetType.insurance.rawValue {
                 let cashValue = (holding.value(forKey: "cashValue") as? Double) ?? 0
                 holdingsCurrentValue += cashValue
-                // For insurance, cost basis is typically the premiums paid (stored as amount)
-                // We'll use a simplified approach here
-                totalCostBasis += 0 // Insurance premiums don't count as cost basis in traditional sense
-                let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: context)
-                unrealizedGainLoss += cashValue - paidPremium
-            } else {
-                let currentValue = holding.quantity * asset.currentPrice
-                let costBasis = holding.quantity * holding.averageCostBasis
-                holdingsCurrentValue += currentValue
-                totalCostBasis += costBasis
-                unrealizedGainLoss += currentValue - costBasis
+                if includeInsuranceInPerformance {
+                    let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: context)
+                    totalCostBasis += paidPremium
+                    unrealizedGainLoss += cashValue - paidPremium
+                }
+                totalDividends += holding.totalDividends
+                continue
             }
 
+            let currentValue = holding.quantity * asset.currentPrice
+            let costBasis = holding.quantity * holding.averageCostBasis
+            holdingsCurrentValue += currentValue
+            totalCostBasis += costBasis
+            unrealizedGainLoss += currentValue - costBasis
             totalDividends += holding.totalDividends
         }
 
-        print("[PortfolioPerformance] Lifetime realized via calculator:", totalRealizedGains,
-              "Dividends/interest:", totalDividends)
+        //print("[PortfolioPerformance] Lifetime realized via calculator:", totalRealizedGains,
+        //      "Dividends/interest:", totalDividends)
 
         let totalCashBalance = portfolio.totalCashBalance
         let totalCurrentValue = holdingsCurrentValue + totalCashBalance

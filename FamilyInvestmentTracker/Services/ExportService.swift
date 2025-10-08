@@ -227,27 +227,49 @@ class ExportService: ObservableObject {
     // MARK: - Helper Methods
     private func calculatePortfolioPerformance(portfolio: Portfolio) -> PortfolioPerformance {
         let holdings = portfolio.holdings?.allObjects as? [Holding] ?? []
-        
-        var totalCurrentValue: Double = 0
+        let context = portfolio.managedObjectContext ?? PersistenceController.shared.container.viewContext
+        let includeInsurance = DashboardSettingsService.shared.includeInsuranceInPerformance
+
+        var holdingsCurrentValue: Double = 0
         var totalCostBasis: Double = 0
+        var unrealizedGainLoss: Double = 0
         var totalDividends: Double = 0
         var totalRealizedGains: Double = 0
-        
+
         for holding in holdings {
             guard let asset = holding.asset else { continue }
-            
-            totalCurrentValue += holding.quantity * asset.currentPrice
-            totalCostBasis += holding.quantity * holding.averageCostBasis
+
+            if asset.assetType == AssetType.deposit.rawValue {
+                totalDividends += holding.totalDividends
+                continue
+            }
+
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = (holding.value(forKey: "cashValue") as? Double) ?? 0
+                holdingsCurrentValue += cashValue
+                if includeInsurance {
+                    let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: context)
+                    totalCostBasis += paidPremium
+                    unrealizedGainLoss += cashValue - paidPremium
+                }
+                totalDividends += holding.totalDividends
+                continue
+            }
+
+            let currentValue = holding.quantity * asset.currentPrice
+            let costBasis = holding.quantity * holding.averageCostBasis
+            holdingsCurrentValue += currentValue
+            totalCostBasis += costBasis
+            unrealizedGainLoss += currentValue - costBasis
             totalDividends += holding.totalDividends
             totalRealizedGains += holding.realizedGainLoss
         }
-        
-        let unrealizedGainLoss = totalCurrentValue - totalCostBasis
+
         let totalReturn = unrealizedGainLoss + totalRealizedGains + totalDividends
         let totalReturnPercentage = totalCostBasis > 0 ? (totalReturn / totalCostBasis) * 100 : 0
-        
+
         return PortfolioPerformance(
-            currentValue: totalCurrentValue,
+            currentValue: holdingsCurrentValue + portfolio.totalCashBalance,
             costBasis: totalCostBasis,
             unrealizedGainLoss: unrealizedGainLoss,
             realizedGainLoss: totalRealizedGains,

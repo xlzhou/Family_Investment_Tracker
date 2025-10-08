@@ -35,6 +35,7 @@ struct AnalyticsView: View {
     @ObservedObject var portfolio: Portfolio
     @StateObject private var viewModel = PortfolioViewModel()
     @Environment(\.managedObjectContext) private var viewContext
+    @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
     @State private var refreshID = UUID()
     @State private var performanceHistory: [PerformanceDataPoint] = []
     @State private var dividendHistory: [DividendDataPoint] = []
@@ -96,6 +97,9 @@ struct AnalyticsView: View {
             RealizedPnLView(portfolio: portfolio)
                 .environment(\.managedObjectContext, viewContext)
         }
+        .onChange(of: dashboardSettings.includeInsuranceInPerformance) { _, _ in
+            Task { await loadAnalyticsData() }
+        }
     }
 
     private var portfolioCurrency: Currency {
@@ -112,7 +116,7 @@ struct AnalyticsView: View {
         let dividends = viewModel.dividendHistory(for: portfolio)
         let realizedLifetime = RealizedPnLCalculator.totalRealizedPnLLifetime(for: portfolio,
                                                                              context: viewContext)
-        print("[Analytics] Lifetime Realized P&L:", realizedLifetime)
+        //print("[Analytics] Lifetime Realized P&L:", realizedLifetime)
         performanceHistory = performance
         dividendHistory = dividends
         performanceSnapshot = summary
@@ -127,6 +131,7 @@ struct PerformanceSummaryView: View {
     let performance: PortfolioPerformance
     let realizedPnLLifetime: Double
     let onShowRealizedPnL: () -> Void
+    @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
 
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -138,10 +143,25 @@ struct PerformanceSummaryView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Performance Summary")
-                .font(.title2)
-                .fontWeight(.semibold)
-            
+            HStack(alignment: .center, spacing: 12) {
+                Text("Performance Summary")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                HStack(alignment: .center, spacing: 8) {
+                    Toggle("", isOn: $dashboardSettings.includeInsuranceInPerformance)
+                        .labelsHidden()
+                        .tint(.blue)
+
+                    Text("Include Insurance In Performance")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible())
@@ -165,7 +185,7 @@ struct PerformanceSummaryView: View {
                 )
                 
                 PerformanceCardView(
-                    title: "Total Return",
+                    title: "Total Return (Lifetime)",
                     value: Formatters.signedPercent(performance.totalReturnPercentage),
                     color: performance.totalReturnPercentage >= 0 ? .green : .red
                 )
