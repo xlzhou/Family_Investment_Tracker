@@ -1602,7 +1602,15 @@ struct InsurancePaymentEntryView: View {
         request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, category.assetSymbol)
 
         if let existingAsset = try? viewContext.fetch(request).first {
+            if (existingAsset.symbol ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existingAsset.symbol = category.assetSymbol
+            }
+            if (existingAsset.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existingAsset.name = category.assetName
+            }
+            existingAsset.assetType = AssetType.deposit.rawValue
             existingAsset.lastPriceUpdate = Date()
+            existingAsset.depositSubtypeEnum = category.depositSubtype
             return existingAsset
         }
 
@@ -1614,6 +1622,7 @@ struct InsurancePaymentEntryView: View {
         newAsset.createdAt = Date()
         newAsset.lastPriceUpdate = Date()
         newAsset.currentPrice = 0
+        newAsset.depositSubtypeEnum = category.depositSubtype
         return newAsset
     }
 

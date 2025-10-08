@@ -47,8 +47,8 @@ struct TransactionsView: View {
                 switch tType {
                 case .some(.deposit):
                     return true
-                //case .some(.sell):
-                //    return (t.quantity * t.price - fees - tax) > 0
+                case .some(.depositWithdrawal):
+                    return true
                 case .some(.dividend), .some(.interest):
                     return (t.amount - fees - tax) > 0
                 default:

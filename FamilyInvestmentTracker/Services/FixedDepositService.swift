@@ -79,14 +79,37 @@ final class FixedDepositService {
         fixedDeposit.currentPrice = max(0, fixedDeposit.currentPrice - amount)
         fixedDeposit.lastPriceUpdate = Date()
 
-        // Add cash to available balance
         let netAmount = amount - institutionPenalty
+
+        // Add cash to available balance
         CashBalanceService.shared.addToAvailableCashBalance(
             for: portfolio,
             institution: institution,
             currency: currency,
             delta: netAmount
         )
+
+        createDemandDepositTransaction(
+            portfolio: portfolio,
+            institution: institution,
+            currency: currency,
+            amount: netAmount,
+            sourceDeposit: fixedDeposit,
+            noteContext: "early withdrawal",
+            context: context
+        )
+
+        if accruedInterest > 0.0001 {
+            _ = createInterestPayment(
+                for: fixedDeposit,
+                amount: accruedInterest,
+                date: Date(),
+                portfolio: portfolio,
+                institution: institution,
+                currency: currency,
+                context: context
+            )
+        }
 
         return transaction
     }
@@ -123,6 +146,16 @@ final class FixedDepositService {
             institution: institution,
             currency: currency,
             delta: amount
+        )
+
+        createDemandDepositTransaction(
+            portfolio: portfolio,
+            institution: institution,
+            currency: currency,
+            amount: amount,
+            sourceDeposit: fixedDeposit,
+            noteContext: "maturity withdrawal",
+            context: context
         )
 
         return transaction
@@ -224,6 +257,105 @@ final class FixedDepositService {
     private func ensureIdentifier(for holding: Holding) {
         if holding.id == nil {
             holding.id = UUID()
+        }
+    }
+}
+
+// MARK: - Companion Transaction Helpers
+
+private extension FixedDepositService {
+    func createDemandDepositTransaction(portfolio: Portfolio,
+                                        institution: Institution,
+                                        currency: Currency,
+                                        amount: Double,
+                                        sourceDeposit: Asset,
+                                        noteContext: String,
+                                        context: NSManagedObjectContext) {
+        let epsilon = 1e-6
+        guard amount > epsilon else { return }
+
+        let depositAsset = findOrCreateDemandDepositAsset(portfolio: portfolio, context: context)
+
+        let transaction = Transaction(context: context)
+        transaction.id = UUID()
+        transaction.createdAt = Date()
+        transaction.transactionDate = Date()
+        transaction.type = TransactionType.deposit.rawValue
+        transaction.amount = amount
+        transaction.price = amount
+        transaction.quantity = 1
+        transaction.fees = 0
+        transaction.tax = 0
+        transaction.currency = currency.rawValue
+        transaction.portfolio = portfolio
+        transaction.institution = institution
+        transaction.tradingInstitution = institution.name
+        transaction.autoFetchPrice = false
+        transaction.asset = depositAsset
+
+        let depositName = sourceDeposit.name ?? sourceDeposit.symbol ?? "fixed deposit"
+        transaction.notes = "Proceeds from \(noteContext) of \(depositName)"
+
+        transaction.ensureIdentifiers()
+
+        maintainInstitutionAssetRelationship(institution: institution,
+                                             asset: depositAsset,
+                                             transactionDate: transaction.transactionDate ?? Date(),
+                                             context: context)
+    }
+
+    func findOrCreateDemandDepositAsset(portfolio: Portfolio,
+                                        context: NSManagedObjectContext) -> Asset {
+        let symbol = DepositCategory.demand.assetSymbol
+        let name = DepositCategory.demand.assetName
+
+        let request: NSFetchRequest<Asset> = Asset.fetchRequest()
+        request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, symbol)
+        request.fetchLimit = 1
+
+        if let existing = try? context.fetch(request).first {
+            if (existing.symbol ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existing.symbol = symbol
+            }
+            if (existing.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existing.name = name
+            }
+            existing.assetType = AssetType.deposit.rawValue
+            existing.lastPriceUpdate = Date()
+            existing.depositSubtypeEnum = .demand
+            return existing
+        }
+
+        let asset = Asset(context: context)
+        asset.id = UUID()
+        asset.symbol = symbol
+        asset.name = name
+        asset.assetType = AssetType.deposit.rawValue
+        asset.createdAt = Date()
+        asset.lastPriceUpdate = Date()
+        asset.currentPrice = 0
+        asset.depositSubtypeEnum = .demand
+        asset.ensureIdentifier()
+        return asset
+    }
+
+    func maintainInstitutionAssetRelationship(institution: Institution,
+                                              asset: Asset,
+                                              transactionDate: Date,
+                                              context: NSManagedObjectContext) {
+        let request: NSFetchRequest<InstitutionAssetAvailability> = NSFetchRequest(entityName: "InstitutionAssetAvailability")
+        request.predicate = NSPredicate(format: "institution == %@ AND asset == %@", institution, asset)
+        request.fetchLimit = 1
+
+        if let existing = try? context.fetch(request).first {
+            existing.setValue(transactionDate, forKey: "lastTransactionDate")
+        } else {
+            let availability = InstitutionAssetAvailability(context: context)
+            availability.id = UUID()
+            availability.createdAt = Date()
+            availability.lastTransactionDate = transactionDate
+            availability.institution = institution
+            availability.asset = asset
         }
     }
 }

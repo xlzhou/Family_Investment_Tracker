@@ -329,6 +329,7 @@ struct AddFixedDepositView: View {
 
             // If cash discipline is enabled, create negative demand deposit transaction to reduce available cash
             if portfolio.enforcesCashDisciplineEnabled {
+                let demandAsset = findOrCreateDemandDepositAsset()
                 let negativeTransaction = Transaction(context: viewContext)
                 negativeTransaction.id = UUID()
                 negativeTransaction.createdAt = valueDate
@@ -342,11 +343,15 @@ struct AddFixedDepositView: View {
                 negativeTransaction.currency = selectedCurrency.rawValue
                 negativeTransaction.portfolio = portfolio
                 negativeTransaction.institution = institution
-                negativeTransaction.asset = nil // This is a demand deposit transaction
+                negativeTransaction.asset = demandAsset
                 negativeTransaction.tradingInstitution = institution.name
                 negativeTransaction.autoFetchPrice = false
                 negativeTransaction.notes = "Transfer to fixed deposit: \(depositName)"
                 negativeTransaction.ensureIdentifiers()
+
+                maintainInstitutionAssetRelationship(institution: institution,
+                                                     asset: demandAsset,
+                                                     transactionDate: valueDate)
 
                 // Reduce available cash balance
                 CashBalanceService.shared.addToAvailableCashBalance(
@@ -361,6 +366,59 @@ struct AddFixedDepositView: View {
             dismiss()
         } catch {
             errorMessage = "Failed to create fixed deposit: \(error.localizedDescription) "
+        }
+    }
+
+    private func findOrCreateDemandDepositAsset() -> Asset {
+        let symbol = DepositCategory.demand.assetSymbol
+        let name = DepositCategory.demand.assetName
+
+        let request: NSFetchRequest<Asset> = Asset.fetchRequest()
+        request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, symbol)
+        request.fetchLimit = 1
+
+        if let existing = try? viewContext.fetch(request).first {
+            if (existing.symbol ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existing.symbol = symbol
+            }
+            if (existing.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existing.name = name
+            }
+            existing.assetType = AssetType.deposit.rawValue
+            existing.depositSubtypeEnum = .demand
+            existing.lastPriceUpdate = Date()
+            return existing
+        }
+
+        let asset = Asset(context: viewContext)
+        asset.id = UUID()
+        asset.symbol = symbol
+        asset.name = name
+        asset.assetType = AssetType.deposit.rawValue
+        asset.createdAt = Date()
+        asset.lastPriceUpdate = Date()
+        asset.currentPrice = 0
+        asset.depositSubtypeEnum = .demand
+        asset.ensureIdentifier()
+        return asset
+    }
+
+    private func maintainInstitutionAssetRelationship(institution: Institution,
+                                                      asset: Asset,
+                                                      transactionDate: Date) {
+        let request: NSFetchRequest<InstitutionAssetAvailability> = NSFetchRequest(entityName: "InstitutionAssetAvailability")
+        request.predicate = NSPredicate(format: "institution == %@ AND asset == %@", institution, asset)
+        request.fetchLimit = 1
+
+        if let existing = try? viewContext.fetch(request).first {
+            existing.lastTransactionDate = transactionDate
+        } else {
+            let availability = InstitutionAssetAvailability(context: viewContext)
+            availability.id = UUID()
+            availability.createdAt = Date()
+            availability.lastTransactionDate = transactionDate
+            availability.institution = institution
+            availability.asset = asset
         }
     }
 }
@@ -459,6 +517,59 @@ struct InstitutionPickerView: View {
             newInstitutionName = ""
         } catch {
             print("Error adding institution: \(error)")
+        }
+    }
+
+    private func findOrCreateDemandDepositAsset() -> Asset {
+        let symbol = "Demand Deposit"
+        let name = "Demand Deposit"
+
+        let request: NSFetchRequest<Asset> = Asset.fetchRequest()
+        request.predicate = NSPredicate(format: "assetType == %@ AND symbol ==[c] %@", AssetType.deposit.rawValue, symbol)
+        request.fetchLimit = 1
+
+        if let existing = try? viewContext.fetch(request).first {
+            if (existing.symbol ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existing.symbol = symbol
+            }
+            if (existing.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                existing.name = name
+            }
+            existing.assetType = AssetType.deposit.rawValue
+            existing.depositSubtypeEnum = .demand
+            existing.lastPriceUpdate = Date()
+            return existing
+        }
+
+        let asset = Asset(context: viewContext)
+        asset.id = UUID()
+        asset.symbol = symbol
+        asset.name = name
+        asset.assetType = AssetType.deposit.rawValue
+        asset.createdAt = Date()
+        asset.lastPriceUpdate = Date()
+        asset.currentPrice = 0
+        asset.depositSubtypeEnum = .demand
+        asset.ensureIdentifier()
+        return asset
+    }
+
+    private func maintainInstitutionAssetRelationship(institution: Institution,
+                                                      asset: Asset,
+                                                      transactionDate: Date) {
+        let request: NSFetchRequest<InstitutionAssetAvailability> = NSFetchRequest(entityName: "InstitutionAssetAvailability")
+        request.predicate = NSPredicate(format: "institution == %@ AND asset == %@", institution, asset)
+        request.fetchLimit = 1
+
+        if let existing = try? viewContext.fetch(request).first {
+            existing.lastTransactionDate = transactionDate
+        } else {
+            let availability = InstitutionAssetAvailability(context: viewContext)
+            availability.id = UUID()
+            availability.createdAt = Date()
+            availability.lastTransactionDate = transactionDate
+            availability.institution = institution
+            availability.asset = asset
         }
     }
 }

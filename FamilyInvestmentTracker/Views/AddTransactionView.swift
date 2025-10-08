@@ -2400,6 +2400,12 @@ struct AddTransactionView: View {
             let targetSymbol = category.assetSymbol.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
             if currentSymbol == targetSymbol {
+                if (asset.symbol ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    asset.symbol = category.assetSymbol
+                }
+                if (asset.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    asset.name = category.assetName
+                }
                 asset.lastPriceUpdate = Date()
                 asset.depositSubtypeEnum = category.depositSubtype
                 return asset
