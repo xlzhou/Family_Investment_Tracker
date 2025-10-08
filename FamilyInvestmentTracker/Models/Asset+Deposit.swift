@@ -68,7 +68,12 @@ extension Asset {
     }
 
     var isActiveFixedDeposit: Bool {
-        return isFixedDeposit && !isMatured
+        guard isFixedDeposit else { return false }
+
+        let remainingBalance = currentPrice
+        let hasBalance = remainingBalance > 0.0001
+
+        return hasBalance && !isMatured
     }
 
     // MARK: - Asset Naming Helpers

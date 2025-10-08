@@ -358,6 +358,13 @@ struct AddTransactionView: View {
         return results
     }
 
+    private var transactionTypeOptions: [TransactionType] {
+        if isEditingDepositWithdrawalTransaction {
+            return Array(TransactionType.allCases)
+        }
+        return TransactionType.allCases.filter { $0 != .depositWithdrawal }
+    }
+
     private var isEditing: Bool {
         transactionToEdit != nil
     }
@@ -374,7 +381,7 @@ struct AddTransactionView: View {
                 // Transaction Type
                 Section(header: Text("Transaction Type")) {
                     Picker("Type", selection: $selectedTransactionType) {
-                        ForEach(TransactionType.allCases, id: \.self) { type in
+                        ForEach(transactionTypeOptions, id: \.self) { type in
                             Text(type.displayName).tag(type)
                         }
                     }
@@ -837,6 +844,15 @@ struct AddTransactionView: View {
         let symbolCategory = DepositCategory.resolve(from: asset.symbol)
         let nameCategory = DepositCategory.resolve(from: asset.name)
         return symbolCategory == .fixed || nameCategory == .fixed
+    }
+
+    private var isEditingDepositWithdrawalTransaction: Bool {
+        guard isEditing,
+              let typeRaw = transactionToEdit?.type,
+              let type = TransactionType(rawValue: typeRaw) else {
+            return false
+        }
+        return type == .depositWithdrawal
     }
 
     private var depositCategoriesForPicker: [DepositCategory] {
