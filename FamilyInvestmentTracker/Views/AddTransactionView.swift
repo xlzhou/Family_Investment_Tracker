@@ -1938,15 +1938,24 @@ struct AddTransactionView: View {
                     }
                 } else {
                     // Amount for other transaction types
-                    HStack {
-                        Text("Amount")
-                        Spacer()
-                        TextField("0.00", value: $amount, format: .number)
-                            .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .frame(width: 120)
-                        Text(selectedCurrency.symbol)
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text("Amount")
+                            Spacer()
+                            TextField("0.00", value: $amount, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .frame(width: 120)
+                            Text(selectedCurrency.symbol)
+                                .foregroundColor(.secondary)
+                        }
+
+                        if selectedTransactionType == .deposit {
+                            Text("Tip: Enter negative amount for withdrawals")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 4)
+                        }
                     }
                 }
             } else if isStructuredProductTransaction {

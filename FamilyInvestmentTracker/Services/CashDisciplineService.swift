@@ -21,6 +21,21 @@ struct CashDisciplineService {
         "\(notePrefix)\(transactionID.uuidString)"
     }
 
+    static func extractLinkedTransactionID(from note: String) -> UUID? {
+        guard note.hasPrefix(notePrefix) else { return nil }
+        let remainder = note.dropFirst(notePrefix.count)
+        let identifierPortion: Substring
+        if let dividerRange = remainder.range(of: noteDivider) {
+            identifierPortion = remainder[..<dividerRange.lowerBound]
+        } else if let separatorRange = remainder.range(of: " ") {
+            identifierPortion = remainder[..<separatorRange.lowerBound]
+        } else {
+            identifierPortion = remainder
+        }
+        let trimmed = identifierPortion.trimmingCharacters(in: .whitespacesAndNewlines)
+        return UUID(uuidString: trimmed)
+    }
+
     static func companionNote(for transaction: Transaction, companionAmount: Double, currency: Currency) -> String? {
         guard let identifier = companionNoteIdentifier(for: transaction) else { return nil }
 

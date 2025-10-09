@@ -97,6 +97,7 @@ final class FixedDepositService {
             amount: netAmount,
             sourceDeposit: fixedDeposit,
             noteContext: "early withdrawal",
+            linkedTransaction: transaction,
             context: context
         )
 
@@ -156,6 +157,7 @@ final class FixedDepositService {
             amount: amount,
             sourceDeposit: fixedDeposit,
             noteContext: "maturity withdrawal",
+            linkedTransaction: transaction,
             context: context
         )
 
@@ -271,6 +273,7 @@ private extension FixedDepositService {
                                         amount: Double,
                                         sourceDeposit: Asset,
                                         noteContext: String,
+                                        linkedTransaction: Transaction,
                                         context: NSManagedObjectContext) {
         let epsilon = 1e-6
         guard amount > epsilon else { return }
@@ -296,6 +299,10 @@ private extension FixedDepositService {
 
         let depositName = sourceDeposit.name ?? sourceDeposit.symbol ?? "fixed deposit"
         transaction.notes = "Proceeds from \(noteContext) of \(depositName)"
+
+        if let linkedID = linkedTransaction.id {
+            transaction.setValue(linkedID, forKey: "linkedTransactionID")
+        }
 
         transaction.ensureIdentifiers()
 

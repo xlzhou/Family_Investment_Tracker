@@ -361,6 +361,9 @@ struct AddFixedDepositView: View {
                 negativeTransaction.autoFetchPrice = false
                 negativeTransaction.notes = "Transfer to fixed deposit: \(depositName)"
                 negativeTransaction.ensureIdentifiers()
+                if let transactionID = transaction.id {
+                    negativeTransaction.setValue(transactionID, forKey: "linkedTransactionID")
+                }
 
                 maintainInstitutionAssetRelationship(institution: institution,
                                                      asset: demandAsset,

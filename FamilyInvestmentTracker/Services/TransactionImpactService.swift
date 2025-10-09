@@ -34,6 +34,9 @@ struct TransactionImpactService {
             let netCash = currencyService.convertAmount(originalNetCash, from: transactionCurrency, to: portfolioCurrency)
             switch transactionType {
             case .deposit:
+                if handledByCompanion {
+                    break
+                }
                 portfolio.addToCash(-netCash)
                 if let institution = institution {
                     institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalNetCash)

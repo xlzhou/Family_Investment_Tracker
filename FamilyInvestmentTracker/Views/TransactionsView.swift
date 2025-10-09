@@ -146,15 +146,35 @@ struct TransactionsView: View {
                     ForEach(filteredTransactions, id: \.objectID) { transaction in
                         TransactionRowView(transaction: transaction)
                             .contentShape(Rectangle())
+                            .opacity(isCompanionTransaction(transaction) ? 0.7 : 1.0)
+                            .overlay(
+                                // Read-only indicator for companion transactions
+                                isCompanionTransaction(transaction) ?
+                                HStack {
+                                    Spacer()
+                                    VStack {
+                                        Image(systemName: "lock.fill")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                    }
+                                    .padding(.trailing, 8)
+                                    .padding(.top, 8)
+                                } : nil
+                            )
                             .onTapGesture {
-                                selectedTransaction = transaction
+                                if !isCompanionTransaction(transaction) {
+                                    selectedTransaction = transaction
+                                }
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button("Delete", role: .destructive) {
-                                    transactionToDelete = transaction
-                                    showingDeleteConfirmation = true
+                                if !isCompanionTransaction(transaction) {
+                                    Button("Delete", role: .destructive) {
+                                        transactionToDelete = transaction
+                                        showingDeleteConfirmation = true
+                                    }
+                                    .tint(.red)
                                 }
-                                .tint(.red)
                             }
                     }
                     .onDelete(perform: deleteTransactions)
@@ -182,18 +202,23 @@ struct TransactionsView: View {
                 Text("Are you sure you want to delete this \(transaction.type?.lowercased() ?? "transaction")? This action cannot be undone.")
             }
         }
+        .alert("Cannot Delete Companion Transaction", isPresented: $showingCompanionDeletionAlert) {
+            Button("OK", role: .cancel) {
+                showingCompanionDeletionAlert = false
+            }
+        } message: {
+            Text("Companion transactions are automatically managed and cannot be deleted directly. To remove them, delete the main transaction they're linked to.")
+        }
     }
     
     private func deleteTransaction(_ transaction: Transaction) {
         withAnimation {
+            // Let TransactionImpactService.reverse handle companions internally
+            // Don't manually reverse companions to avoid double cash reversal
             TransactionImpactService.reverse(transaction, in: portfolio, context: viewContext)
             viewContext.delete(transaction)
 
-            do {
-                try viewContext.save()
-            } catch {
-                print("❌ Error deleting transaction: \(error)")
-            }
+            try? viewContext.save()
         }
     }
 
@@ -219,22 +244,95 @@ struct TransactionsView: View {
         }
     }
 
-    private func deleteTransactions(offsets: IndexSet) {
-        withAnimation {
-            let transactionsToDelete = offsets.map { filteredTransactions[$0] }
+    @State private var showingCompanionDeletionAlert = false
 
+    private func deleteTransactions(offsets: IndexSet) {
+        let allTransactionsToDelete = offsets.map { filteredTransactions[$0] }
+
+        // Check if ALL selected transactions are companions
+        let areAllCompanions = allTransactionsToDelete.allSatisfy { isCompanionTransaction($0) }
+        if areAllCompanions {
+            showingCompanionDeletionAlert = true
+            return
+        }
+
+        withAnimation {
+            // Filter out companion transactions to prevent deletion
+            let transactionsToDelete = allTransactionsToDelete.filter { !isCompanionTransaction($0) }
+
+            if transactionsToDelete.count != allTransactionsToDelete.count {
+                print("⚠️ Blocked deletion of \(allTransactionsToDelete.count - transactionsToDelete.count) companion transaction(s)")
+            }
+
+            // Let TransactionImpactService.reverse handle companions internally
+            // Don't manually reverse companions to avoid double cash reversal
             transactionsToDelete.forEach { transaction in
                 TransactionImpactService.reverse(transaction, in: portfolio, context: viewContext)
             }
 
             transactionsToDelete.forEach(viewContext.delete)
 
-            do {
-                try viewContext.save()
-            } catch {
-                print("Error deleting transactions: \(error)")
+            try? viewContext.save()
+        }
+    }
+
+    // MARK: - Helper Functions
+
+    private func isCompanionTransaction(_ transaction: Transaction) -> Bool {
+        // Check if transaction has linkedTransactionID (cash discipline companion)
+        if transaction.value(forKey: "linkedTransactionID") as? UUID != nil {
+            return true
+        }
+
+        // Check if transaction has linkedInsuranceAssetID (insurance companion)
+        if transaction.value(forKey: "linkedInsuranceAssetID") as? UUID != nil {
+            return true
+        }
+
+        // Check if transaction note contains companion identifier
+        if let notes = transaction.notes,
+           notes.contains("[CashDiscipline] Linked Transaction") {
+            return true
+        }
+
+        return false
+    }
+
+    private func findCompanionTransaction(for transaction: Transaction) -> Transaction? {
+        // Use CashDisciplineService to find cash discipline companions
+        if let companion = CashDisciplineService.findCompanionDeposit(for: transaction, in: viewContext) {
+            return companion
+        }
+
+        // For fixed deposit transactions, look for companion withdrawal created during fixed deposit creation
+        if transaction.id != nil,
+           transaction.type == TransactionType.deposit.rawValue,
+               transaction.asset?.isFixedDeposit == true {
+
+            let request: NSFetchRequest<Transaction> = Transaction.fetchRequest()
+            request.predicate = NSPredicate(
+                format: "portfolio == %@ AND type == %@ AND notes CONTAINS %@",
+                portfolio,
+                TransactionType.depositWithdrawal.rawValue,
+                transaction.asset?.name ?? ""
+            )
+            request.fetchLimit = 5
+
+            let possibleCompanions = (try? viewContext.fetch(request)) ?? []
+
+            // Find companion by matching date and amount
+            return possibleCompanions.first { companion in
+                guard let companionDate = companion.transactionDate,
+                      let transactionDate = transaction.transactionDate else { return false }
+
+                let sameDay = Calendar.current.isDate(companionDate, inSameDayAs: transactionDate)
+                let sameAmount = abs(companion.amount - transaction.amount) < 0.01
+
+                return sameDay && sameAmount
             }
         }
+
+        return nil
     }
 
 }

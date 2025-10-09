@@ -28,6 +28,9 @@ struct SettingsView: View {
     @State private var isRepairingRealizedGains = false
     @State private var realizedGainRepairMessage: String?
     @State private var realizedGainRepairError: String?
+    @State private var isLinkingCompanions = false
+    @State private var companionLinkMessage: String?
+    @State private var companionLinkError: String?
     
     var body: some View {
         NavigationView {
@@ -299,6 +302,25 @@ struct SettingsView: View {
                     }
                     .disabled(isCreatingBackup || isRestoring || isRepairingRealizedGains)
 
+                    Button(action: triggerCompanionLinkRepair) {
+                        HStack {
+                            if isLinkingCompanions {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            } else {
+                                Image(systemName: "link.circle")
+                                    .foregroundColor(.teal)
+                            }
+                            Text(isLinkingCompanions ? "Linking Companion Transactions..." : "Link Legacy Fixed Deposit Companions")
+                                .foregroundColor(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+                    .disabled(isCreatingBackup || isRestoring || isRepairingRealizedGains || isLinkingCompanions)
+
                     if let message = restoreMessage {
                         Text(message)
                             .font(.caption)
@@ -316,6 +338,16 @@ struct SettingsView: View {
                     }
                     if let realizedError = realizedGainRepairError {
                         Text(realizedError)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                    if let companionMessage = companionLinkMessage {
+                        Text(companionMessage)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    if let companionError = companionLinkError {
+                        Text(companionError)
                             .font(.caption)
                             .foregroundColor(.red)
                     }
@@ -475,6 +507,37 @@ struct SettingsView: View {
                     realizedGainRepairError = error.localizedDescription
                     realizedGainRepairMessage = nil
                     isRepairingRealizedGains = false
+                }
+            }
+        }
+    }
+
+    private func triggerCompanionLinkRepair() {
+        guard !isLinkingCompanions else { return }
+        isLinkingCompanions = true
+        companionLinkMessage = nil
+        companionLinkError = nil
+
+        Task {
+            do {
+                let summary = try await CompanionLinkRepairService.shared.linkLegacyCompanions(in: viewContext)
+                await MainActor.run {
+                    if summary.linkedCount == 0 {
+                        companionLinkMessage = "All companion transactions are already linked."
+                    } else {
+                        companionLinkMessage = "Linked \(summary.linkedCount) companion transaction(s)."
+                    }
+
+                    if summary.failedCount > 0 {
+                        companionLinkError = "Failed to link \(summary.failedCount) transaction(s)."
+                    }
+
+                    isLinkingCompanions = false
+                }
+            } catch {
+                await MainActor.run {
+                    companionLinkError = error.localizedDescription
+                    isLinkingCompanions = false
                 }
             }
         }
