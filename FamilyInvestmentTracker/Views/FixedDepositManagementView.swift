@@ -106,14 +106,26 @@ struct FixedDepositRowView: View {
 
                 Spacer()
 
-                if let maturityDate = deposit.maturityDate {
+                if isMatured {
+                    Label {
+                        Text("Matured")
+                    } icon: {
+                        Image(systemName: "checkmark.seal.fill")
+                    }
+                    .font(.caption)
+                    .foregroundColor(.orange)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Color.orange.opacity(0.1))
+                    .cornerRadius(8)
+                } else if let maturityDate = deposit.maturityDate {
                     Label {
                         Text(maturityDate, style: .date)
                     } icon: {
                         Image(systemName: "calendar")
                     }
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 }
             }
 

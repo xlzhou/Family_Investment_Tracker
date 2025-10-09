@@ -14,7 +14,7 @@ struct AddFixedDepositView: View {
     @State private var allowEarlyWithdrawal = false
     @State private var selectedInstitution: Institution?
     @State private var selectedCurrency = Currency.usd
-    @State private var valueDate = Date()
+    @State private var valueDate = Calendar.current.startOfDay(for: Date())
     @State private var errorMessage = ""
     @State private var showingInsufficientCashAlert = false
     @State private var availableCashFormatted = ""
@@ -34,7 +34,10 @@ struct AddFixedDepositView: View {
     }
 
     private var maturityDate: Date {
-        Calendar.current.date(byAdding: .month, value: termMonths, to: valueDate) ?? valueDate
+        let calendar = Calendar.current
+        let normalizedStart = calendar.startOfDay(for: valueDate)
+        let calculated = calendar.date(byAdding: .month, value: termMonths, to: normalizedStart) ?? normalizedStart
+        return calendar.startOfDay(for: calculated)
     }
 
     var body: some View {
@@ -59,7 +62,16 @@ struct AddFixedDepositView: View {
                             Text(currency.displayName).tag(currency)
                         }
                     }
-                    DatePicker("Value Date", selection: $valueDate, displayedComponents: .date)
+                    DatePicker(
+                        "Value Date",
+                        selection: Binding(
+                            get: { valueDate },
+                            set: { newValue in
+                                valueDate = Calendar.current.startOfDay(for: newValue)
+                            }
+                        ),
+                        displayedComponents: .date
+                    )
 
                     Stepper(value: $termMonths, in: 1...240, step: 1) {
                         HStack {
@@ -304,6 +316,7 @@ struct AddFixedDepositView: View {
                 termMonths: termMonths,
                 interestRate: interestRateValue,
                 allowEarlyWithdrawal: allowEarlyWithdrawal,
+                valueDate: valueDate,
                 context: viewContext
             )
 

@@ -30,6 +30,9 @@ struct CashOverviewView: View {
     @State private var showingAddFixedDeposit = false
     @State private var selectedDeposit: Asset?
     @State private var showingWithdrawalView = false
+    @State private var showingMaturityAlert = false
+    @State private var maturityAlertDepositNames: [String] = []
+    @State private var hasShownMaturityAlert = false
 
     init(portfolio: Portfolio, initialTab: Tab = .demandCash) {
         self.portfolio = portfolio
@@ -150,6 +153,17 @@ struct CashOverviewView: View {
                 if !newValue {
                     loadFixedDeposits()
                 }
+            }
+            .alert("Matured Fixed Deposits", isPresented: $showingMaturityAlert, presenting: maturityAlertDepositNames) { names in
+                Button("Review") {
+                    selectedTab = .fixedDeposits
+                    showingMaturityAlert = false
+                }
+                Button("Dismiss", role: .cancel) {
+                    showingMaturityAlert = false
+                }
+            } message: { names in
+                Text(names.joined(separator: "\n"))
             }
         }
     }
@@ -374,6 +388,25 @@ struct CashOverviewView: View {
     private func loadFixedDeposits() {
         activeDeposits = FixedDepositService.shared.getActiveFixedDeposits(for: portfolio, context: viewContext)
         maturedDeposits = FixedDepositService.shared.getMaturedFixedDeposits(for: portfolio, context: viewContext)
+        updateMaturityAlertState()
+    }
+
+    private func updateMaturityAlertState() {
+        let maturedNames = maturedDeposits.map { $0.name ?? $0.symbol ?? "Fixed Deposit" }
+
+        if maturedNames.isEmpty {
+            hasShownMaturityAlert = false
+            maturityAlertDepositNames = []
+            showingMaturityAlert = false
+            return
+        }
+
+        maturityAlertDepositNames = maturedNames
+
+        if !hasShownMaturityAlert {
+            showingMaturityAlert = true
+            hasShownMaturityAlert = true
+        }
     }
 
     private func refreshPortfolioAggregates() -> Error? {
@@ -516,4 +549,3 @@ struct CashBalanceEditSheet: View {
     return CashOverviewView(portfolio: portfolio)
         .environment(\.managedObjectContext, context)
 }
-

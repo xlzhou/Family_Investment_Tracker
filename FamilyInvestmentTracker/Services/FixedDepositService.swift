@@ -21,22 +21,23 @@ final class FixedDepositService {
         valueDate: Date = Date(),
         context: NSManagedObjectContext
     ) -> Asset {
+        let calendar = Calendar.current
+        let normalizedValueDate = calendar.startOfDay(for: valueDate)
         let asset = Asset(context: context)
         asset.id = UUID()
-        asset.createdAt = valueDate
+        asset.createdAt = normalizedValueDate
         asset.assetType = AssetType.deposit.rawValue
         asset.depositSubtypeEnum = .fixed
         asset.name = name
         asset.symbol = symbol
         asset.currentPrice = amount
-        asset.lastPriceUpdate = valueDate
+        asset.lastPriceUpdate = normalizedValueDate
         asset.setValue(interestRate, forKey: "interestRate")
         asset.allowEarlyWithdrawal = allowEarlyWithdrawal
 
         // Calculate maturity date
-        let calendar = Calendar.current
-        if let maturityDate = calendar.date(byAdding: .month, value: termMonths, to: valueDate) {
-            asset.maturityDate = maturityDate
+        if let maturityDate = calendar.date(byAdding: .month, value: termMonths, to: normalizedValueDate) {
+            asset.maturityDate = calendar.startOfDay(for: maturityDate)
         }
 
         // Fixed deposits should NOT have holdings - they are cash assets, not investment holdings

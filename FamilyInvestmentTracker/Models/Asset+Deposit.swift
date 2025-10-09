@@ -57,14 +57,18 @@ extension Asset {
     var daysUntilMaturity: Int? {
         guard let maturityDate = maturityDate else { return nil }
         let calendar = Calendar.current
-        let today = Date()
-        let components = calendar.dateComponents([.day], from: today, to: maturityDate)
+        let today = calendar.startOfDay(for: Date())
+        let maturityDay = calendar.startOfDay(for: maturityDate)
+        let components = calendar.dateComponents([.day], from: today, to: maturityDay)
         return components.day
     }
 
     var isMatured: Bool {
         guard let maturityDate = maturityDate else { return false }
-        return Date() >= maturityDate
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let maturityDay = calendar.startOfDay(for: maturityDate)
+        return today >= maturityDay
     }
 
     var isActiveFixedDeposit: Bool {
