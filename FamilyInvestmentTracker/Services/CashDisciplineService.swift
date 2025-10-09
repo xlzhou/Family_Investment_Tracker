@@ -81,9 +81,10 @@ struct CashDisciplineService {
 
         let request: NSFetchRequest<Transaction> = Transaction.fetchRequest()
         request.predicate = NSPredicate(
-            format: "portfolio == %@ AND type == %@ AND linkedTransactionID == %@",
+            format: "portfolio == %@ AND type IN {%@, %@} AND linkedTransactionID == %@",
             portfolio,
             TransactionType.deposit.rawValue,
+            TransactionType.depositWithdrawal.rawValue,
             transactionID as CVarArg
         )
         request.fetchLimit = 1

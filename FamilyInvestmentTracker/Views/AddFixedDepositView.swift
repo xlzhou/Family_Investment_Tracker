@@ -347,8 +347,8 @@ struct AddFixedDepositView: View {
                 negativeTransaction.id = UUID()
                 negativeTransaction.createdAt = valueDate
                 negativeTransaction.transactionDate = valueDate
-                negativeTransaction.type = TransactionType.deposit.rawValue
-                negativeTransaction.amount = -amountValue
+                negativeTransaction.type = TransactionType.depositWithdrawal.rawValue
+                negativeTransaction.amount = amountValue
                 negativeTransaction.quantity = 1
                 negativeTransaction.price = amountValue
                 negativeTransaction.fees = 0

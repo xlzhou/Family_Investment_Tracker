@@ -19,7 +19,8 @@ struct TransactionsView: View {
         var transactions = allTransactions
 
         transactions = transactions.filter { transaction in
-            let isInsuranceCompanion = transaction.type == TransactionType.deposit.rawValue &&
+            let type = TransactionType(rawValue: transaction.type ?? "")
+            let isInsuranceCompanion = (type == .deposit || type == .depositWithdrawal) &&
                 (transaction.value(forKey: "linkedInsuranceAssetID") as? UUID) != nil
             if !isInsuranceCompanion { return true }
 

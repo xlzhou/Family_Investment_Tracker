@@ -1225,26 +1225,72 @@ struct AddTransactionView: View {
                     }
                 }
             } else {
-                transaction.amount = amount
-                transaction.quantity = 1
-                transaction.price = amount
+            transaction.amount = amount
+            transaction.quantity = 1
+            transaction.price = amount
 
+            if selectedTransactionType == .deposit || selectedTransactionType == .depositWithdrawal {
+                let originalAmount = amount
+                let resolvedType: TransactionType
                 if selectedTransactionType == .deposit {
-                    let depositAsset = findOrCreateDepositAsset(for: selectedDepositCategory, existingAsset: previousAsset)
-                    transaction.asset = depositAsset
+                    resolvedType = originalAmount >= 0 ? .deposit : .depositWithdrawal
+                } else {
+                    resolvedType = .depositWithdrawal
+                }
+
+                let recordedAmount = abs(originalAmount)
+                transaction.type = resolvedType.rawValue
+                transaction.amount = recordedAmount
+                transaction.price = recordedAmount
+
+                let depositAsset = findOrCreateDepositAsset(for: selectedDepositCategory, existingAsset: previousAsset)
+                transaction.asset = depositAsset
+                if resolvedType == .deposit {
                     transaction.setValue(depositInterestRate, forKey: "interestRate")
                 }
 
-                let netCash = amount - fees - tax
-                switch selectedTransactionType {
-                case .deposit:
-                    // For deposits, allow negative amounts (withdrawals)
-                    let convertedNetCash = convertToPortfolioCurrency(netCash, from: selectedCurrency)
-                    if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCash)
-                    }
+                let signedAmountForCash = resolvedType == .depositWithdrawal ? -recordedAmount : recordedAmount
+                let netCash = signedAmountForCash - fees - tax
 
-                    portfolio.addToCash(convertedNetCash)
+                let convertedNetCash = convertToPortfolioCurrency(netCash, from: selectedCurrency)
+                if let institution = institutionForTransaction {
+                    institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netCash)
+                }
+
+                portfolio.addToCash(convertedNetCash)
+
+                if let institutionRelation = institutionForTransaction ?? selectedInstitution {
+                    maintainInstitutionAssetRelationship(institution: institutionRelation, asset: depositAsset, transactionDate: transactionDate)
+                }
+
+                // Skip default deposit branch handling below
+                switch resolvedType {
+                case .deposit:
+                    break // handled above, fall through to avoid duplicate cash adjustment below
+                case .depositWithdrawal:
+                    // prevent duplicate handling in switch by continuing
+                    switch selectedTransactionType {
+                    case .deposit:
+                        // when user selected deposit but amount negative, we've already processed withdrawal
+                        break
+                    case .depositWithdrawal:
+                        break
+                    default:
+                        break
+                    }
+                default:
+                    break
+                }
+            }
+
+            let netCash = amount - fees - tax
+            switch selectedTransactionType {
+            case .deposit:
+                // Already handled above when determining resolved type
+                break
+            case .depositWithdrawal:
+                // For manual withdrawal type selections, cash adjustment handled above
+                break
                 case .dividend:
                     guard let institution = institutionForTransaction else {
                         failWithMessage("Select an institution to record dividend income.")
@@ -1541,7 +1587,8 @@ struct AddTransactionView: View {
         var fixedOptions: [InterestSourceOption] = []
 
         for transaction in transactions {
-            guard transaction.type == TransactionType.deposit.rawValue,
+            guard let txnType = TransactionType(rawValue: transaction.type ?? ""),
+                  (txnType == .deposit || txnType == .depositWithdrawal),
                   let asset = transaction.asset,
                   let txnInstitution = transaction.institution,
                   txnInstitution.objectID == institution.objectID else { continue }
@@ -2184,17 +2231,21 @@ struct AddTransactionView: View {
         let depositAsset = findOrCreateDepositAsset(for: .demand, existingAsset: existingCompanion?.asset)
         let transactionDate = transaction.transactionDate ?? Date()
 
+        let isWithdrawal = amount < 0
+        let transactionType: TransactionType = isWithdrawal ? .depositWithdrawal : .deposit
+        let absoluteAmount = abs(amount)
+
         if let companion = existingCompanion {
             TransactionImpactService.reverse(companion, in: portfolio, context: viewContext)
             companion.transactionDate = transactionDate
-            companion.amount = amount
-            companion.price = amount
+            companion.amount = absoluteAmount
+            companion.price = absoluteAmount
             companion.quantity = 1
             companion.fees = 0
             companion.tax = 0
             companion.currency = currency.rawValue
             companion.notes = companionNote
-            companion.type = TransactionType.deposit.rawValue
+            companion.type = transactionType.rawValue
             companion.autoFetchPrice = false
             if let name = institution.name, !name.isEmpty {
                 companion.tradingInstitution = name
@@ -2214,10 +2265,10 @@ struct AddTransactionView: View {
         } else {
             let companion = Transaction(context: viewContext)
             companion.transactionDate = transactionDate
-            companion.type = TransactionType.deposit.rawValue
+            companion.type = transactionType.rawValue
             companion.currency = currency.rawValue
-            companion.amount = amount
-            companion.price = amount
+            companion.amount = absoluteAmount
+            companion.price = absoluteAmount
             companion.quantity = 1
             companion.fees = 0
             companion.tax = 0

@@ -123,13 +123,18 @@ struct TransactionDetailView: View {
         (transaction.asset?.value(forKey: "linkedAssets") as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private func isDepositOrWithdrawal(_ transaction: Transaction) -> Bool {
+        guard let type = TransactionType(rawValue: transaction.type ?? "") else { return false }
+        return type == .deposit || type == .depositWithdrawal
+    }
+
     private var totalPaidPremium: Double {
         guard isInsurance else { return 0 }
 
         let deposits = insurancePaymentDeposits
         var depositContributions: Double = 0
 
-        for deposit in deposits where deposit.type == TransactionType.deposit.rawValue {
+        for deposit in deposits where isDepositOrWithdrawal(deposit) {
             let depositCurrency = Currency(rawValue: deposit.currency ?? currency.rawValue) ?? currency
             let absoluteAmount = abs(deposit.amount)
 
@@ -168,7 +173,7 @@ struct TransactionDetailView: View {
         guard let originalTransactionID = transaction.id else { return nil }
 
         let candidates = insurancePaymentDeposits.filter { deposit in
-            guard deposit.type == TransactionType.deposit.rawValue else { return false }
+            guard isDepositOrWithdrawal(deposit) else { return false }
 
             if let linkedID = deposit.value(forKey: "linkedTransactionID") as? UUID,
                linkedID == originalTransactionID {
@@ -1651,8 +1656,10 @@ struct InsurancePaymentEntryView: View {
         TransactionImpactService.reverse(companion, in: portfolio, context: viewContext)
 
         companion.transactionDate = paymentDate
-        companion.amount = -finalPaymentAmount
-        companion.price = -finalPaymentAmount
+        companion.type = TransactionType.depositWithdrawal.rawValue
+        let withdrawalAmount = abs(finalPaymentAmount)
+        companion.amount = withdrawalAmount
+        companion.price = withdrawalAmount
         companion.quantity = 1
         companion.fees = 0
         companion.tax = 0
@@ -1663,7 +1670,7 @@ struct InsurancePaymentEntryView: View {
         companion.autoFetchPrice = false
         companion.asset = findOrCreateDepositAsset(for: .demand)
 
-        if let note = CashDisciplineService.companionNote(for: transaction, companionAmount: -finalPaymentAmount, currency: selectedCurrency) {
+        if let note = CashDisciplineService.companionNote(for: transaction, companionAmount: -withdrawalAmount, currency: selectedCurrency) {
             companion.notes = applyDiscount ? note + discountSuffix() : note
         }
 

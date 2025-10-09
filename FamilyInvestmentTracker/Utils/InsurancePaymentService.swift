@@ -4,6 +4,11 @@ import Foundation
 enum InsurancePaymentService {
     private static let migrationDefaultsKey = "InsurancePaymentLinkedIDsBackfilled"
 
+    private static func isDepositOrWithdrawal(_ transaction: Transaction) -> Bool {
+        guard let type = TransactionType(rawValue: transaction.type ?? "") else { return false }
+        return type == .deposit || type == .depositWithdrawal
+    }
+
     static func paymentTransactions(for asset: Asset, in portfolio: Portfolio, context: NSManagedObjectContext) -> [Transaction] {
         guard let assetID = asset.id else { return [] }
 
@@ -11,7 +16,7 @@ enum InsurancePaymentService {
         let hadChangesBefore = context.hasChanges
         let linkedMatches = transactions.filter { transaction in
             guard transaction.portfolio?.objectID == portfolio.objectID else { return false }
-            guard transaction.type == TransactionType.deposit.rawValue else { return false }
+            guard isDepositOrWithdrawal(transaction) else { return false }
             if let linkedID = transaction.value(forKey: "linkedInsuranceAssetID") as? UUID {
                 return linkedID == assetID
             }
@@ -29,7 +34,7 @@ enum InsurancePaymentService {
 
         let fallbackMatches = transactions.filter { transaction in
             guard transaction.portfolio?.objectID == portfolio.objectID else { return false }
-            guard transaction.type == TransactionType.deposit.rawValue else { return false }
+            guard isDepositOrWithdrawal(transaction) else { return false }
             if transaction.value(forKey: "linkedInsuranceAssetID") as? UUID != nil {
                 return false
             }
@@ -61,7 +66,7 @@ enum InsurancePaymentService {
 
         let initialPremiumDepositCandidate = Self.initialPremiumDeposit(for: originalTransaction, deposits: deposits)
 
-        for deposit in deposits where deposit.type == TransactionType.deposit.rawValue {
+        for deposit in deposits where isDepositOrWithdrawal(deposit) {
             let depositCurrency = Currency(rawValue: deposit.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
             let absoluteAmount = abs(deposit.amount)
 
@@ -184,7 +189,7 @@ enum InsurancePaymentService {
               let originalID = originalTransaction.id else { return nil }
 
         let candidates = deposits.filter { deposit in
-            guard deposit.type == TransactionType.deposit.rawValue else { return false }
+            guard isDepositOrWithdrawal(deposit) else { return false }
 
             if let linkedID = deposit.value(forKey: "linkedTransactionID") as? UUID,
                linkedID == originalID {
