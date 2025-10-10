@@ -38,17 +38,6 @@ struct ActionCalendarView: View {
             case .other: return "exclamationmark.circle"
             }
         }
-
-        var debugLabel: String {
-            switch self {
-            case .fixedDepositMaturity: return "FixedDepositMaturity"
-            case .bondMaturity: return "BondMaturity"
-            case .structuredProductMaturity: return "StructuredProductMaturity"
-            case .insuranceMaturity: return "InsuranceMaturity"
-            case .premiumPayment: return "PremiumPayment"
-            case .other: return "Other"
-            }
-        }
     }
 
     struct ActionDayItem: Identifiable {
@@ -299,10 +288,6 @@ struct ActionCalendarView: View {
 
         actionDays = updatedActionDays
 
-#if DEBUG
-        debugPrintActionDays(updatedActionDays)
-#endif
-
         alignToNearestActionDayIfNeeded()
     }
 
@@ -324,32 +309,7 @@ struct ActionCalendarView: View {
         }
 
         selectedDate = target
-
-#if DEBUG
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM"
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        print("🔎 ActionCalendar: aligned to nearest action month \(formatter.string(from: target))")
-#endif
     }
-
-#if DEBUG
-    private func debugPrintActionDays(_ days: [Date: [ActionDayItem]]) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-
-        let sortedKeys = days.keys.sorted()
-        print("🔎 ActionCalendar: marking \(sortedKeys.count) day(s) for \(monthYearString(from: currentMonth))")
-        for key in sortedKeys {
-            let items = days[key] ?? []
-            let joined = items.map { "\($0.type.debugLabel)=\($0.assetName)" }.joined(separator: ", ")
-            print("   • \(formatter.string(from: key)): \(joined.isEmpty ? "<no items>" : joined)")
-        }
-    }
-#endif
 
     private func calculateNextPremiumPaymentDate(for insurance: Insurance, asset: Asset, portfolio: Portfolio) -> Date? {
         guard let premiumPaymentStatus = insurance.premiumPaymentStatus,
@@ -495,14 +455,6 @@ struct CalendarDayView: View {
             }
         }
         .buttonStyle(PlainButtonStyle())
-#if DEBUG
-        .onAppear {
-            guard !actionItems.isEmpty else { return }
-            let formatter = DateFormatter()
-            formatter.dateFormat = "yyyy-MM-dd"
-            print("🔎 CalendarDayView: \(formatter.string(from: date)) has \(actionItems.map { $0.type.debugLabel }.joined(separator: ", "))")
-        }
-#endif
     }
 
     private var textColor: Color {

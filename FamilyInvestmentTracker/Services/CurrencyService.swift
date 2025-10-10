@@ -38,7 +38,6 @@ class CurrencyService: ObservableObject {
         // If data is more than 24 hours old, assume we might be offline until proven otherwise
         if hoursSinceUpdate > 24 {
             isOfflineMode = true
-            print("🔍 CurrencyService: Setting isOfflineMode = true (cache is \(Int(hoursSinceUpdate)) hours old)")
         }
     }
     
@@ -99,7 +98,6 @@ class CurrencyService: ObservableObject {
 
             if fetchedRates.isEmpty || !hasValidData {
                 self?.isOfflineMode = true
-                print("🔍 CurrencyService: Setting isOfflineMode = true")
                 if self?.exchangeRates.isEmpty == true {
                     self?.loadDefaultRates()
                     self?.errorMessage = "Network unavailable. Using default exchange rates."
@@ -108,7 +106,6 @@ class CurrencyService: ObservableObject {
                 }
             } else {
                 self?.isOfflineMode = false
-                print("🔍 CurrencyService: Setting isOfflineMode = false")
                 self?.processYahooFinanceRates(fetchedRates, baseCurrency: baseCurrency)
             }
         }
@@ -313,12 +310,10 @@ class CurrencyService: ObservableObject {
         // Throttle connectivity checks
         if let lastCheck = lastConnectivityCheck,
            Date().timeIntervalSince(lastCheck) < connectivityCheckInterval {
-            print("🔍 CurrencyService: Skipping connectivity check (too recent)")
             return
         }
 
         lastConnectivityCheck = Date()
-        print("🔍 CurrencyService: Checking connectivity...")
         let symbol = "USDCNY=X" // Use one common currency pair
         guard let url = URL(string: "\(apiBaseURL)/\(symbol)") else { return }
 
@@ -334,7 +329,6 @@ class CurrencyService: ObservableObject {
                     if case .failure = completion {
                         let wasOffline = self?.isOfflineMode ?? false
                         self?.isOfflineMode = true
-                        print("🔍 CurrencyService: Connectivity check failed - setting offline mode")
                         if !wasOffline {
                             NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)
                         }
@@ -344,13 +338,11 @@ class CurrencyService: ObservableObject {
                     let wasOffline = self?.isOfflineMode ?? true
                     if response.chart.result.first?.meta.regularMarketPrice != nil {
                         self?.isOfflineMode = false
-                        print("🔍 CurrencyService: Connectivity check passed - setting online mode")
                         if wasOffline {
                             NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)
                         }
                     } else {
                         self?.isOfflineMode = true
-                        print("🔍 CurrencyService: Connectivity check returned invalid data - setting offline mode")
                         if !wasOffline {
                             NotificationCenter.default.post(name: NSNotification.Name("NetworkStatusChanged"), object: nil)
                         }
