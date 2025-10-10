@@ -280,7 +280,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Current Price")
+                                    Text("Last Recorded Price")
                                     /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -314,6 +314,9 @@ struct HoldingDetailView: View {
                                     }
                                 }
                             }
+                            Text("This is the last price you entered manually. Edit it below or enable auto-fetch to keep it current.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
 
                             if hasAutoFetchEnabled {
                                 HStack {
@@ -365,7 +368,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Current Price")
+                                    Text("Last Recorded Price")
                                     /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -399,6 +402,9 @@ struct HoldingDetailView: View {
                                     }
                                 }
                             }
+                            Text("This is the last price you entered manually. Edit it below or enable auto-fetch to keep it current.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
 
                             if hasAutoFetchEnabled {
                                 HStack {
@@ -780,10 +786,10 @@ struct PriceEditorView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Update Current Price")) {
+                Section(header: Text("Update Last Recorded Price")) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Current Price")
+                            Text("Last Recorded Price")
                             /*Text("(\(displayCurrency.displayName))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)*/

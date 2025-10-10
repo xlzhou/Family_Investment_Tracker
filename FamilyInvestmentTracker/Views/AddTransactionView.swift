@@ -47,14 +47,6 @@ struct AddTransactionView: View {
     // Interest-specific selection
     @State private var selectedInterestSource: InterestSourceSelection = .demand
 
-    // Debug: Track transaction asset changes
-    private func debugTransactionAsset() {
-        if let transactionToEdit = transactionToEdit {
-            if let asset = transactionToEdit.asset {
-            }
-        }
-    }
-
     // Insurance-specific fields
     @State private var insuranceType = "Life Insurance"
     @State private var insuranceSymbol = ""
@@ -88,12 +80,6 @@ struct AddTransactionView: View {
         self.portfolio = portfolio
         self.transactionToEdit = transactionToEdit
         self.originalPaymentInstitutionName = transactionToEdit?.value(forKey: "paymentInstitutionName") as? String
-
-        // Debug: Check transaction asset relationship at initialization
-        if let transactionToEdit = transactionToEdit {
-            if let asset = transactionToEdit.asset {
-            }
-        }
 
         let defaultDate = Date()
         let initialType = transactionToEdit.flatMap { TransactionType(rawValue: $0.type ?? "") } ?? .buy
@@ -379,11 +365,6 @@ struct AddTransactionView: View {
     }
 
     var body: some View {
-        // Debug: Check transaction asset when view appears
-        let _ = {
-            debugTransactionAsset()
-        }()
-
         NavigationView {
             Form {
                 // Transaction Type
@@ -1112,17 +1093,11 @@ struct AddTransactionView: View {
 
         let transaction = existingTransaction ?? Transaction(context: viewContext)
 
-        // Debug: Check asset relationship before reversing
         if let existingTransaction = existingTransaction {
-            if let asset = existingTransaction.asset {
-            }
-
             let preserveAssetForEdit = (existingTransactionType == .insurance && selectedTransactionType == .insurance)
 
             // Preserve the existing asset before reversing
             let existingAsset = existingTransaction.asset
-
-            // Debug: Check transaction object state before reverse
 
             TransactionImpactService.reverse(existingTransaction,
                                              in: portfolio,
@@ -1134,11 +1109,6 @@ struct AddTransactionView: View {
                 existingTransaction.asset = existingAsset
             }
 
-            // Debug: Check asset relationship after reversing
-            if let asset = existingTransaction.asset {
-            }
-
-            // Debug: Check transaction object state after reverse
         } else {
             transaction.id = UUID()
             transaction.createdAt = Date()
@@ -1402,11 +1372,12 @@ struct AddTransactionView: View {
             if selectedTransactionType == .sell, let preselectedSellAsset {
                 asset = preselectedSellAsset
             } else {
-                // Debug: Check transaction state before findOrCreateAsset
-                if let existingAsset = transaction.asset {
-                }
                 asset = findOrCreateAsset()
             }
+#if DEBUG
+            print("🔎 saveTransaction assigned asset=\(asset.symbol ?? "") priceBeforeHandling=\(asset.currentPrice)")
+            print("   • transaction price=\(transaction.price) quantity=\(transaction.quantity) currency=\(selectedCurrency.rawValue)")
+#endif
             transaction.asset = asset
 
             if isStructuredProductBuy {
@@ -1414,6 +1385,9 @@ struct AddTransactionView: View {
             } else if isStructuredProductSell, asset.assetType == AssetType.structuredProduct.rawValue {
                 configureStructuredProductAsset(asset)
             }
+#if DEBUG
+            print("   • asset price after configuration (if any)=\(asset.currentPrice)")
+#endif
 
             // Maintain institution-asset relationship for buy/sell transactions
             if let institution = institutionForTransaction {
@@ -1430,6 +1404,9 @@ struct AddTransactionView: View {
             if let realizedGain = updateHolding(for: asset, transaction: transaction) {
                 transaction.realizedGainAmount = realizedGain
             }
+#if DEBUG
+            print("   • asset price after updateHolding=\(asset.currentPrice)")
+#endif
 
             if selectedTransactionType == .sell {
                 let netProceeds = transaction.amount - fees - tax
@@ -1519,10 +1496,20 @@ struct AddTransactionView: View {
 
         do {
             try viewContext.save()
+#if DEBUG
+            if let savedAsset = transaction.asset {
+                print("✅ saveTransaction success — asset=\(savedAsset.symbol ?? "") storedPrice=\(savedAsset.currentPrice) lastUpdate=\(String(describing: savedAsset.lastPriceUpdate))")
+            } else {
+                print("✅ saveTransaction success — transaction has no asset")
+            }
+#endif
 
             dismiss()
         } catch {
             viewContext.rollback()
+#if DEBUG
+            print("❌ saveTransaction failed: \(error.localizedDescription)")
+#endif
         }
     }
 
@@ -2485,6 +2472,9 @@ struct AddTransactionView: View {
     }
 
     private func configureStructuredProductAsset(_ asset: Asset) {
+#if DEBUG
+        print("🔎 configureStructuredProductAsset before update: asset=\(asset.symbol ?? "") price=\(asset.currentPrice)")
+#endif
         asset.assetType = AssetType.structuredProduct.rawValue
         asset.setValue(structuredProductInterestRate, forKey: "interestRate")
         let trimmedLinked = structuredProductLinkedAssets.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2492,9 +2482,19 @@ struct AddTransactionView: View {
         let convertedValue = convertToPortfolioCurrency(price, from: selectedCurrency)
         asset.currentPrice = convertedValue
         asset.lastPriceUpdate = Date()
+#if DEBUG
+        print("   • Structured product asset updated price=\(asset.currentPrice) (input price=\(price) \(selectedCurrency.rawValue))")
+#endif
     }
 
     private func findOrCreateAsset() -> Asset {
+
+#if DEBUG
+        print("🔎 findOrCreateAsset invoked — symbol: \(assetSymbol.uppercased()), name: \(assetName), type: \(selectedAssetType.rawValue)")
+        if let existing = transactionToEdit?.asset {
+            print("   • Editing existing transaction asset id=\(existing.objectID) currentPrice=\(existing.currentPrice)")
+        }
+#endif
 
         // First, check if we're editing an existing transaction with an existing asset
         if let transactionToEdit = transactionToEdit {
@@ -2502,11 +2502,18 @@ struct AddTransactionView: View {
             if let existingAsset = transactionToEdit.asset {
 
                 // We're editing an existing transaction - update the existing asset
+#if DEBUG
+                let previousPrice = existingAsset.currentPrice
+                print("   • Updating existing asset before changes price=\(previousPrice)")
+#endif
                 existingAsset.assetType = selectedAssetType.rawValue
                 existingAsset.symbol = assetSymbol.uppercased()
                 if !assetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     existingAsset.name = assetName
                 }
+#if DEBUG
+                print("   • Existing asset after update price=\(existingAsset.currentPrice)")
+#endif
                 return existingAsset
             } else {
             }
@@ -2518,11 +2525,18 @@ struct AddTransactionView: View {
 
         if let existingAsset = try? viewContext.fetch(request).first {
 
+#if DEBUG
+            let previousPrice = existingAsset.currentPrice
+            print("   • Reusing asset id=\(existingAsset.objectID) priceBefore=\(previousPrice)")
+#endif
             existingAsset.assetType = selectedAssetType.rawValue
             if !assetName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 existingAsset.name = assetName
             }
             existingAsset.symbol = assetSymbol.uppercased()
+#if DEBUG
+            print("   • Reused asset after update price=\(existingAsset.currentPrice)")
+#endif
             return existingAsset
         } else {
 
@@ -2536,11 +2550,17 @@ struct AddTransactionView: View {
             newAsset.currentPrice = convertedPrice
             newAsset.lastPriceUpdate = Date()
             newAsset.setValue(false, forKey: "autoFetchPriceEnabled")
+#if DEBUG
+            print("   • Created new asset id=\(newAsset.objectID) storedPrice=\(newAsset.currentPrice) (input price=\(price) \(selectedCurrency.rawValue))")
+#endif
             return newAsset
         }
     }
     
     private func updateHolding(for asset: Asset, transaction: Transaction) -> Double? {
+#if DEBUG
+        print("🔎 updateHolding start — asset=\(asset.symbol ?? "") currentPrice=\(asset.currentPrice) txPrice=\(transaction.price) qty=\(transaction.quantity) type=\(transaction.type ?? "")")
+#endif
         let request: NSFetchRequest<Holding> = Holding.fetchRequest()
         request.predicate = NSPredicate(format: "asset == %@ AND portfolio == %@", asset, portfolio)
         let transactionInstitution = transaction.institution
@@ -2630,6 +2650,9 @@ struct AddTransactionView: View {
         }
         
         holding.updatedAt = Date()
+#if DEBUG
+        print("   • updateHolding end — holdingQty=\(holding.quantity) avgCost=\(holding.averageCostBasis) realizedGain=\(realizedGainForTransaction ?? 0) assetPrice=\(asset.currentPrice)")
+#endif
         return realizedGainForTransaction
     }
 

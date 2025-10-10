@@ -522,7 +522,7 @@ struct HoldingRowView: View {
 
                     VStack(alignment: .trailing, spacing: 2) {
                         HStack(spacing: 4) {
-                            Text("Current Price")
+                            Text("Last Recorded Price")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
@@ -571,7 +571,7 @@ struct HoldingRowView: View {
                     VStack(alignment: .trailing, spacing: 2) {
                         
                         HStack {
-                            Text("Current Price")
+                            Text("Last Recorded Price")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
