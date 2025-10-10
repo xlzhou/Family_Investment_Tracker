@@ -294,6 +294,21 @@ struct AddTransactionView: View {
         selectedTransactionType == .deposit && selectedDepositCategory != .fixed
     }
 
+    private var shouldShowMaturityControls: Bool {
+        guard selectedTransactionType != .insurance,
+              selectedTransactionType != .sell,
+              selectedTransactionType != .dividend,
+              selectedTransactionType != .interest else {
+            return false
+        }
+
+        if selectedTransactionType == .deposit {
+            return selectedDepositCategory == .fixed
+        }
+
+        return true
+    }
+
     private var isStructuredProductBuy: Bool {
         selectedTransactionType == .buy && selectedAssetType == .structuredProduct
     }
@@ -1911,11 +1926,8 @@ struct AddTransactionView: View {
                 }
             }
 
-            // Maturity date only for non-insurance transactions
-            if selectedTransactionType != .insurance,
-               selectedTransactionType != .sell,
-               selectedTransactionType != .dividend,
-               selectedTransactionType != .interest {
+            // Maturity date only when relevant (e.g. fixed deposits)
+            if shouldShowMaturityControls {
                 Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
                     .disabled(isMaturityToggleDisabled)
                 if hasMaturityDate {
