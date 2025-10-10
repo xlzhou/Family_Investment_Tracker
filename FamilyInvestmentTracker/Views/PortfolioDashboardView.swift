@@ -17,6 +17,7 @@ struct PortfolioDashboardView: View {
     @State private var showingCashOverview = false
     @State private var cashOverviewInitialTab: CashOverviewView.Tab = .demandCash
     @State private var showingRealizedPnL = false
+    @State private var showingActionCalendar = false
     @StateObject private var viewModel = PortfolioViewModel()
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var isRefreshing = false
@@ -66,9 +67,15 @@ struct PortfolioDashboardView: View {
                     Image(systemName: "gear")
                 }
             }
-            
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
+                    Button(action: {
+                        showingActionCalendar = true
+                    }) {
+                        Image(systemName: "calendar")
+                    }
+
                     Button {
                         showingRealizedPnL = true
                     } label: {
@@ -146,6 +153,10 @@ struct PortfolioDashboardView: View {
         }
         .sheet(isPresented: $showingRealizedPnL) {
             RealizedPnLView(portfolio: portfolio)
+                .environment(\.managedObjectContext, viewContext)
+        }
+        .sheet(isPresented: $showingActionCalendar) {
+            ActionCalendarView(portfolio: portfolio)
                 .environment(\.managedObjectContext, viewContext)
         }
     }

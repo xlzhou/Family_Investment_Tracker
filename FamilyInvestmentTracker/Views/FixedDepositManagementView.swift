@@ -148,8 +148,32 @@ struct FixedDepositRowView: View {
             }
         }
         .padding(.vertical, 4)
+        .onAppear {
+#if DEBUG
+            debugPrintMaturity()
+#endif
+        }
     }
 }
+
+#if DEBUG
+private extension FixedDepositRowView {
+    func debugPrintMaturity() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+
+        let name = deposit.name ?? deposit.symbol ?? "Fixed Deposit"
+        if let maturityDate = deposit.maturityDate {
+            let maturityString = formatter.string(from: maturityDate)
+            let daysLeft = deposit.daysUntilMaturity ?? -1
+            print("🔎 FixedDepositRowView: \(name) maturity=\(maturityString) daysLeft=\(daysLeft)")
+        } else {
+            print("🔎 FixedDepositRowView: \(name) has no maturity date")
+        }
+    }
+}
+#endif
 
 struct FixedDepositWithdrawalView: View {
     let deposit: Asset

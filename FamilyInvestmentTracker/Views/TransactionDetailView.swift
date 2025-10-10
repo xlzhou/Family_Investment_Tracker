@@ -565,7 +565,46 @@ struct TransactionDetailView: View {
             CashOverviewView(portfolio: portfolio, initialTab: .fixedDeposits)
                 .environment(\.managedObjectContext, viewContext)
         }
+        .onAppear {
+#if DEBUG
+            debugPrintTransactionMaturity()
+#endif
+        }
     }
+
+#if DEBUG
+    private func debugPrintTransactionMaturity() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+
+        let type = transaction.type ?? "Unknown"
+        let assetName = transaction.asset?.name ?? transaction.asset?.symbol ?? "Asset"
+        print("🔎 TransactionDetailView: type=\(type), asset=\(assetName)")
+
+        if let maturityDate = transaction.asset?.maturityDate {
+            let maturityString = formatter.string(from: maturityDate)
+            if let daysLeft = transaction.asset?.daysUntilMaturity {
+                print("   Maturity date: \(maturityString) (days left: \(daysLeft))")
+            } else {
+                print("   Maturity date: \(maturityString) (days left unavailable)")
+            }
+        } else {
+            print("   No maturity date on asset")
+        }
+
+        if let fixedAsset = fixedDepositAsset {
+            print("   Fixed deposit current price: \(fixedAsset.currentPrice)")
+        }
+
+        if isInsurance {
+            if let insurance = insurance,
+               let redemption = insurance.value(forKey: "maturityBenefitRedemptionDate") as? Date {
+                print("   Insurance benefit redemption: \(formatter.string(from: redemption))")
+            }
+        }
+    }
+#endif
 
     @ViewBuilder
     private var fixedDepositDetailsSection: some View {
@@ -1127,6 +1166,11 @@ struct InsurancePaymentManagementView: View {
             )
             .environment(\.managedObjectContext, viewContext)
         }
+        .onAppear {
+#if DEBUG
+            debugPrintInsuranceSchedule()
+#endif
+        }
     }
 
     @ViewBuilder
@@ -1222,6 +1266,45 @@ struct InsurancePaymentManagementView: View {
 
 
 }
+
+#if DEBUG
+private extension InsurancePaymentManagementView {
+    func debugPrintInsuranceSchedule() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone.current
+
+        let policyName = insuranceAsset.name ?? insuranceAsset.symbol ?? "Insurance"
+        let maturityDate = insuranceAsset.maturityDate
+        let redemptionDate = (insuranceAsset.value(forKey: "insurance") as? NSManagedObject)?.value(forKey: "maturityBenefitRedemptionDate") as? Date
+
+        if let maturity = maturityDate {
+            print("🔎 InsurancePaymentManagementView: \(policyName) maturity=\(formatter.string(from: maturity))")
+        } else if let redemption = redemptionDate {
+            print("🔎 InsurancePaymentManagementView: \(policyName) benefitRedemption=\(formatter.string(from: redemption))")
+        } else {
+            print("🔎 InsurancePaymentManagementView: \(policyName) has no maturity information")
+        }
+
+        if let nextDue = nextPaymentDue {
+            print("   Next premium due: \(formatter.string(from: nextDue))")
+        } else {
+            print("   Next premium due: none (fully paid or single premium)")
+        }
+
+        if paymentHistory.isEmpty {
+            print("   Payment history: none")
+        } else {
+            for transaction in paymentHistory {
+                let date = transaction.transactionDate ?? transaction.createdAt ?? Date()
+                let type = transaction.type ?? "Unknown"
+                let amount = transaction.amount
+                print("   • \(formatter.string(from: date)) [\(type)] amount=\(amount)")
+            }
+        }
+    }
+}
+#endif
 
 struct PaymentHistoryRowView: View {
     @ObservedObject var transaction: Transaction
