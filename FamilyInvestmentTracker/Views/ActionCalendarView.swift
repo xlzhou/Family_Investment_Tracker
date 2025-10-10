@@ -231,14 +231,31 @@ struct ActionCalendarView: View {
             updatedActionDays[normalized, default: []].append(item)
         }
 
+        func primaryMaturityDate(for asset: Asset, assetType: AssetType?) -> Date? {
+            if let direct = asset.maturityDate {
+                return direct
+            }
+
+            let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+
+            switch assetType {
+            case .structuredProduct, .bond, .other:
+                return transactions
+                    .compactMap { $0.maturityDate }
+                    .sorted().first
+            default:
+                return nil
+            }
+        }
+
         func collectAsset(_ asset: Asset?) {
             guard let asset = asset else { return }
             let objectID = asset.objectID
             guard !seenAssets.contains(objectID) else { return }
             seenAssets.insert(objectID)
 
-            if let maturityDate = asset.maturityDate {
-                let assetType = AssetType(rawValue: asset.assetType ?? "")
+            let assetType = AssetType(rawValue: asset.assetType ?? "")
+            if let maturityDate = primaryMaturityDate(for: asset, assetType: assetType) {
                 switch assetType {
                 case .some(.deposit) where asset.isFixedDeposit:
                     appendAction(date: maturityDate, type: .fixedDepositMaturity, title: "Fixed Deposit Maturity", asset: asset)
