@@ -171,10 +171,16 @@ extension PortfolioViewModel {
             totalValue += value
         }
 
-        let cashBalance = portfolio.resolvedCashBalance()
-        if cashBalance != 0 {
-            typeAllocations["Cash", default: 0] += cashBalance
-            totalValue += cashBalance
+        let availableCashBalance = CashBalanceService.shared.getAvailableCashBalance(for: portfolio)
+        if abs(availableCashBalance) > 0.01 {
+            typeAllocations["Available Cash", default: 0] += availableCashBalance
+            totalValue += availableCashBalance
+        }
+
+        let fixedDepositBalance = CashBalanceService.shared.getFixedDepositBalance(for: portfolio)
+        if abs(fixedDepositBalance) > 0.01 {
+            typeAllocations["Fixed Deposits", default: 0] += fixedDepositBalance
+            totalValue += fixedDepositBalance
         }
 
         return typeAllocations.map { type, value in
@@ -192,6 +198,7 @@ extension PortfolioViewModel {
         let transactions = (portfolio.transactions?.allObjects as? [Transaction]) ?? []
         let institutions = Set(transactions.compactMap { $0.institution })
         var allocatedInstitutionCash: Double = 0
+        var allocatedInstitutionFixed: Double = 0
 
         for institution in institutions {
             let name = normalizedInstitutionName(institution)
@@ -199,6 +206,12 @@ extension PortfolioViewModel {
             if abs(cash) > 0.01 {
                 institutionValues[name, default: 0] += cash
                 allocatedInstitutionCash += cash
+            }
+
+            let fixedBalance = CashBalanceService.shared.getFixedDepositBalance(for: portfolio, institution: institution)
+            if abs(fixedBalance) > 0.01 {
+                institutionValues[name, default: 0] += fixedBalance
+                allocatedInstitutionFixed += fixedBalance
             }
         }
 
@@ -235,11 +248,18 @@ extension PortfolioViewModel {
             }
         }
 
-        let resolvedCash = portfolio.resolvedCashBalance()
-        let remainingCash = resolvedCash - allocatedInstitutionCash
-        if abs(remainingCash) > 0.01 {
-            let label = remainingCash >= 0 ? "Unassigned Cash" : "Unassigned Cash (Negative)"
-            institutionValues[label, default: 0] += remainingCash
+        let totalAvailableCash = CashBalanceService.shared.getAvailableCashBalance(for: portfolio)
+        let remainingAvailableCash = totalAvailableCash - allocatedInstitutionCash
+        if abs(remainingAvailableCash) > 0.01 {
+            let label = remainingAvailableCash >= 0 ? "Unassigned Available Cash" : "Unassigned Available Cash (Negative)"
+            institutionValues[label, default: 0] += remainingAvailableCash
+        }
+
+        let totalFixedCash = CashBalanceService.shared.getFixedDepositBalance(for: portfolio)
+        let remainingFixedCash = totalFixedCash - allocatedInstitutionFixed
+        if abs(remainingFixedCash) > 0.01 {
+            let label = remainingFixedCash >= 0 ? "Unassigned Fixed Deposits" : "Unassigned Fixed Deposits (Negative)"
+            institutionValues[label, default: 0] += remainingFixedCash
         }
 
         let total = institutionValues.values.reduce(0, +)
