@@ -70,10 +70,17 @@ struct PortfolioDashboardView: View {
 
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
+
                     Button(action: {
-                        showingActionCalendar = true
+                        showingAddTransaction = true
                     }) {
-                        Image(systemName: "calendar")
+                        Image(systemName: "plus")
+                    }
+
+                    Button {
+                        presentCashOverview(initialTab: .fixedDeposits)
+                    } label: {
+                        Image(systemName: "building.columns")
                     }
 
                     Button {
@@ -82,10 +89,10 @@ struct PortfolioDashboardView: View {
                         Image(systemName: "chart.bar.doc.horizontal")
                     }
 
-                    Button {
-                        presentCashOverview(initialTab: .fixedDeposits)
-                    } label: {
-                        Image(systemName: "building.columns")
+                    Button(action: {
+                        showingActionCalendar = true
+                    }) {
+                        Image(systemName: "calendar")
                     }
 
                     if ownershipService.canSharePortfolio(portfolio) {
@@ -96,11 +103,6 @@ struct PortfolioDashboardView: View {
                         }
                     }
 
-                    Button(action: {
-                        showingAddTransaction = true
-                    }) {
-                        Image(systemName: "plus")
-                    }
                 }
             }
         }
@@ -457,7 +459,7 @@ struct PortfolioHeaderView: View {
                 }
             }
         }
-        .padding(.top, -8)
+        .padding()
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
