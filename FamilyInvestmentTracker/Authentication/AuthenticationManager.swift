@@ -20,6 +20,13 @@ class AuthenticationManager: ObservableObject {
     private var lockoutTimer: Timer?
     private var logoutTimer: Timer?
     private var lastBackgroundTime: Date?
+    private var statusRetryWorkItem: DispatchWorkItem?
+    private var lastKnownPasswordPresence: PasswordPresence?
+
+    private enum PasswordPresence {
+        case present
+        case absent
+    }
 
     // Logout configuration
     private let logoutDelaySeconds: TimeInterval = 15 // 15 seconds delay before auto-logout
@@ -43,16 +50,33 @@ class AuthenticationManager: ObservableObject {
     }
 
     func checkAuthenticationStatus() {
-        if !hasPasswordSet() {
+        switch determinePasswordPresence() {
+        case .present:
+            cancelPendingStatusRetry()
+            lastKnownPasswordPresence = .present
+
+            if isTemporarilyLocked() {
+                authenticationState = .temporarilyLocked
+                isAuthenticated = false
+                startLockoutTimer()
+            } else {
+                authenticationState = .needsAuthentication
+                isAuthenticated = false
+            }
+
+        case .absent:
+            cancelPendingStatusRetry()
+            lastKnownPasswordPresence = .absent
             authenticationState = .needsPasscodeSetup
             isAuthenticated = false
-        } else if isTemporarilyLocked() {
-            authenticationState = .temporarilyLocked
+
+        case .unknown:
+            // Preserve the most recent valid state to avoid flashing the setup UI
+            if lastKnownPasswordPresence == .present && authenticationState == .needsPasscodeSetup {
+                authenticationState = .needsAuthentication
+            }
             isAuthenticated = false
-            startLockoutTimer()
-        } else {
-            authenticationState = .needsAuthentication
-            isAuthenticated = false
+            scheduleStatusRetry()
         }
     }
     
@@ -107,6 +131,7 @@ class AuthenticationManager: ObservableObject {
         if setPassword(password) {
             authenticationState = .needsAuthentication
             authenticationError = nil
+            lastKnownPasswordPresence = .present
             return true
         } else {
             authenticationError = "Failed to set passcode"
@@ -132,6 +157,7 @@ class AuthenticationManager: ObservableObject {
         if removePassword() {
             authenticationState = .needsPasscodeSetup
             authenticationError = nil
+            lastKnownPasswordPresence = .absent
             return true
         } else {
             authenticationError = "Failed to remove passcode"
@@ -145,6 +171,7 @@ class AuthenticationManager: ObservableObject {
         authenticationError = nil
         stopLockoutTimer()
         stopLogoutTimer()
+        cancelPendingStatusRetry()
     }
 
     // MARK: - Background/Foreground Management
@@ -299,10 +326,6 @@ class AuthenticationManager: ObservableObject {
         return isValid
     }
 
-    private func hasPasswordSet() -> Bool {
-        return retrieveFromKeychain(key: passwordKey) != nil
-    }
-
     private func removePassword() -> Bool {
         let passwordRemoved = deleteFromKeychain(key: passwordKey)
         let saltRemoved = deleteFromKeychain(key: saltKey)
@@ -412,7 +435,7 @@ class AuthenticationManager: ObservableObject {
         return status == errSecSuccess
     }
 
-    private func retrieveFromKeychain(key: String, retryOnInteractionNotAllowed: Bool = true) -> Data? {
+    private func retrieveFromKeychain(key: String, retryCount: Int = 0) -> Data? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -424,16 +447,22 @@ class AuthenticationManager: ObservableObject {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
 
-        if status == errSecInteractionNotAllowed && retryOnInteractionNotAllowed {
-            usleep(150_000) // wait 150ms for keychain to become available after unlock
-            return retrieveFromKeychain(key: key, retryOnInteractionNotAllowed: false)
+        if status == errSecSuccess, let data = item as? Data {
+            return data
         }
 
-        guard status == errSecSuccess,
-              let data = item as? Data else {
+        if status == errSecItemNotFound {
             return nil
         }
-        return data
+
+        if shouldRetryKeychain(status: status, currentRetryCount: retryCount) {
+            let delay = useconds_t((retryCount + 1) * 150_000)
+            usleep(delay)
+            return retrieveFromKeychain(key: key, retryCount: retryCount + 1)
+        }
+
+        logKeychainFailure(status: status, for: key)
+        return nil
     }
 
     private func deleteFromKeychain(key: String) -> Bool {
@@ -445,5 +474,73 @@ class AuthenticationManager: ObservableObject {
 
         let status = SecItemDelete(query as CFDictionary)
         return status == errSecSuccess || status == errSecItemNotFound
+    }
+
+    private enum PasswordPresenceResult {
+        case present
+        case absent
+        case unknown
+    }
+
+    private func determinePasswordPresence() -> PasswordPresenceResult {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: passwordKey,
+            kSecReturnData as String: false
+        ]
+
+        let status = SecItemCopyMatching(query as CFDictionary, nil)
+
+        switch status {
+        case errSecSuccess:
+            return .present
+        case errSecItemNotFound:
+            return .absent
+        case errSecInteractionNotAllowed, errSecNotAvailable, errSecAuthFailed:
+            return .unknown
+        default:
+            if status != errSecItemNotFound && status != errSecSuccess {
+                logKeychainFailure(status: status, for: passwordKey)
+            }
+            return .unknown
+        }
+    }
+
+    private func scheduleStatusRetry(after delay: TimeInterval = 0.3) {
+        guard statusRetryWorkItem == nil else { return }
+
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.statusRetryWorkItem = nil
+            self?.checkAuthenticationStatus()
+        }
+        statusRetryWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+
+    private func cancelPendingStatusRetry() {
+        statusRetryWorkItem?.cancel()
+        statusRetryWorkItem = nil
+    }
+
+    private func shouldRetryKeychain(status: OSStatus, currentRetryCount: Int) -> Bool {
+        guard currentRetryCount < 3 else { return false }
+
+        switch status {
+        case errSecInteractionNotAllowed, errSecNotAvailable, errSecAuthFailed:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private func logKeychainFailure(status: OSStatus, for key: String) {
+        guard status != errSecItemNotFound else { return }
+
+        if let message = SecCopyErrorMessageString(status, nil) {
+            print("🔒 Keychain error for \(key): \(message as String)")
+        } else {
+            print("🔒 Keychain error for \(key): status \(status)")
+        }
     }
 }
