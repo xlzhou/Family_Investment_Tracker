@@ -297,6 +297,7 @@ struct RefreshableHoldingsView: View {
 
     var body: some View {
         HoldingsView(portfolio: portfolio)
+            .padding(.top, -20)
             .refreshable {
                 await onRefresh()
             }
@@ -309,7 +310,7 @@ struct RefreshableTransactionsView: View {
 
     var body: some View {
         TransactionsView(portfolio: portfolio)
-            .padding(.top, -18)
+            .padding(.top, -20)
             .refreshable {
                 await onRefresh()
             }
@@ -322,6 +323,7 @@ struct RefreshableAnalyticsView: View {
 
     var body: some View {
         AnalyticsView(portfolio: portfolio)
+            .padding(.top, -20)
             .refreshable {
                 await onRefresh()
             }
@@ -455,7 +457,7 @@ struct PortfolioHeaderView: View {
                 }
             }
         }
-        .padding()
+        .padding(.top, -8)
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
@@ -599,6 +601,7 @@ struct QuickStatsView: View {
             )
         }
         .padding(.horizontal)
+        .padding(.top, -8)
     }
 }
 

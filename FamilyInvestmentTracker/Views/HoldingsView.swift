@@ -8,6 +8,7 @@ struct HoldingsView: View {
     @FetchRequest private var holdingsFetch: FetchedResults<Holding>
     @State private var selectedAssetTypes: Set<AssetType> = []
     @State private var selectedInstitutionID: NSManagedObjectID? = nil
+    @State private var statusFilter: HoldingsStatus = .active
 
     init(portfolio: Portfolio) {
         self.portfolio = portfolio
@@ -20,35 +21,22 @@ struct HoldingsView: View {
 
     var body: some View {
         VStack {
-            if !allHoldings.isEmpty {
-                filterBar
-                    .padding(.horizontal)
+            if !holdingsFetch.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    statusPicker
+                    filterMenus
 
-                // Show summary when filters are applied
-                if !selectedAssetTypes.isEmpty || selectedInstitutionID != nil {
-                    filterSummary
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                    if isFilteringActive {
+                        filterSummary
+                            .frame(maxWidth: .infinity)
+                    }
                 }
+                .padding(.horizontal)
+                .padding(.top, 8)
             }
 
             if filteredHoldings.isEmpty {
-                VStack(spacing: 20) {
-                    Image(systemName: "chart.pie")
-                        .font(.system(size: 50))
-                        .foregroundColor(.secondary)
-                    
-                    Text("No Holdings")
-                        .font(.title3)
-                        .fontWeight(.medium)
-                    
-                    Text("Start by adding your first transaction")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
+                emptyStateView
             } else {
                 List {
                     ForEach(filteredHoldings, id: \.objectID) { holding in
@@ -60,16 +48,15 @@ struct HoldingsView: View {
                 .listStyle(PlainListStyle())
             }
         }
+        .onChange(of: statusFilter) { _, _ in
+            pruneFiltersForCurrentStatus()
+        }
     }
 }
 
 private extension HoldingsView {
-    var allHoldings: [Holding] {
-        holdingsFetch.filter { $0.quantity > 0 || ($0.asset?.assetType == AssetType.insurance.rawValue) }
-    }
-
     var filteredHoldings: [Holding] {
-        allHoldings.filter { holding in
+        statusFilteredHoldings.filter { holding in
             guard let asset = holding.asset else { return false }
 
             let matchesType: Bool
@@ -95,7 +82,7 @@ private extension HoldingsView {
     }
 
     var availableAssetTypes: [AssetType] {
-        let types = allHoldings.compactMap { holding -> AssetType? in
+        let types = statusFilteredHoldings.compactMap { holding -> AssetType? in
             guard let typeRaw = holding.asset?.assetType else { return nil }
             return AssetType(rawValue: typeRaw)
         }
@@ -106,7 +93,7 @@ private extension HoldingsView {
         var seen = Set<NSManagedObjectID>()
         var results: [Institution] = []
 
-        for holding in allHoldings {
+        for holding in statusFilteredHoldings {
             guard let asset = holding.asset else { continue }
             // Get institutions from actual transactions that created this holding
             let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
@@ -122,7 +109,17 @@ private extension HoldingsView {
         return results.sorted { ($0.name ?? "") < ($1.name ?? "") }
     }
 
-    var filterBar: some View {
+    var statusPicker: some View {
+        Picker("Holdings status", selection: $statusFilter) {
+            ForEach(HoldingsStatus.allCases) { status in
+                Text(status.title).tag(status)
+            }
+        }
+        .pickerStyle(SegmentedPickerStyle())
+        .labelsHidden()
+    }
+
+    var filterMenus: some View {
         HStack(spacing: 12) {
             Menu {
                 Button(action: {
@@ -197,6 +194,39 @@ private extension HoldingsView {
         }
     }
 
+    var emptyStateView: some View {
+        let isFiltering = isFilteringActive
+        let iconName = statusFilter == .active ? "chart.pie" : "archivebox"
+        let title: String
+        let message: String
+
+        switch statusFilter {
+        case .active:
+            title = isFiltering ? "No holdings match your filters" : "No Holdings"
+            message = isFiltering ? "Try adjusting your filters to see more positions." : "Start by adding your first transaction."
+        case .sold:
+            title = isFiltering ? "No sold holdings match your filters" : "No Sold Holdings"
+            message = isFiltering ? "Adjust the filters or switch back to Holdings to see active positions." : "Record sell transactions when you exit an asset to track it here."
+        }
+
+        return VStack(spacing: 20) {
+            Image(systemName: iconName)
+                .font(.system(size: 50))
+                .foregroundColor(.secondary)
+
+            Text(title)
+                .font(.title3)
+                .fontWeight(.medium)
+
+            Text(message)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding()
+    }
+
     var selectedInstitutionLabel: String {
         guard let institutionID = selectedInstitutionID,
               let institution = try? viewContext.existingObject(with: institutionID) as? Institution else {
@@ -268,7 +298,7 @@ private extension HoldingsView {
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(filteredHoldings.count) holdings")
+                Text("\(filteredHoldings.count) \(statusFilter == .active ? "holdings" : "sold holdings")")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -312,6 +342,60 @@ private extension HoldingsView {
         .padding(12)
         .background(Color(.tertiarySystemBackground))
         .cornerRadius(12)
+    }
+
+    var statusFilteredHoldings: [Holding] {
+        holdingsFetch.filter { holding in
+            guard let asset = holding.asset else { return false }
+
+            if asset.assetType == AssetType.insurance.rawValue {
+                return statusFilter == .active
+            }
+
+            let quantity = holding.quantity
+            switch statusFilter {
+            case .active:
+                return abs(quantity) > quantityEpsilon
+            case .sold:
+                return abs(quantity) <= quantityEpsilon && hasPortfolioHistory(for: holding)
+            }
+        }
+    }
+
+    var isFilteringActive: Bool {
+        !selectedAssetTypes.isEmpty || selectedInstitutionID != nil
+    }
+
+    var quantityEpsilon: Double { 1e-6 }
+
+    func hasPortfolioHistory(for holding: Holding) -> Bool {
+        guard let asset = holding.asset else { return false }
+        let transactions = (asset.transactions?.allObjects as? [Transaction]) ?? []
+        return transactions.contains { $0.portfolio?.objectID == portfolio.objectID }
+    }
+
+    func pruneFiltersForCurrentStatus() {
+        let validTypes = Set(availableAssetTypes)
+        selectedAssetTypes = Set(selectedAssetTypes.filter { validTypes.contains($0) })
+
+        if let institutionID = selectedInstitutionID,
+           !availableInstitutions.contains(where: { $0.objectID == institutionID }) {
+            selectedInstitutionID = nil
+        }
+    }
+}
+
+private enum HoldingsStatus: String, CaseIterable, Identifiable {
+    case active
+    case sold
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .active: return "Holdings"
+        case .sold: return "Sold"
+        }
     }
 }
 
