@@ -12,6 +12,7 @@ struct HoldingDetailView: View {
     @State private var editingCashValue: Double = 0
     @State private var showingPriceEditor = false
     @State private var showingCashValueEditor = false
+    @State private var showingPaymentManagement = false
     @State private var error: String?
     @State private var autoFetchToggle: Bool
     @State private var isUpdatingAutoFetchPreference = false
@@ -46,6 +47,11 @@ struct HoldingDetailView: View {
         }.sorted { ($0.transactionDate ?? Date.distantPast) < ($1.transactionDate ?? Date.distantPast) }
     }
 
+    private var insurancePurchaseDate: Date? {
+        guard let firstTransaction = insuranceTransactions.first else { return nil }
+        return firstTransaction.transactionDate ?? firstTransaction.createdAt
+    }
+
     private var totalPaidPremium: Double {
         guard isInsurance, let portfolio = holding.portfolio else { return 0 }
         let paid = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: viewContext)
@@ -67,6 +73,22 @@ struct HoldingDetailView: View {
         return transactions
             .filter { $0.portfolio?.objectID == holding.portfolio?.objectID }
             .sorted { ($0.transactionDate ?? Date.distantPast) > ($1.transactionDate ?? Date.distantPast) }
+    }
+
+    private var buySellHistory: [Transaction] {
+        guard let portfolio = holding.portfolio else { return [] }
+        let transactions = asset.transactions?.allObjects as? [Transaction] ?? []
+        return transactions
+            .filter { transaction in
+                guard transaction.portfolio?.objectID == portfolio.objectID else { return false }
+                guard let type = TransactionType(rawValue: transaction.type ?? "") else { return false }
+                return type == .buy || type == .sell
+            }
+            .sorted { lhs, rhs in
+                let lhsDate = lhs.transactionDate ?? lhs.createdAt ?? Date.distantPast
+                let rhsDate = rhs.transactionDate ?? rhs.createdAt ?? Date.distantPast
+                return lhsDate > rhsDate
+            }
     }
 
     private var structuredProductInterestRate: Double {
@@ -240,17 +262,17 @@ struct HoldingDetailView: View {
                     Section(header: Text("Holdings Information")) {
                         if isStructuredProduct {
                             HStack {
-                                Text("Investment Amount")
-                                Spacer()
-                                Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.displayName))
-                                    .fontWeight(.medium)
-                            }
-
-                            HStack {
                                 Text("Institution")
                                 Spacer()
                                 Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
                                     .foregroundColor(.secondary)
+                            }
+
+                            HStack {
+                                Text("Investment Amount")
+                                Spacer()
+                                Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.displayName))
+                                    .fontWeight(.medium)
                             }
 
                             HStack {
@@ -352,17 +374,18 @@ struct HoldingDetailView: View {
                                     .foregroundColor(.secondary)
                             }
                         } else {
-                            HStack {
-                                Text("Quantity")
-                                Spacer()
-                                Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
-                                    .foregroundColor(.secondary)
-                            }
 
                             HStack {
                                 Text("Institution")
                                 Spacer()
                                 Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            HStack {
+                                Text("Quantity")
+                                Spacer()
+                                Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
                                     .foregroundColor(.secondary)
                             }
 
@@ -552,6 +575,55 @@ struct HoldingDetailView: View {
                     }
                 }
 
+                // Transaction History Section
+                if !isInsurance {
+                    Section(header: Text("Transaction History")) {
+                        if buySellHistory.isEmpty {
+                            Text("No buy or sell transactions recorded for this asset.")
+                                .foregroundColor(.secondary)
+                        } else {
+                            ForEach(buySellHistory, id: \.objectID) { transaction in
+                                VStack(alignment: .leading, spacing: 6) {
+                                    HStack {
+                                        Text(transactionDisplayName(for: transaction))
+                                            .fontWeight(.medium)
+                                        Spacer()
+                                        Text(transactionDisplayDate(for: transaction), style: .date)
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    HStack {
+                                        Text("Quantity")
+                                        Spacer()
+                                        Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    HStack {
+                                        Text("Price")
+                                        Spacer()
+                                        Text(Formatters.currency(transaction.price, symbol: transactionCurrency(for: transaction).displayName, fractionDigits: 6))
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    HStack {
+                                        Text("Total")
+                                        Spacer()
+                                        Text(Formatters.currency(transaction.quantity * transaction.price, symbol: transactionCurrency(for: transaction).displayName))
+                                            .foregroundColor(.secondary)
+                                    }
+
+                                    if let notes = transaction.notes?.trimmingCharacters(in: .whitespacesAndNewlines), !notes.isEmpty {
+                                        Text(notes)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Price Update Information
                 if let lastUpdate = asset.lastPriceUpdate {
                     Section(header: Text("Price Information")) {
@@ -581,7 +653,12 @@ struct HoldingDetailView: View {
             .navigationTitle(asset.symbol ?? "Asset Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    if isInsurance, holding.portfolio != nil {
+                        Button("Payments") {
+                            showingPaymentManagement = true
+                        }
+                    }
                     Button("Done") {
                         dismiss()
                     }
@@ -594,6 +671,17 @@ struct HoldingDetailView: View {
         }
         .sheet(isPresented: $showingCashValueEditor) {
             CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
+        }
+        .sheet(isPresented: $showingPaymentManagement) {
+            if let portfolio = holding.portfolio {
+                InsurancePaymentManagementView(portfolio: portfolio, insuranceAsset: asset)
+                    .environment(\.managedObjectContext, viewContext)
+            } else {
+                Text("No portfolio associated with this holding.")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .padding()
+            }
         }
     }
 
@@ -631,6 +719,14 @@ struct HoldingDetailView: View {
                     Text("Policy Number")
                     Spacer()
                     Text(policyNumber)
+                        .foregroundColor(.secondary)
+                }
+            }
+            if let purchaseDate = insurancePurchaseDate {
+                HStack {
+                    Text("Policy Purchase Date")
+                    Spacer()
+                    Text(purchaseDate, style: .date)
                         .foregroundColor(.secondary)
                 }
             }
@@ -769,6 +865,24 @@ struct HoldingDetailView: View {
             Text(date, style: .date)
                 .foregroundColor(.secondary)
         }
+    }
+
+    private func transactionDisplayDate(for transaction: Transaction) -> Date {
+        transaction.transactionDate ?? transaction.createdAt ?? Date()
+    }
+
+    private func transactionCurrency(for transaction: Transaction) -> Currency {
+        if let code = transaction.currency, let currency = Currency(rawValue: code) {
+            return currency
+        }
+        return portfolioMainCurrency
+    }
+
+    private func transactionDisplayName(for transaction: Transaction) -> String {
+        if let type = TransactionType(rawValue: transaction.type ?? "") {
+            return type.displayName
+        }
+        return transaction.type ?? "Transaction"
     }
 }
 
