@@ -13,6 +13,9 @@ struct HoldingDetailView: View {
     @State private var showingPriceEditor = false
     @State private var showingCashValueEditor = false
     @State private var showingPaymentManagement = false
+    @State private var showingAddTransaction = false
+    @State private var pendingTransactionType: TransactionType = .buy
+    @State private var addTransactionPresentationID = UUID()
     @State private var error: String?
     @State private var autoFetchToggle: Bool
     @State private var isUpdatingAutoFetchPreference = false
@@ -33,6 +36,10 @@ struct HoldingDetailView: View {
 
     private var isStructuredProduct: Bool {
         asset.assetType == AssetType.structuredProduct.rawValue
+    }
+
+    private var holdingInstitution: Institution? {
+        holding.value(forKey: "institution") as? Institution
     }
 
     private var insurance: NSManagedObject? {
@@ -264,7 +271,7 @@ struct HoldingDetailView: View {
                             HStack {
                                 Text("Institution")
                                 Spacer()
-                                Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
+                                Text((holdingInstitution?.name ?? "Unassigned"))
                                     .foregroundColor(.secondary)
                             }
 
@@ -373,12 +380,24 @@ struct HoldingDetailView: View {
                                 Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
                                     .foregroundColor(.secondary)
                             }
+
+                            if holding.portfolio != nil {
+                                HStack(spacing: 16) {
+                                    Button("Buy More") {
+                                        presentTrade(.buy)
+                                    }
+                                    Button("Sell") {
+                                        presentTrade(.sell)
+                                    }
+                                }
+                                .padding(.top, 4)
+                            }
                         } else {
 
                             HStack {
                                 Text("Institution")
                                 Spacer()
-                                Text(((holding.value(forKey: "institution") as? Institution)?.name ?? "Unassigned"))
+                                Text((holdingInstitution?.name ?? "Unassigned"))
                                     .foregroundColor(.secondary)
                             }
                             
@@ -473,6 +492,18 @@ struct HoldingDetailView: View {
                                 Spacer()
                                 Text(Formatters.currency(displayCurrentValue, symbol: displayCurrency.displayName))
                                     .fontWeight(.semibold)
+                            }
+
+                            if holding.portfolio != nil {
+                                HStack(spacing: 16) {
+                                    Button("Buy More") {
+                                        presentTrade(.buy)
+                                    }
+                                    Button("Sell") {
+                                        presentTrade(.sell)
+                                    }
+                                }
+                                .padding(.top, 4)
                             }
                         }
                     }
@@ -671,6 +702,22 @@ struct HoldingDetailView: View {
         }
         .sheet(isPresented: $showingCashValueEditor) {
             CashValueEditorView(holding: holding, editingCashValue: $editingCashValue)
+        }
+        .sheet(isPresented: $showingAddTransaction) {
+            if let portfolio = holding.portfolio {
+                AddTransactionView(portfolio: portfolio,
+                                   initialTransactionType: pendingTransactionType,
+                                   initialAsset: asset,
+                                   initialInstitution: holdingInstitution)
+                    .id(addTransactionPresentationID)
+                    .environment(\.managedObjectContext, viewContext)
+                    .interactiveDismissDisabled()
+            } else {
+                Text("No portfolio associated with this holding.")
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .padding()
+            }
         }
         .sheet(isPresented: $showingPaymentManagement) {
             if let portfolio = holding.portfolio {
@@ -883,6 +930,12 @@ struct HoldingDetailView: View {
             return type.displayName
         }
         return transaction.type ?? "Transaction"
+    }
+
+    private func presentTrade(_ type: TransactionType) {
+        pendingTransactionType = type
+        addTransactionPresentationID = UUID()
+        showingAddTransaction = true
     }
 }
 

@@ -6,6 +6,7 @@ struct AddTransactionView: View {
     let portfolio: Portfolio
     let transactionToEdit: Transaction?
     private let originalPaymentInstitutionName: String?
+    private let initialTransactionTypeSelection: TransactionType
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
     @FetchRequest(
@@ -76,15 +77,24 @@ struct AddTransactionView: View {
     @State private var cashDisciplineError: String?
     @State private var quantityValidationError: String?
 
-    init(portfolio: Portfolio, transactionToEdit: Transaction? = nil) {
+    init(portfolio: Portfolio,
+         transactionToEdit: Transaction? = nil,
+         initialTransactionType: TransactionType? = nil,
+         initialAsset: Asset? = nil,
+         initialInstitution: Institution? = nil) {
         self.portfolio = portfolio
         self.transactionToEdit = transactionToEdit
         self.originalPaymentInstitutionName = transactionToEdit?.value(forKey: "paymentInstitutionName") as? String
 
         let defaultDate = Date()
-        let initialType = transactionToEdit.flatMap { TransactionType(rawValue: $0.type ?? "") } ?? .buy
+        let initialType = transactionToEdit
+            .flatMap { TransactionType(rawValue: $0.type ?? "") }
+            ?? initialTransactionType
+            ?? .buy
+        self.initialTransactionTypeSelection = initialType
+        let assetForInitialization = transactionToEdit?.asset ?? initialAsset
         let initialAssetType: AssetType
-        if let rawType = transactionToEdit?.asset?.assetType,
+        if let rawType = assetForInitialization?.assetType,
            let resolved = AssetType(rawValue: rawType) {
             initialAssetType = resolved
         } else {
@@ -93,10 +103,14 @@ struct AddTransactionView: View {
 
         _selectedTransactionType = State(initialValue: initialType)
         _selectedAssetType = State(initialValue: initialAssetType)
-        _assetSymbol = State(initialValue: transactionToEdit?.asset?.symbol ?? "")
-        _assetName = State(initialValue: transactionToEdit?.asset?.name ?? "")
-        _quantity = State(initialValue: transactionToEdit?.quantity ?? 0)
-        _price = State(initialValue: transactionToEdit?.price ?? 0)
+        _assetSymbol = State(initialValue: assetForInitialization?.symbol ?? "")
+        _assetName = State(initialValue: assetForInitialization?.name ?? "")
+        let initialQuantity = transactionToEdit?.quantity ?? 0
+        let initialPrice = transactionToEdit?.price
+            ?? assetForInitialization.map { $0.currentPrice }
+            ?? 0
+        _quantity = State(initialValue: initialQuantity)
+        _price = State(initialValue: initialPrice)
         _fees = State(initialValue: transactionToEdit?.fees ?? 0)
 
         // Initialize accrued interest for sell transactions
@@ -110,14 +124,42 @@ struct AddTransactionView: View {
         _transactionDate = State(initialValue: transactionToEdit?.transactionDate ?? defaultDate)
         _notes = State(initialValue: transactionToEdit?.notes ?? "")
         _amount = State(initialValue: transactionToEdit?.amount ?? 0)
-        _tradingInstitution = State(initialValue: transactionToEdit?.tradingInstitution ?? "")
-        _selectedInstitution = State(initialValue: transactionToEdit?.institution)
-        let shouldUseCustomInstitution = (transactionToEdit?.value(forKey: "institution") as? Institution) == nil && !(transactionToEdit?.tradingInstitution?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+
+        let resolvedInstitution = transactionToEdit?.institution ?? initialInstitution
+        let resolvedTradingInstitutionName: String = {
+            if let editName = transactionToEdit?.tradingInstitution { return editName }
+            guard resolvedInstitution == nil else { return "" }
+            return initialInstitution?.name ?? ""
+        }()
+
+        _tradingInstitution = State(initialValue: resolvedTradingInstitutionName)
+        _selectedInstitution = State(initialValue: resolvedInstitution)
+
+        let hasCustomInstitution = resolvedInstitution == nil && !resolvedTradingInstitutionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let shouldUseCustomInstitution = hasCustomInstitution
         _showingCustomInstitution = State(initialValue: shouldUseCustomInstitution)
         _tax = State(initialValue: transactionToEdit?.tax ?? 0)
 
         let defaultCurrency = Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
-        let initialCurrency = transactionToEdit.flatMap { Currency(rawValue: $0.currency ?? "") } ?? defaultCurrency
+        let assetCurrencyCode: String? = {
+            guard let asset = assetForInitialization,
+                  let transactions = asset.transactions?.allObjects as? [Transaction] else { return nil }
+            let matchingTransactions = transactions
+                .filter { transaction in
+                    guard let currencyCode = transaction.currency, !currencyCode.isEmpty else { return false }
+                    return transaction.portfolio?.objectID == portfolio.objectID
+                }
+                .sorted { lhs, rhs in
+                    let lhsDate = lhs.transactionDate ?? lhs.createdAt ?? Date.distantPast
+                    let rhsDate = rhs.transactionDate ?? rhs.createdAt ?? Date.distantPast
+                    return lhsDate > rhsDate
+                }
+            return matchingTransactions.first?.currency
+        }()
+        let initialCurrency = transactionToEdit
+            .flatMap { Currency(rawValue: $0.currency ?? "") }
+            ?? assetCurrencyCode.flatMap { Currency(rawValue: $0) }
+            ?? defaultCurrency
         _selectedCurrency = State(initialValue: initialCurrency)
 
         let initialDepositCategory: DepositCategory
@@ -183,13 +225,15 @@ struct AddTransactionView: View {
         // No longer need structuredProductInvestmentAmount - using quantity and price directly
 
         if initialType == .dividend {
-            _selectedDividendAssetID = State(initialValue: transactionToEdit?.asset?.objectID)
+            let assetID = transactionToEdit?.asset?.objectID ?? assetForInitialization?.objectID
+            _selectedDividendAssetID = State(initialValue: assetID)
         } else {
             _selectedDividendAssetID = State(initialValue: nil)
         }
 
         if initialType == .sell {
-            _selectedSellAssetID = State(initialValue: transactionToEdit?.asset?.objectID)
+            let assetID = transactionToEdit?.asset?.objectID ?? assetForInitialization?.objectID
+            _selectedSellAssetID = State(initialValue: assetID)
         } else {
             _selectedSellAssetID = State(initialValue: nil)
         }
@@ -750,6 +794,9 @@ struct AddTransactionView: View {
             }
         }
         .onAppear {
+            if selectedTransactionType != initialTransactionTypeSelection {
+                selectedTransactionType = initialTransactionTypeSelection
+            }
             if selectedTransactionType == .insurance && selectedPaymentInstitution == nil {
                 selectedPaymentInstitution = selectedInstitution
             }
