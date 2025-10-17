@@ -277,6 +277,7 @@ struct BackupTransaction: Codable {
     let paymentDeductedAmount: Double
     let realizedGain: Double
     let autoFetchPrice: Bool
+    let cashDisciplineApplied: Bool
     let interestRate: Double
     let linkedInsuranceAssetID: UUID?
     let linkedTransactionID: UUID?
@@ -306,6 +307,7 @@ struct BackupTransaction: Codable {
          paymentDeductedAmount: Double,
          realizedGain: Double,
          autoFetchPrice: Bool,
+         cashDisciplineApplied: Bool,
          interestRate: Double,
          linkedInsuranceAssetID: UUID?,
          linkedTransactionID: UUID?,
@@ -334,6 +336,7 @@ struct BackupTransaction: Codable {
         self.paymentDeductedAmount = paymentDeductedAmount
         self.realizedGain = realizedGain
         self.autoFetchPrice = autoFetchPrice
+        self.cashDisciplineApplied = cashDisciplineApplied
         self.interestRate = interestRate
         self.linkedInsuranceAssetID = linkedInsuranceAssetID
         self.linkedTransactionID = linkedTransactionID
@@ -343,7 +346,7 @@ struct BackupTransaction: Codable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, interestRate, linkedInsuranceAssetID, linkedTransactionID, parentDepositAssetID, accruedInterest, institutionPenalty
+        case id, portfolioID, assetID, institutionID, type, transactionDate, amount, quantity, price, fees, tax, currency, tradingInstitution, transactionCode, notes, createdAt, maturityDate, paymentInstitutionName, paymentDeducted, paymentDeductedAmount, realizedGain, autoFetchPrice, cashDisciplineApplied, interestRate, linkedInsuranceAssetID, linkedTransactionID, parentDepositAssetID, accruedInterest, institutionPenalty
     }
 
     init(from decoder: Decoder) throws {
@@ -370,6 +373,7 @@ struct BackupTransaction: Codable {
         paymentDeductedAmount = try container.decode(Double.self, forKey: .paymentDeductedAmount)
         realizedGain = try container.decode(Double.self, forKey: .realizedGain)
         autoFetchPrice = try container.decodeIfPresent(Bool.self, forKey: .autoFetchPrice) ?? false
+        cashDisciplineApplied = try container.decodeIfPresent(Bool.self, forKey: .cashDisciplineApplied) ?? true
         interestRate = try container.decodeIfPresent(Double.self, forKey: .interestRate) ?? 0
         linkedInsuranceAssetID = try container.decodeIfPresent(UUID.self, forKey: .linkedInsuranceAssetID)
         linkedTransactionID = try container.decodeIfPresent(UUID.self, forKey: .linkedTransactionID)
@@ -402,6 +406,7 @@ struct BackupTransaction: Codable {
         try container.encode(paymentDeductedAmount, forKey: .paymentDeductedAmount)
         try container.encode(realizedGain, forKey: .realizedGain)
         try container.encode(autoFetchPrice, forKey: .autoFetchPrice)
+        try container.encode(cashDisciplineApplied, forKey: .cashDisciplineApplied)
         try container.encode(interestRate, forKey: .interestRate)
         try container.encodeIfPresent(linkedInsuranceAssetID, forKey: .linkedInsuranceAssetID)
         try container.encodeIfPresent(linkedTransactionID, forKey: .linkedTransactionID)
@@ -475,7 +480,7 @@ final class BackupService {
     static let shared = BackupService()
     private init() {}
     
-    private let backupVersion = 6
+    private let backupVersion = 7
     
     func createBackup(context: NSManagedObjectContext) throws -> URL {
         let encoder = JSONEncoder()
@@ -583,6 +588,7 @@ final class BackupService {
                         paymentDeductedAmount: (transaction.value(forKey: "paymentDeductedAmount") as? Double) ?? 0,
                         realizedGain: transaction.realizedGainAmount,
                         autoFetchPrice: transaction.autoFetchPrice,
+                        cashDisciplineApplied: transaction.cashDisciplineWasApplied,
                         interestRate: (transaction.value(forKey: "interestRate") as? Double) ?? 0,
                         linkedInsuranceAssetID: transaction.value(forKey: "linkedInsuranceAssetID") as? UUID,
                         linkedTransactionID: transaction.value(forKey: "linkedTransactionID") as? UUID,
@@ -828,6 +834,7 @@ final class BackupService {
                 transaction.setValue(transactionData.paymentDeductedAmount, forKey: "paymentDeductedAmount")
                 transaction.realizedGainAmount = transactionData.realizedGain
                 transaction.autoFetchPrice = transactionData.autoFetchPrice
+                transaction.cashDisciplineWasApplied = transactionData.cashDisciplineApplied
                 transaction.setValue(transactionData.interestRate, forKey: "interestRate")
                 transaction.setValue(transactionData.linkedInsuranceAssetID, forKey: "linkedInsuranceAssetID")
                 transaction.setValue(transactionData.linkedTransactionID, forKey: "linkedTransactionID")

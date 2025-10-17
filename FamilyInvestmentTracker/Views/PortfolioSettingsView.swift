@@ -15,6 +15,7 @@ struct PortfolioSettingsView: View {
     @State private var activeAlert: ActiveAlert?
     @State private var institutionPendingDeletion: Institution?
     @State private var enforceCashDiscipline: Bool
+    @State private var showingCashDisciplineHelp = false
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var ownerName: String?
 
@@ -45,9 +46,21 @@ struct PortfolioSettingsView: View {
                 Section(header: Text("Portfolio Information")) {
                     TextField("Portfolio Name", text: $portfolioName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
-                    Toggle("Enforce Cash Discipline", isOn: $enforceCashDiscipline)
-                        .tint(.blue)
-                    Text("When enabled, security purchases must have sufficient cash in the selected institution.")
+                    Toggle(isOn: $enforceCashDiscipline) {
+                        HStack(spacing: 8) {
+                            Text("Enforce Cash Discipline")
+                            Button {
+                                showingCashDisciplineHelp = true
+                            } label: {
+                                Image(systemName: "questionmark.circle")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Learn more about cash discipline")
+                        }
+                    }
+                    .tint(.blue)
+                    Text("Keep this on to require available cash before buying or selling securities, with automatic companion deposits adjusting balances. Turn it off to track trades without touching cash; those transactions remain cash-neutral even if you re-enable the discipline later.")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -180,6 +193,25 @@ struct PortfolioSettingsView: View {
                         saveSettings()
                     }
                     .disabled(portfolioName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+            }
+        }
+        .sheet(isPresented: $showingCashDisciplineHelp) {
+            NavigationView {
+                List {
+                    Section(header: Text("How Cash Discipline Works")) {
+                        Text("- When enabled, buy and sell orders verify that the selected institution has enough cash and automatically create companion deposits to reflect the cash movement.")
+                        Text("- When disabled, trades save without adjusting portfolio or institution cash, letting you reconcile manually later.")
+                        Text("- Re-enabling the toggle only affects new trades; earlier cash-neutral transactions stay that way unless you edit them.")
+                    }
+                }
+                .navigationTitle("Enforce Cash Discipline")
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            showingCashDisciplineHelp = false
+                        }
+                    }
                 }
             }
         }

@@ -19,7 +19,7 @@ struct TransactionImpactService {
         }
         let portfolioCurrency = currency(for: portfolio)
         let transactionCurrency = Currency(rawValue: transaction.currency ?? portfolioCurrency.rawValue) ?? portfolioCurrency
-        let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
+        let cashDisciplineApplied = transaction.cashDisciplineWasApplied
         let institution = transaction.value(forKey: "institution") as? Institution
         let isAmountOnly = transactionType == .dividend || transactionType == .interest || transactionType == .deposit || transactionType == .insurance || transactionType == .depositWithdrawal
         let companionDeposit = CashDisciplineService.findCompanionDeposit(for: transaction, in: context)
@@ -91,16 +91,16 @@ struct TransactionImpactService {
                 if transactionType == .sell {
                     let originalProceeds = transaction.amount - transaction.fees - transaction.tax
                     let netProceeds = currencyService.convertAmount(originalProceeds, from: transactionCurrency, to: portfolioCurrency)
-                    if netProceeds != 0, !handledByCompanion {
+                    if cashDisciplineApplied, netProceeds != 0, !handledByCompanion {
                         portfolio.addToCash(-netProceeds)
-                        if cashDisciplineEnabled, let institution = institution {
+                        if let institution = institution {
                             institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: -originalProceeds)
                         }
                     }
                 } else if transactionType == .buy {
                     let originalCost = (transaction.quantity * transaction.price) + transaction.fees + transaction.tax
                     let cost = currencyService.convertAmount(originalCost, from: transactionCurrency, to: portfolioCurrency)
-                    if cashDisciplineEnabled, !handledByCompanion {
+                    if cashDisciplineApplied, !handledByCompanion {
                         portfolio.addToCash(cost)
                         if let institution = institution {
                             institution.addToCashBalance(for: portfolio, currency: transactionCurrency, delta: originalCost)

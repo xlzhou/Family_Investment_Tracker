@@ -76,6 +76,7 @@ struct AddTransactionView: View {
     private let currencyService = CurrencyService.shared
     @State private var cashDisciplineError: String?
     @State private var quantityValidationError: String?
+    @State private var sessionCreatedInstitutions: [Institution] = []
 
     init(portfolio: Portfolio,
          transactionToEdit: Transaction? = nil,
@@ -388,6 +389,10 @@ struct AddTransactionView: View {
         isStructuredProductBuy || isStructuredProductSell
     }
 
+    private var trimmedTradingInstitutionName: String {
+        tradingInstitution.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     private var availableInstitutions: [Institution] {
         var results: [Institution] = []
         for institution in institutions {
@@ -434,11 +439,19 @@ struct AddTransactionView: View {
                 // Trading Institution
                 Section(header: Text("Trading Institution")) {
                     if availableInstitutions.isEmpty || showingCustomInstitution {
-                        HStack {
+                        HStack(spacing: 8) {
                             TextField("Institution (e.g., Interactive Brokers)", text: $tradingInstitution)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                            Button("Add") {
+                                commitCustomInstitutionEntry()
+                            }
+                            .font(.caption)
+                            .disabled(trimmedTradingInstitutionName.isEmpty)
+
                             if !availableInstitutions.isEmpty {
                                 Button("Select") {
+                                    tradingInstitution = ""
                                     showingCustomInstitution = false
                                 }
                                 .font(.caption)
@@ -724,7 +737,7 @@ struct AddTransactionView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        dismiss()
+                        cancelTransactionEntry()
                     }
                 }
                 
@@ -955,6 +968,8 @@ struct AddTransactionView: View {
         let existingTransaction = transactionToEdit
         let existingTransactionType = existingTransaction.flatMap { TransactionType(rawValue: $0.type ?? "") }
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
+        let existingCashDisciplineApplied = existingTransaction?.cashDisciplineWasApplied
+        let shouldApplyCashDiscipline = existingCashDisciplineApplied ?? cashDisciplineEnabled
 
         func failWithMessage(_ message: String) {
             if let createdInstitution = createdInstitution {
@@ -1003,6 +1018,9 @@ struct AddTransactionView: View {
         if cashDisciplineEnabled {
             switch selectedTransactionType {
             case .buy:
+                if !shouldApplyCashDiscipline {
+                    break
+                }
                 guard let institution = institutionForTransaction else {
                     failWithMessage("Select a trading institution before purchasing securities.")
                     return
@@ -1458,32 +1476,20 @@ struct AddTransactionView: View {
             if selectedTransactionType == .sell {
                 let netProceeds = transaction.amount - fees - tax
                 if netProceeds != 0 {
-                    if cashDisciplineEnabled {
+                    if shouldApplyCashDiscipline {
                         // Cash will be adjusted via companion deposit entry
-                    } else {
-                        let convertedProceeds = convertToPortfolioCurrency(netProceeds, from: selectedCurrency)
-                        if let institution = institutionForTransaction {
-                            institution.addToCashBalance(for: portfolio, currency: selectedCurrency, delta: netProceeds)
-                        } else {
-                            portfolio.addToCash(convertedProceeds)
-                        }
                     }
                 }
             } else if selectedTransactionType == .buy {
                 let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
-                if cashDisciplineEnabled {
+                if shouldApplyCashDiscipline {
                     // Cash will be adjusted via companion deposit entry
-                } else {
-                    let convertedRequiredFunds = convertToPortfolioCurrency(requiredFundsTransactionCurrency, from: selectedCurrency)
-                    if let institution = institutionForTransaction {
-                        institution.addToCashBalance(for: portfolio,
-                                                     currency: selectedCurrency,
-                                                     delta: -requiredFundsTransactionCurrency)
-                    } else {
-                        portfolio.addToCash(-convertedRequiredFunds)
-                    }
                 }
             }
+        }
+
+        if selectedTransactionType == .buy || selectedTransactionType == .sell {
+            transaction.cashDisciplineWasApplied = shouldApplyCashDiscipline
         }
 
         if selectedTransactionType == .insurance {
@@ -1551,6 +1557,7 @@ struct AddTransactionView: View {
             }
 #endif
 
+            sessionCreatedInstitutions.removeAll()
             dismiss()
         } catch {
             viewContext.rollback()
@@ -2188,7 +2195,9 @@ struct AddTransactionView: View {
     private func manageCashDisciplineCompanion(for transaction: Transaction) {
         let epsilon = 1e-6
         let cashDisciplineEnabled = portfolio.enforcesCashDisciplineEnabled
+        let transactionAppliesCashDiscipline = transaction.cashDisciplineWasApplied
         guard cashDisciplineEnabled,
+              transactionAppliesCashDiscipline,
               let typeRaw = transaction.type,
               let type = TransactionType(rawValue: typeRaw),
               (type == .buy || type == .sell || type == .insurance) else {
@@ -2293,6 +2302,7 @@ struct AddTransactionView: View {
                 companion.setValue(transactionID, forKey: "linkedTransactionID")
             }
             companion.ensureIdentifiers()
+            companion.cashDisciplineWasApplied = true
         } else {
             let companion = Transaction(context: viewContext)
             companion.transactionDate = transactionDate
@@ -2319,6 +2329,7 @@ struct AddTransactionView: View {
                 companion.setValue(transactionID, forKey: "linkedTransactionID")
             }
             companion.ensureIdentifiers()
+            companion.cashDisciplineWasApplied = true
         }
 
         maintainInstitutionAssetRelationship(institution: institution, asset: depositAsset, transactionDate: transactionDate)
@@ -2459,6 +2470,27 @@ struct AddTransactionView: View {
         return try? viewContext.fetch(request).first
     }
 
+    private func commitCustomInstitutionEntry() {
+        let trimmed = trimmedTradingInstitutionName
+        guard !trimmed.isEmpty else { return }
+
+        let (institution, wasCreated) = findOrCreateInstitution(name: trimmed)
+        if wasCreated {
+            if !sessionCreatedInstitutions.contains(where: { $0.objectID == institution.objectID }) {
+                sessionCreatedInstitutions.append(institution)
+            }
+        } else {
+            cashDisciplineError = "An institution named \"\(trimmed)\" already exists. We've selected the existing record."
+        }
+
+        selectedInstitution = institution
+        if selectedTransactionType == .insurance {
+            selectedPaymentInstitution = institution
+        }
+        tradingInstitution = ""
+        showingCustomInstitution = false
+    }
+
     private func findOrCreateInstitution(name: String) -> (Institution, Bool) {
         let request: NSFetchRequest<Institution> = Institution.fetchRequest()
         request.predicate = NSPredicate(format: "name ==[c] %@", name)
@@ -2516,6 +2548,14 @@ struct AddTransactionView: View {
         newAsset.currentPrice = 0
         newAsset.depositSubtypeEnum = category.depositSubtype
         return newAsset
+    }
+
+    private func cancelTransactionEntry() {
+        for institution in sessionCreatedInstitutions where institution.isInserted {
+            viewContext.delete(institution)
+        }
+        sessionCreatedInstitutions.removeAll()
+        dismiss()
     }
 
     private func configureStructuredProductAsset(_ asset: Asset) {
