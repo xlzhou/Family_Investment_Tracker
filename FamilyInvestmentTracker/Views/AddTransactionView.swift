@@ -1480,11 +1480,8 @@ struct AddTransactionView: View {
                         // Cash will be adjusted via companion deposit entry
                     }
                 }
-            } else if selectedTransactionType == .buy {
-                let requiredFundsTransactionCurrency = (quantity * price) + fees + tax
-                if shouldApplyCashDiscipline {
-                    // Cash will be adjusted via companion deposit entry
-                }
+            } else if selectedTransactionType == .buy, shouldApplyCashDiscipline {
+                // Cash will be adjusted via companion deposit entry
             }
         }
 
