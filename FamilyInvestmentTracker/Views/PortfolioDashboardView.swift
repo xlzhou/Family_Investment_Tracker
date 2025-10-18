@@ -24,14 +24,19 @@ struct PortfolioDashboardView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            // Header with portfolio value
-            PortfolioHeaderView(portfolio: portfolio)
+            // Header and Quick Stats side by side
+            HStack(alignment: .top, spacing: 16) {
+                // Header with portfolio value (left side)
+                PortfolioHeaderView(portfolio: portfolio)
+                    .frame(maxWidth: .infinity)
 
-            // Quick Stats
-            QuickStatsView(portfolio: portfolio) { tab in
-                presentCashOverview(initialTab: tab)
+                // Quick Stats (right side in 2x2 grid)
+                QuickStatsGridView(portfolio: portfolio) { tab in
+                    presentCashOverview(initialTab: tab)
+                }
+                .frame(maxWidth: .infinity)
             }
-                .padding(.top, -8)
+            .padding(.horizontal)
 
             // Tab Selection
             Picker("View", selection: $selectedTab) {
@@ -436,7 +441,7 @@ struct PortfolioHeaderView: View {
                 .foregroundColor(.secondary)
 
             Text(currencyService.formatAmountWithFullCurrency(totalValueInMainCurrency, in: mainCurrency))
-                .font(.largeTitle)
+                .font(.title)
                 .fontWeight(.bold)
             
             HStack(spacing: 20) {
@@ -463,7 +468,150 @@ struct PortfolioHeaderView: View {
         .background(Color(.systemBackground))
         .cornerRadius(15)
         .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .padding(.horizontal)
+    }
+}
+
+struct QuickStatsGridView: View {
+    @ObservedObject var portfolio: Portfolio
+    let onCashTapped: (CashOverviewView.Tab) -> Void
+    @StateObject private var currencyService = CurrencyService.shared
+    @Environment(\.managedObjectContext) private var viewContext
+
+    private var mainCurrency: Currency {
+        Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
+
+    private var totalGainLoss: Double {
+        let holdings = portfolio.holdings?.compactMap { $0 as? Holding } ?? []
+
+        let result = holdings.reduce(0) { result, holding in
+            guard let asset = holding.asset else { return result }
+
+            let gainLoss: Double
+
+            if asset.assetType == AssetType.insurance.rawValue {
+                // For insurance: P&L = Cash Value - Actual Paid Premium
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+
+                let paidPremium = InsurancePaymentService.totalPaidAmount(for: asset, in: portfolio, context: viewContext)
+                gainLoss = cashValue - paidPremium
+            } else {
+                // For securities: P&L = Current Value - Cost Basis
+                let currentValue = holding.quantity * asset.currentPrice
+                let costBasis = holding.quantity * holding.averageCostBasis
+                gainLoss = currentValue - costBasis
+            }
+
+            return result + gainLoss
+        }
+
+        return result
+    }
+
+    private var totalSecuritiesGainLoss: Double {
+        let holdings = portfolio.holdings?.compactMap { $0 as? Holding } ?? []
+
+        let result = holdings.reduce(0) { result, holding in
+            guard let asset = holding.asset else { return result }
+
+            // Only calculate P&L for non-insurance assets (securities)
+            guard asset.assetType != AssetType.insurance.rawValue else { return result }
+
+            let currentValue = holding.quantity * asset.currentPrice
+            let costBasis = holding.quantity * holding.averageCostBasis
+            let gainLoss = currentValue - costBasis
+
+            return result + gainLoss
+        }
+
+        return result
+    }
+
+    private var totalDividends: Double {
+        portfolio.holdings?.compactMap { $0 as? Holding }.reduce(0) { $0 + $1.totalDividends } ?? 0
+    }
+
+    private var totalHoldingsValue: Double {
+        // Reuse the same calculation logic from recalculateTotalPortfolioValue
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        return holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            // Exclude deposit assets from holdings value calculation
+            // Deposit assets are already accounted for in cash balance
+            guard asset.assetType != AssetType.deposit.rawValue else { return sum }
+
+            if asset.assetType == AssetType.insurance.rawValue {
+                let cashValue = holding.value(forKey: "cashValue") as? Double ?? 0
+                return sum + cashValue
+            }
+            return sum + (holding.quantity * asset.currentPrice)
+        }
+    }
+
+    private var totalSecuritiesHoldingsValue: Double {
+        let holdings = (portfolio.holdings?.allObjects as? [Holding]) ?? []
+        return holdings.reduce(0.0) { sum, holding in
+            guard let asset = holding.asset else { return sum }
+            // Exclude insurance and deposit assets from securities calculation
+            guard asset.assetType != AssetType.insurance.rawValue else { return sum }
+            guard asset.assetType != AssetType.deposit.rawValue else { return sum }
+            return sum + (holding.quantity * asset.currentPrice)
+        }
+    }
+
+    private var totalCashFromInstitutions: Double {
+        return portfolio.totalCashBalance
+    }
+
+    private var availableCashBalance: Double {
+        return portfolio.availableCashBalance
+    }
+
+    private var fixedDepositBalance: Double {
+        return portfolio.fixedDepositBalance
+    }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            // Top row
+            HStack(spacing: 8) {
+                StatCardView(
+                    title: "Total Holdings Value",
+                    value: currencyService.formatAmount(totalHoldingsValue, in: mainCurrency),
+                    color: totalHoldingsValue >= 0 ? .green : .red,
+                    subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesHoldingsValue, in: mainCurrency))"
+                )
+
+                Button(action: {
+                    onCashTapped(.demandCash)
+                }) {
+                    StatCardView(
+                        title: "Total Cash",
+                        value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
+                        color: totalCashFromInstitutions >= 0 ? .blue : .red,
+                        subtitle: "Available: \(currencyService.formatAmount(availableCashBalance, in: mainCurrency))\nFixed Deposits: \(currencyService.formatAmount(fixedDepositBalance, in: mainCurrency))"
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+
+            // Bottom row
+            HStack(spacing: 8) {
+                StatCardView(
+                    title: "Unrealized P&L",
+                    value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
+                    color: totalGainLoss >= 0 ? .green : .red,
+                    subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesGainLoss, in: mainCurrency))"
+                )
+
+                StatCardView(
+                    title: "Total Dividends & Interest",
+                    value: currencyService.formatAmount(totalDividends, in: mainCurrency),
+                    color: totalDividends >= 0 ? .green : .red,
+                    subtitle: nil
+                )
+            }
+        }
     }
 }
 
@@ -472,11 +620,11 @@ struct QuickStatsView: View {
     let onCashTapped: (CashOverviewView.Tab) -> Void
     @StateObject private var currencyService = CurrencyService.shared
     @Environment(\.managedObjectContext) private var viewContext
-    
+
     private var mainCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
     }
-    
+
     private var totalGainLoss: Double {
         let holdings = portfolio.holdings?.compactMap { $0 as? Holding } ?? []
 
@@ -612,28 +760,30 @@ struct StatCardView: View {
     let value: String
     let color: Color
     let subtitle: String?
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-            
+
             Text(value)
-                .font(.title3)
+                .font(.subheadline)
                 .fontWeight(.semibold)
                 .foregroundColor(color)
 
             if let subtitle {
                 Text(subtitle)
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundColor(.secondary)
             }
+
+            Spacer()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .frame(maxWidth: .infinity, minHeight: 65, maxHeight: 65, alignment: .topLeading)
+        .padding(8)
         .background(Color(.systemBackground))
-        .cornerRadius(10)
+        .cornerRadius(8)
         .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
     }
 }
