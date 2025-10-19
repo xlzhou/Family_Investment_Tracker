@@ -33,7 +33,6 @@
 		8249C25014704EEDA0D21F55 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05B1E5F2D334E2190922280 /* SettingsView.swift */; };
 		83A5D1E5DC394A9EB73324A7 /* AddPortfolioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FC7726FE2E4297BBECEA49 /* AddPortfolioView.swift */; };
 		842B620D08FA0D905EF77BE2 /* Transaction+RealizedGain.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74CA0BB7B14D5CF69491037 /* Transaction+RealizedGain.swift */; };
-		C1D2E3F4A5B6978899CCDDF0 /* Transaction+CashDiscipline.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2E3F4A5B6978899CCDDF1 /* Transaction+CashDiscipline.swift */; };
 		8F98ABE15450474E80A397BB /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6585115FE4F40BFBC1525C4 /* TransactionsView.swift */; };
 		96B7992AEA38485CB1E59864 /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */; };
 		A0900C7229C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0900C7129C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift */; };
@@ -49,6 +48,7 @@
 		B7236D6B6C2246DFA1DDE107 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3FD956593F495A808BA082 /* Formatters.swift */; };
 		B7F0E1C2D3B4456699AA0012 /* CashDisciplineService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F0E1C2D3B4456699AA0011 /* CashDisciplineService.swift */; };
 		B8A3BF339CA44DBF8A3D0047 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CFE7AA0DD064D5E91FF413D /* ExportDataView.swift */; };
+		C1D2E3F4A5B6978899CCDDF0 /* Transaction+CashDiscipline.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D2E3F4A5B6978899CCDDF1 /* Transaction+CashDiscipline.swift */; };
 		C4D5E6F7G8H9I0J1K2L3M4N5 /* PortfolioOwnershipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E6F7G8H9I0J1K2L3M4N5O6 /* PortfolioOwnershipService.swift */; };
 		D149D9695BA94585ADA4CE5F /* PortfolioListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46CA597ABF61463EBB88272F /* PortfolioListView.swift */; };
 		DAAA11112222333344445555 /* CashOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAAA11112222333344445555 /* CashOverviewView.swift */; };
@@ -99,8 +99,8 @@
 		B2F3A4C5D6E7081991ABCDEF /* Asset+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Asset+Identifier.swift"; sourceTree = "<group>"; };
 		B3F4A5C6D7E8091A92ABCDEF /* Holding+Identifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Holding+Identifier.swift"; sourceTree = "<group>"; };
 		B4F5A6C7D8E90A1B93ABCDEF /* Transaction+Deposit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+Deposit.swift"; sourceTree = "<group>"; };
-		C1D2E3F4A5B6978899CCDDF1 /* Transaction+CashDiscipline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+CashDiscipline.swift"; sourceTree = "<group>"; };
 		C1D2E3F4A5B6071890ABCDEF /* CashBalanceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashBalanceService.swift; sourceTree = "<group>"; };
+		C1D2E3F4A5B6978899CCDDF1 /* Transaction+CashDiscipline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Transaction+CashDiscipline.swift"; sourceTree = "<group>"; };
 		C2D3E4F5A6B7081991ABCDEF /* FixedDepositMigrationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedDepositMigrationService.swift; sourceTree = "<group>"; };
 		C3D4E5F6A7B8091A92ABCDEF /* FixedDepositService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FixedDepositService.swift; sourceTree = "<group>"; };
 		C50FDA55600A41BC875E0BD6 /* HoldingDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldingDetailView.swift; sourceTree = "<group>"; };
@@ -466,7 +466,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FamilyInvestmentTracker/FamilyInvestmentTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FamilyInvestmentTracker/Info.plist;
@@ -480,7 +480,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kongkong.FamilyInvestmentTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -561,7 +561,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = FamilyInvestmentTracker/FamilyInvestmentTracker.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 38;
+				CURRENT_PROJECT_VERSION = 39;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = FamilyInvestmentTracker/Info.plist;
@@ -575,7 +575,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.kongkong.FamilyInvestmentTracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
