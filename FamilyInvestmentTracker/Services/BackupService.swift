@@ -1,5 +1,8 @@
 import Foundation
 import CoreData
+import CryptoKit
+import Compression
+import Security
 
 struct BackupPackage: Codable {
     let version: Int
@@ -476,13 +479,44 @@ private struct LegacyPortfolioInstitutionCash: Codable {
     let updatedAt: Date?
 }
 
+enum BackupServiceError: LocalizedError {
+    case emptyPassword
+    case passwordRequired
+    case invalidPasswordOrCorrupted
+    case corruptedBackup
+    case unsupportedEncryptedVersion
+    case encryptionFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .emptyPassword:
+            return "Password must contain at least one character."
+        case .passwordRequired:
+            return "A password is required to decrypt this backup."
+        case .invalidPasswordOrCorrupted:
+            return "Incorrect password or the backup file is corrupted."
+        case .corruptedBackup:
+            return "Backup file is corrupted or incomplete."
+        case .unsupportedEncryptedVersion:
+            return "This backup was created with a newer app version and is not supported."
+        case .encryptionFailed:
+            return "Unable to encrypt backup. Please try again."
+        }
+    }
+}
+
 final class BackupService {
     static let shared = BackupService()
     private init() {}
     
     private let backupVersion = 7
+    private let encryptedFileExtension = "fibackup"
     
-    func createBackup(context: NSManagedObjectContext) throws -> URL {
+    func createBackup(context: NSManagedObjectContext, password: String) throws -> URL {
+        guard !password.isEmpty else {
+            throw BackupServiceError.emptyPassword
+        }
+
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
@@ -666,18 +700,28 @@ final class BackupService {
         }
         
         let data = try encoder.encode(package)
+        let encryptedData = try BackupCrypto.encrypt(data, password: password)
         let timestamp = Self.fileTimestampFormatter.string(from: Date())
-        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("FamilyInvestmentBackup-\(timestamp).json")
-        try data.write(to: fileURL, options: [.atomic])
+        let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("FamilyInvestmentBackup-\(timestamp).\(encryptedFileExtension)")
+        try encryptedData.write(to: fileURL, options: [.atomic])
         return fileURL
     }
     
-    func restoreBackup(from url: URL, context: NSManagedObjectContext) throws {
+    func restoreBackup(from url: URL, context: NSManagedObjectContext, password: String? = nil) throws {
         let data = try Data(contentsOf: url)
+        let payloadData: Data
+        if BackupCrypto.isEncryptedBackup(data) {
+            guard let password = password, !password.isEmpty else {
+                throw BackupServiceError.passwordRequired
+            }
+            payloadData = try BackupCrypto.decrypt(data, password: password)
+        } else {
+            payloadData = data
+        }
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         
-        let package = try decoder.decode(BackupPackage.self, from: data)
+        let package = try decoder.decode(BackupPackage.self, from: payloadData)
 
         if let currencyCode = package.dashboardCurrencyCode,
            let currency = Currency(rawValue: currencyCode) {
@@ -916,4 +960,133 @@ final class BackupService {
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter
     }()
+}
+
+private enum BackupCrypto {
+    private static let signature = Data("FIBACKUP".utf8)
+    private static let formatVersion: UInt8 = 1
+    private static let saltLength = 16
+    private static let lengthSize = MemoryLayout<UInt32>.size
+    private static let hkdfInfo = Data("FamilyInvestmentBackup".utf8)
+
+    static func isEncryptedBackup(_ data: Data) -> Bool {
+        guard data.count >= signature.count else { return false }
+        return data.prefix(signature.count) == signature
+    }
+
+    static func encrypt(_ data: Data, password: String) throws -> Data {
+        let salt = try randomData(length: saltLength)
+        let compressed: Data
+        do {
+            compressed = try (data as NSData).compressed(using: .zlib) as Data
+        } catch {
+            throw BackupServiceError.encryptionFailed
+        }
+        let key = deriveKey(password: password, salt: salt)
+        let sealedBox: AES.GCM.SealedBox
+        do {
+            sealedBox = try AES.GCM.seal(compressed, using: key)
+        } catch {
+            throw BackupServiceError.encryptionFailed
+        }
+
+        guard let combined = sealedBox.combined else {
+            throw BackupServiceError.encryptionFailed
+        }
+
+        var payload = Data()
+        payload.append(signature)
+        payload.append(formatVersion)
+        payload.append(UInt8(salt.count))
+        payload.append(salt)
+
+        var length = UInt32(combined.count).bigEndian
+        withUnsafeBytes(of: &length) { buffer in
+            payload.append(contentsOf: buffer)
+        }
+        payload.append(combined)
+        return payload
+    }
+
+    static func decrypt(_ data: Data, password: String) throws -> Data {
+        guard isEncryptedBackup(data) else {
+            throw BackupServiceError.corruptedBackup
+        }
+
+        var offset = signature.count
+
+        guard data.count > offset else { throw BackupServiceError.corruptedBackup }
+        let version = data[offset]
+        offset += 1
+
+        guard version == formatVersion else {
+            throw BackupServiceError.unsupportedEncryptedVersion
+        }
+
+        guard data.count > offset else { throw BackupServiceError.corruptedBackup }
+        let saltCount = Int(data[offset])
+        offset += 1
+
+        guard data.count >= offset + saltCount + lengthSize else {
+            throw BackupServiceError.corruptedBackup
+        }
+
+        let salt = data.subdata(in: offset..<(offset + saltCount))
+        offset += saltCount
+
+        let lengthData = data.subdata(in: offset..<(offset + lengthSize))
+        offset += lengthSize
+        let combinedLength = Int(UInt32(bigEndian: lengthData.withUnsafeBytes { $0.load(as: UInt32.self) }))
+
+        guard data.count >= offset + combinedLength else {
+            throw BackupServiceError.corruptedBackup
+        }
+
+        let combined = data.subdata(in: offset..<(offset + combinedLength))
+        let key = deriveKey(password: password, salt: salt)
+
+        do {
+            let sealedBox = try AES.GCM.SealedBox(combined: combined)
+            let decrypted = try AES.GCM.open(sealedBox, using: key)
+            do {
+                return try (decrypted as NSData).decompressed(using: .zlib) as Data
+            } catch {
+                throw BackupServiceError.corruptedBackup
+            }
+        } catch let error as CryptoKitError {
+            switch error {
+            case .authenticationFailure:
+                throw BackupServiceError.invalidPasswordOrCorrupted
+            default:
+                throw BackupServiceError.corruptedBackup
+            }
+        } catch {
+            if let cocoaError = error as? CocoaError,
+               cocoaError.code == .fileReadCorruptFile || cocoaError.code == .coderInvalidValue {
+                throw BackupServiceError.corruptedBackup
+            }
+            throw BackupServiceError.corruptedBackup
+        }
+    }
+
+    private static func deriveKey(password: String, salt: Data) -> SymmetricKey {
+        let passwordKey = SymmetricKey(data: Data(password.utf8))
+        return HKDF<SHA256>.deriveKey(
+            inputKeyMaterial: passwordKey,
+            salt: salt,
+            info: hkdfInfo,
+            outputByteCount: 32
+        )
+    }
+
+    private static func randomData(length: Int) throws -> Data {
+        var data = Data(count: length)
+        let result = data.withUnsafeMutableBytes { buffer in
+            SecRandomCopyBytes(kSecRandomDefault, length, buffer.baseAddress!)
+        }
+        guard result == errSecSuccess else {
+            throw BackupServiceError.encryptionFailed
+        }
+        return data
+    }
 }

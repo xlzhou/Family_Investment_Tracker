@@ -1,6 +1,15 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+extension UTType {
+    static let fibackup: UTType = {
+        if let type = UTType(filenameExtension: "fibackup") {
+            return type
+        }
+        return .data
+    }()
+}
+
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var cloudKitService = CloudKitService.shared
@@ -12,7 +21,14 @@ struct SettingsView: View {
     @State private var isCreatingBackup = false
     @State private var backupURL: URL?
     @State private var showingBackupShareSheet = false
+    @State private var showingBackupPasswordPrompt = false
+    @State private var backupPassword = ""
+    @State private var backupPasswordError: String?
     @State private var showingRestoreImporter = false
+    @State private var showingRestorePasswordPrompt = false
+    @State private var restorePassword = ""
+    @State private var restorePasswordError: String?
+    @State private var pendingRestoreURL: URL?
     @State private var restoreMessage: String?
     @State private var isRestoring = false
     @State private var showRestoreAlert = false
@@ -226,7 +242,7 @@ struct SettingsView: View {
                 }
 
                 // Backup & Restore Section
-                Section(header: Text("Backup & Restore"), footer: Text("Create a full JSON backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.")) {
+                Section(header: Text("Backup & Restore"), footer: Text("Create a password-protected backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.")) {
                     Button(action: createBackup) {
                         HStack {
                             if isCreatingBackup {
@@ -469,6 +485,53 @@ struct SettingsView: View {
                 ShareSheet(activityItems: [backupURL])
             }
         }
+        .sheet(isPresented: $showingBackupPasswordPrompt) {
+            PasswordPromptView(
+                title: "Encrypt Backup",
+                message: "Enter a password to encrypt your backup file.",
+                password: $backupPassword,
+                errorMessage: backupPasswordError,
+                isProcessing: isCreatingBackup,
+                confirmTitle: "Create Backup",
+                onConfirm: {
+                    if backupPassword.isEmpty {
+                        backupPasswordError = BackupServiceError.emptyPassword.localizedDescription
+                        return
+                    }
+                    backupPasswordError = nil
+                    showingBackupPasswordPrompt = false
+                    performBackup(with: backupPassword)
+                },
+                onCancel: {
+                    showingBackupPasswordPrompt = false
+                    self.resetBackupPasswordState()
+                }
+            )
+        }
+        .sheet(isPresented: $showingRestorePasswordPrompt) {
+            PasswordPromptView(
+                title: "Decrypt Backup",
+                message: "Enter the password used when this backup was created.",
+                password: $restorePassword,
+                errorMessage: restorePasswordError,
+                isProcessing: isRestoring,
+                confirmTitle: "Restore Backup",
+                onConfirm: {
+                    guard let url = pendingRestoreURL else { return }
+                    if restorePassword.isEmpty {
+                        restorePasswordError = BackupServiceError.emptyPassword.localizedDescription
+                        return
+                    }
+                    restorePasswordError = nil
+                    showingRestorePasswordPrompt = false
+                    restoreBackup(from: url, password: restorePassword)
+                },
+                onCancel: {
+                    showingRestorePasswordPrompt = false
+                    self.resetRestorePasswordState(clearURL: true)
+                }
+            )
+        }
         .sheet(isPresented: $showingChangePassword) {
             ChangePasswordView()
         }
@@ -478,7 +541,7 @@ struct SettingsView: View {
         .sheet(isPresented: $showingMigration) {
             FixedDepositMigrationView()
         }
-        .fileImporter(isPresented: $showingRestoreImporter, allowedContentTypes: [.json]) { result in
+        .fileImporter(isPresented: $showingRestoreImporter, allowedContentTypes: [.json, .fibackup]) { result in
             switch result {
             case .success(let url):
                 restoreBackup(from: url)
@@ -575,30 +638,48 @@ struct SettingsView: View {
         guard !isCreatingBackup else { return }
         restoreMessage = nil
         restoreError = nil
+        resetBackupPasswordState()
+        showingBackupPasswordPrompt = true
+    }
+
+    private func performBackup(with password: String) {
+        guard !isCreatingBackup else { return }
+        restoreMessage = nil
+        restoreError = nil
         isCreatingBackup = true
+
+        let passwordToUse = password
 
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                let url = try BackupService.shared.createBackup(context: viewContext)
+                let url = try BackupService.shared.createBackup(context: viewContext, password: passwordToUse)
                 DispatchQueue.main.async {
                     backupURL = url
                     showingBackupShareSheet = true
                     isCreatingBackup = false
+                    self.resetBackupPasswordState()
                 }
             } catch {
                 DispatchQueue.main.async {
                     restoreError = "Backup failed: \(error.localizedDescription)"
                     isCreatingBackup = false
+                    self.resetBackupPasswordState()
                 }
             }
         }
     }
 
-    private func restoreBackup(from url: URL) {
+    private func restoreBackup(from url: URL, password: String? = nil) {
         guard !isRestoring else { return }
         restoreError = nil
         restoreMessage = nil
+        if password == nil {
+            resetRestorePasswordState(clearURL: false)
+        }
+        pendingRestoreURL = url
         isRestoring = true
+
+        let providedPassword = password
 
         DispatchQueue.global(qos: .userInitiated).async {
             let shouldStopAccess = url.startAccessingSecurityScopedResource()
@@ -609,16 +690,139 @@ struct SettingsView: View {
             }
 
             do {
-                try BackupService.shared.restoreBackup(from: url, context: viewContext)
+                try BackupService.shared.restoreBackup(from: url, context: viewContext, password: providedPassword)
                 DispatchQueue.main.async {
                     restoreMessage = "Restore completed on \(DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short))."
                     showRestoreAlert = true
                     isRestoring = false
+                    self.resetRestorePasswordState(clearURL: true)
+                }
+            } catch let serviceError as BackupServiceError {
+                DispatchQueue.main.async {
+                    handleRestoreServiceError(serviceError, for: url)
                 }
             } catch {
                 DispatchQueue.main.async {
                     restoreError = "Restore failed: \(error.localizedDescription)"
                     isRestoring = false
+                }
+            }
+        }
+    }
+
+    private func handleRestoreServiceError(_ error: BackupServiceError, for url: URL) {
+        switch error {
+        case .passwordRequired, .emptyPassword:
+            isRestoring = false
+            restorePassword = ""
+            restorePasswordError = nil
+            pendingRestoreURL = url
+            showingRestorePasswordPrompt = true
+        case .invalidPasswordOrCorrupted:
+            isRestoring = false
+            pendingRestoreURL = url
+            restorePasswordError = error.localizedDescription
+            showingRestorePasswordPrompt = true
+        case .corruptedBackup, .unsupportedEncryptedVersion, .encryptionFailed:
+            restoreError = "Restore failed: \(error.localizedDescription)"
+            isRestoring = false
+            self.resetRestorePasswordState(clearURL: true)
+        }
+    }
+
+    private func resetBackupPasswordState() {
+        backupPassword = ""
+        backupPasswordError = nil
+    }
+
+    private func resetRestorePasswordState(clearURL: Bool) {
+        restorePasswordError = nil
+        restorePassword = ""
+        if clearURL {
+            pendingRestoreURL = nil
+        }
+    }
+}
+
+struct PasswordPromptView: View {
+    let title: String
+    let message: String
+    @Binding var password: String
+    let errorMessage: String?
+    let isProcessing: Bool
+    let confirmTitle: String
+    let onConfirm: () -> Void
+    let onCancel: () -> Void
+
+    @State private var isPasswordVisible = false
+
+    var body: some View {
+        NavigationView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text(message)
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.leading)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    if isPasswordVisible {
+                        TextField("Password", text: $password)
+                            .textContentType(.password)
+                            .disableAutocorrection(true)
+                            .autocapitalization(.none)
+                    } else {
+                        SecureField("Password", text: $password)
+                            .textContentType(.password)
+                            .disableAutocorrection(true)
+                            .autocapitalization(.none)
+                    }
+
+                    Button(action: { isPasswordVisible.toggle() }) {
+                        Label(isPasswordVisible ? "Hide Password" : "Show Password", systemImage: isPasswordVisible ? "eye.slash" : "eye")
+                            .font(.caption)
+                    }
+                    .buttonStyle(.plain)
+
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    } else {
+                        Text("Password must contain at least one character.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                Button(action: onConfirm) {
+                    HStack {
+                        if isProcessing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        }
+                        Text(confirmTitle)
+                            .fontWeight(.semibold)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(password.isEmpty || isProcessing ? Color.gray : Color.blue)
+                    .cornerRadius(12)
+                }
+                .disabled(password.isEmpty || isProcessing)
+
+                Spacer()
+            }
+            .padding()
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        onCancel()
+                    }
+                    .disabled(isProcessing)
                 }
             }
         }
