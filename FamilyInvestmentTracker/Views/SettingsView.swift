@@ -24,6 +24,7 @@ struct SettingsView: View {
     @StateObject private var currencyService = CurrencyService.shared
     @State private var showAllExchangeRates = false
     @State private var showingChangePassword = false
+    @State private var showingSecurityQuestions = false
     @State private var showingMigration = false
     @State private var isRepairingRealizedGains = false
     @State private var realizedGainRepairMessage: String?
@@ -412,6 +413,30 @@ struct SettingsView: View {
                     }
 
                     Button(action: {
+                        showingSecurityQuestions = true
+                    }) {
+                        HStack {
+                            Image(systemName: "questionmark.circle")
+                                .foregroundColor(.blue)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Security Questions")
+                                    .foregroundColor(.primary)
+
+                                Text(authManager.hasSecurityQuestionsSetup() ? "Change security questions" : "Set up security questions for password recovery")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
+                    }
+
+                    Button(action: {
                         authManager.logout()
                     }) {
                         HStack {
@@ -446,6 +471,9 @@ struct SettingsView: View {
         }
         .sheet(isPresented: $showingChangePassword) {
             ChangePasswordView()
+        }
+        .sheet(isPresented: $showingSecurityQuestions) {
+            SecurityQuestionsManagementView(authManager: authManager, isPresented: $showingSecurityQuestions)
         }
         .sheet(isPresented: $showingMigration) {
             FixedDepositMigrationView()
