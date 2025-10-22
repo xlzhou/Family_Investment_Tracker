@@ -58,6 +58,12 @@
 		E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395737A13B277FC9BE5D744C /* Transaction+Identifier.swift */; };
 		E5595773ED24E0FEF64845E6 /* Institution+Cash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8702523FBFC6E22949A4646D /* Institution+Cash.swift */; };
 		E79764D12E990C850061C202 /* ActionCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79764D02E990C850061C202 /* ActionCalendarView.swift */; };
+		E797650B2EA87B710061C202 /* SecurityQuestionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E797650A2EA87B710061C202 /* SecurityQuestionManager.swift */; };
+		E79765102EA87BA10061C202 /* PasswordRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E797650D2EA87BA10061C202 /* PasswordRecoveryView.swift */; };
+		E79765112EA87BA10061C202 /* NewPasswordSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E797650C2EA87BA10061C202 /* NewPasswordSetupView.swift */; };
+		E79765122EA87BA10061C202 /* SecurityQuestionsRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E797650E2EA87BA10061C202 /* SecurityQuestionsRecoveryView.swift */; };
+		E79765132EA87BA10061C202 /* SecurityQuestionsSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E797650F2EA87BA10061C202 /* SecurityQuestionsSetupView.swift */; };
+		E79765152EA885EF0061C202 /* SecurityQuestionsManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E79765142EA885EF0061C202 /* SecurityQuestionsManagementView.swift */; };
 		E7C3DCF02E7E881900FC092A /* InstitutionAssetService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C3DCEF2E7E881900FC092A /* InstitutionAssetService.swift */; };
 		F5A6B7C8D9E00123456789AC /* RealizedPnLCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E00123456789AB /* RealizedPnLCalculator.swift */; };
 		F5A6B7C8D9E00123456789B2 /* RealizedGainRepairService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5A6B7C8D9E00123456789B1 /* RealizedGainRepairService.swift */; };
@@ -119,6 +125,12 @@
 		E4A1B2C3D4E5F60718293A4B /* TransactionImpactService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionImpactService.swift; sourceTree = "<group>"; };
 		E71634042E7BA470007ACEFC /* FamilyInvestmentTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FamilyInvestmentTracker.entitlements; sourceTree = "<group>"; };
 		E79764D02E990C850061C202 /* ActionCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionCalendarView.swift; sourceTree = "<group>"; };
+		E797650A2EA87B710061C202 /* SecurityQuestionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityQuestionManager.swift; sourceTree = "<group>"; };
+		E797650C2EA87BA10061C202 /* NewPasswordSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPasswordSetupView.swift; sourceTree = "<group>"; };
+		E797650D2EA87BA10061C202 /* PasswordRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordRecoveryView.swift; sourceTree = "<group>"; };
+		E797650E2EA87BA10061C202 /* SecurityQuestionsRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityQuestionsRecoveryView.swift; sourceTree = "<group>"; };
+		E797650F2EA87BA10061C202 /* SecurityQuestionsSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityQuestionsSetupView.swift; sourceTree = "<group>"; };
+		E79765142EA885EF0061C202 /* SecurityQuestionsManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityQuestionsManagementView.swift; sourceTree = "<group>"; };
 		E7C3DCEF2E7E881900FC092A /* InstitutionAssetService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstitutionAssetService.swift; sourceTree = "<group>"; };
 		EEA99CCF4E3B4F06AFD5C2F0 /* Portfolio+Cash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Portfolio+Cash.swift"; sourceTree = "<group>"; };
 		F4E3D2C1B0A9988776655443 /* InsurancePaymentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsurancePaymentService.swift; sourceTree = "<group>"; };
@@ -151,6 +163,7 @@
 		0720CC5B532342D6BAC2640D /* Authentication */ = {
 			isa = PBXGroup;
 			children = (
+				E797650A2EA87B710061C202 /* SecurityQuestionManager.swift */,
 				D2E87F551CE64C0EBE952816 /* AuthenticationManager.swift */,
 			);
 			path = Authentication;
@@ -179,6 +192,11 @@
 		7D43B96D75BD47048F5573E9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				E79765142EA885EF0061C202 /* SecurityQuestionsManagementView.swift */,
+				E797650C2EA87BA10061C202 /* NewPasswordSetupView.swift */,
+				E797650D2EA87BA10061C202 /* PasswordRecoveryView.swift */,
+				E797650E2EA87BA10061C202 /* SecurityQuestionsRecoveryView.swift */,
+				E797650F2EA87BA10061C202 /* SecurityQuestionsSetupView.swift */,
 				E79764D02E990C850061C202 /* ActionCalendarView.swift */,
 				A136EB05B9154DEDA208FC05 /* PortfolioSettingsView.swift */,
 				E05B1E5F2D334E2190922280 /* SettingsView.swift */,
@@ -364,10 +382,12 @@
 				54A8582A9FF64B02975C69C5 /* TransactionType.swift in Sources */,
 				58F2D75B45B147E8BF87850B /* Portfolio+Cash.swift in Sources */,
 				A0900C7229C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift in Sources */,
+				E79765152EA885EF0061C202 /* SecurityQuestionsManagementView.swift in Sources */,
 				E2BF2D84B7C1CE379A5EBC69 /* Transaction+Identifier.swift in Sources */,
 				1DD2EE3FF4AA5BB6CC778899 /* Transaction+Deposit.swift in Sources */,
 				C1D2E3F4A5B6978899CCDDF0 /* Transaction+CashDiscipline.swift in Sources */,
 				1AA2BB3CC4DD5EE6FF778899 /* Asset+Deposit.swift in Sources */,
+				E797650B2EA87B710061C202 /* SecurityQuestionManager.swift in Sources */,
 				1BB2CC3DD4EE5FF6AA778899 /* Asset+Identifier.swift in Sources */,
 				1CC2DD3EE4FF5AA6BB778899 /* Holding+Identifier.swift in Sources */,
 				842B620D08FA0D905EF77BE2 /* Transaction+RealizedGain.swift in Sources */,
@@ -379,6 +399,10 @@
 				B1E7E6EA5A0845AC94672E31 /* CurrencyService.swift in Sources */,
 				2AA3BB4CC5DD6EE7FF889900 /* CashBalanceService.swift in Sources */,
 				2CC3DD4EE5FF6AA7BB889900 /* FixedDepositService.swift in Sources */,
+				E79765102EA87BA10061C202 /* PasswordRecoveryView.swift in Sources */,
+				E79765112EA87BA10061C202 /* NewPasswordSetupView.swift in Sources */,
+				E79765122EA87BA10061C202 /* SecurityQuestionsRecoveryView.swift in Sources */,
+				E79765132EA87BA10061C202 /* SecurityQuestionsSetupView.swift in Sources */,
 				2BB3CC4DD5EE6FF7AA889900 /* FixedDepositMigrationService.swift in Sources */,
 				B5C6D7E8F90123456789ABCD /* TransactionImpactService.swift in Sources */,
 				B7F0E1C2D3B4456699AA0012 /* CashDisciplineService.swift in Sources */,

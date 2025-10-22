@@ -106,7 +106,6 @@ struct PortfolioListView: View {
         portfolios.reduce(0.0) { partial, portfolio in
             let ownCurrencyValue = portfolioTotalValueInOwnCurrency(portfolio)
             let fromCurrency = Currency(rawValue: portfolio.mainCurrency ?? dashboardSettings.dashboardCurrency.rawValue) ?? dashboardSettings.dashboardCurrency
-            dashboardSettings.ensureCurrencyIfUnset(fromCurrency)
             let converted = currencyService.convertAmount(ownCurrencyValue, from: fromCurrency, to: dashboardSettings.dashboardCurrency)
             return partial + converted
         }

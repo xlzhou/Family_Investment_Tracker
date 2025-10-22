@@ -3,6 +3,7 @@ import SwiftUI
 struct AuthenticationView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @State private var password = ""
+    @State private var showingSecurityQuestionsSetup = false
 
     var body: some View {
         VStack(spacing: 40) {
@@ -37,6 +38,8 @@ struct AuthenticationView: View {
                     PasswordEntryInterface()
                 case .temporarilyLocked:
                     LockoutInterface()
+                case .passwordRecovery:
+                    PasswordRecoveryView(authManager: authManager)
                 case .authenticated:
                     Text("Authenticated")
                         .foregroundColor(.green)
@@ -48,6 +51,15 @@ struct AuthenticationView: View {
         .padding()
         .onAppear {
             authManager.checkAuthenticationStatus()
+        }
+        .sheet(isPresented: $showingSecurityQuestionsSetup) {
+            SecurityQuestionsSetupView(
+                authManager: authManager,
+                isPresented: $showingSecurityQuestionsSetup,
+                onComplete: {
+                    // Security questions setup completed, continue with normal flow
+                }
+            )
         }
     }
 
@@ -102,6 +114,8 @@ struct AuthenticationView: View {
             Button(action: {
                 if authManager.setAppPassword(password) {
                     password = ""
+                    // Show security questions setup after password is set
+                    showingSecurityQuestionsSetup = true
                 }
             }) {
                 Text("Set Password")
@@ -182,6 +196,17 @@ struct AuthenticationView: View {
                     .background(Color.blue)
                     .cornerRadius(12)
                 }
+            }
+
+            // Forgot Password Button
+            // Always show during development/testing, or when recovery options are available
+            if authManager.isBiometricAvailable() || authManager.hasSecurityQuestionsSetup() || true {
+                Button("Forgot Password?") {
+                    authManager.startPasswordRecovery()
+                }
+                .font(.body)
+                .foregroundColor(.blue)
+                .padding(.top, 8)
             }
         }
         .padding(.horizontal, 40)

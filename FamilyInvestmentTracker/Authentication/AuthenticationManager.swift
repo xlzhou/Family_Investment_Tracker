@@ -9,6 +9,7 @@ enum AuthenticationState {
     case needsPasscodeSetup
     case needsAuthentication
     case temporarilyLocked
+    case passwordRecovery
 }
 
 class AuthenticationManager: ObservableObject {
@@ -22,6 +23,9 @@ class AuthenticationManager: ObservableObject {
     private var lastBackgroundTime: Date?
     private var statusRetryWorkItem: DispatchWorkItem?
     private var lastKnownPasswordPresence: PasswordPresence?
+
+    // Security Questions Manager
+    let securityQuestionManager = SecurityQuestionManager()
 
     private enum PasswordPresence {
         case present
@@ -164,6 +168,72 @@ class AuthenticationManager: ObservableObject {
             return false
         }
     }
+
+    // MARK: - Password Recovery
+
+    func startPasswordRecovery() {
+        authenticationState = .passwordRecovery
+        authenticationError = nil
+    }
+
+    func cancelPasswordRecovery() {
+        authenticationState = .needsAuthentication
+        authenticationError = nil
+    }
+
+    func recoverPasswordWithBiometrics(completion: @escaping (Bool) -> Void) {
+        let context = makeContext()
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
+            authenticationError = "Biometric authentication not available"
+            completion(false)
+            return
+        }
+
+        let reason = "Use \(getBiometricType()) to reset your passcode"
+
+        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] success, error in
+            DispatchQueue.main.async {
+                if success {
+                    self?.authenticationError = nil
+                    completion(true)
+                } else {
+                    self?.authenticationError = error?.localizedDescription ?? "Biometric authentication failed"
+                    completion(false)
+                }
+            }
+        }
+    }
+
+    func recoverPasswordWithSecurityQuestions(_ answers: [(questionId: String, answer: String)]) -> Bool {
+        if securityQuestionManager.verifySecurityQuestions(answers) {
+            authenticationError = nil
+            return true
+        } else {
+            authenticationError = "Incorrect answers to security questions"
+            return false
+        }
+    }
+
+    func resetPasswordAfterRecovery(_ newPassword: String) -> Bool {
+        // Reset password without requiring current password
+        if setPasswordDirectly(newPassword) {
+            authenticationState = .needsAuthentication
+            authenticationError = nil
+            lastKnownPasswordPresence = .present
+            return true
+        } else {
+            authenticationError = "Failed to reset passcode"
+            return false
+        }
+    }
+
+    func hasSecurityQuestionsSetup() -> Bool {
+        return securityQuestionManager.hasSecurityQuestionsSetup()
+    }
+
+    func getSecurityQuestionsForRecovery() -> [SecurityQuestion]? {
+        return securityQuestionManager.getSecurityQuestions()
+    }
     
     func logout() {
         isAuthenticated = false
@@ -295,6 +365,21 @@ class AuthenticationManager: ObservableObject {
     // MARK: - Private Keychain Methods
 
     private func setPassword(_ password: String) -> Bool {
+        let salt = generateSalt()
+        let hashedPassword = hashPassword(password, salt: salt)
+
+        let passwordStored = storeInKeychain(key: passwordKey, data: hashedPassword)
+        let saltStored = storeInKeychain(key: saltKey, data: salt)
+
+        if passwordStored && saltStored {
+            resetFailedAttempts()
+            return true
+        }
+        return false
+    }
+
+    // Set password directly without verification (for recovery)
+    private func setPasswordDirectly(_ password: String) -> Bool {
         let salt = generateSalt()
         let hashedPassword = hashPassword(password, salt: salt)
 
