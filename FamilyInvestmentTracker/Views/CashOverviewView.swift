@@ -6,10 +6,10 @@ struct CashOverviewView: View {
         case demandCash
         case fixedDeposits
 
-        var title: String {
+        func title(localizationManager: LocalizationManager) -> String {
             switch self {
-            case .demandCash: return "Demand Cash"
-            case .fixedDeposits: return "Fixed Deposits"
+            case .demandCash: return localizationManager.localizedString(for: "cashOverview.tabs.demandCash")
+            case .fixedDeposits: return localizationManager.localizedString(for: "cashOverview.tabs.fixedDeposits")
             }
         }
     }
@@ -18,6 +18,7 @@ struct CashOverviewView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
     @StateObject private var currencyService = CurrencyService.shared
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     @State private var selectedTab: Tab
 
@@ -104,11 +105,11 @@ struct CashOverviewView: View {
                 }
             }
             .listStyle(.insetGrouped)
-            .navigationTitle("Cash Management")
+            .navigationTitle(localizationManager.localizedString(for: "cashOverview.navigation.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") { dismiss() }
+                    Button(localizationManager.localizedString(for: "cashOverview.navigation.done")) { dismiss() }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -154,12 +155,12 @@ struct CashOverviewView: View {
                     loadFixedDeposits()
                 }
             }
-            .alert("Matured Fixed Deposits", isPresented: $showingMaturityAlert, presenting: maturityAlertDepositNames) { names in
-                Button("Review") {
+            .alert(localizationManager.localizedString(for: "cashOverview.fixedDeposits.maturityAlert.title"), isPresented: $showingMaturityAlert, presenting: maturityAlertDepositNames) { names in
+                Button(localizationManager.localizedString(for: "cashOverview.fixedDeposits.maturityAlert.review")) {
                     selectedTab = .fixedDeposits
                     showingMaturityAlert = false
                 }
-                Button("Dismiss", role: .cancel) {
+                Button(localizationManager.localizedString(for: "cashOverview.fixedDeposits.maturityAlert.dismiss"), role: .cancel) {
                     showingMaturityAlert = false
                 }
             } message: { names in
@@ -170,22 +171,22 @@ struct CashOverviewView: View {
 
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Overview")
+            Text(localizationManager.localizedString(for: "cashOverview.summary.overview"))
                 .font(.caption)
                 .foregroundColor(.secondary)
 
             VStack(alignment: .leading, spacing: 6) {
-                summaryRow(title: "Demand Cash",
+                summaryRow(title: localizationManager.localizedString(for: "cashOverview.tabs.demandCash"),
                            value: currencyService.formatAmount(totalDemandCash, in: mainCurrency),
                            highlighted: selectedTab == .demandCash)
 
-                summaryRow(title: "Fixed Deposits",
+                summaryRow(title: localizationManager.localizedString(for: "cashOverview.tabs.fixedDeposits"),
                            value: currencyService.formatAmount(totalFixedDepositValue, in: mainCurrency),
                            highlighted: selectedTab == .fixedDeposits)
 
                 Divider()
 
-                summaryRow(title: "Total Cash",
+                summaryRow(title: localizationManager.localizedString(for: "cashOverview.summary.totalCash"),
                            value: currencyService.formatAmount(grandTotalCash, in: mainCurrency),
                            highlighted: false,
                            weight: .semibold)
@@ -216,9 +217,9 @@ struct CashOverviewView: View {
     }
 
     private var tabPicker: some View {
-        Picker("Cash Type", selection: $selectedTab) {
-            Text(Tab.demandCash.title).tag(Tab.demandCash)
-            Text(Tab.fixedDeposits.title).tag(Tab.fixedDeposits)
+        Picker(localizationManager.localizedString(for: "cashOverview.tabs.pickerLabel"), selection: $selectedTab) {
+            Text(Tab.demandCash.title(localizationManager: localizationManager)).tag(Tab.demandCash)
+            Text(Tab.fixedDeposits.title(localizationManager: localizationManager)).tag(Tab.fixedDeposits)
         }
         .pickerStyle(.segmented)
         .listRowInsets(EdgeInsets())
@@ -233,11 +234,11 @@ struct CashOverviewView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.secondary)
 
-                    Text("No Cash Holdings")
+                    Text(localizationManager.localizedString(for: "cashOverview.demandCash.noCashTitle"))
                         .font(.title3)
                         .fontWeight(.medium)
 
-                    Text("Cash balances will appear here when you make deposit transactions.")
+                    Text(localizationManager.localizedString(for: "cashOverview.demandCash.noCashMessage"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -247,16 +248,16 @@ struct CashOverviewView: View {
                 .padding(.vertical, 24)
             }
         } else {
-            Section(header: Text("Cash by Institution & Currency")) {
+            Section(header: Text(localizationManager.localizedString(for: "cashOverview.demandCash.sectionHeader"))) {
                 ForEach(institutionsWithCash, id: \.0.objectID) { institutionData in
                     let (institution, currencyBalances, totalInMainCurrency) = institutionData
 
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(institution.name ?? "Unknown Institution")
+                                Text(institution.name ?? localizationManager.localizedString(for: "cashOverview.demandCash.unknownInstitution"))
                                     .font(.headline)
-                                Text("\(currencyBalances.count) " + (currencyBalances.count == 1 ? "currency" : "currencies"))
+                                Text("\(currencyBalances.count) " + (currencyBalances.count == 1 ? localizationManager.localizedString(for: "cashOverview.demandCash.currency") : localizationManager.localizedString(for: "cashOverview.demandCash.currencies")))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -267,7 +268,7 @@ struct CashOverviewView: View {
                                 Text(currencyService.formatAmountWithFullCurrency(totalInMainCurrency, in: mainCurrency))
                                     .font(.headline)
                                     .foregroundColor(totalInMainCurrency >= 0 ? .primary : .red)
-                                Text("Total")
+                                Text(localizationManager.localizedString(for: "cashOverview.demandCash.total"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -312,9 +313,9 @@ struct CashOverviewView: View {
                 }
             }
 
-            Section(footer: Text("Total cash is calculated by summing all institution cash balances.")) {
+            Section(footer: Text(localizationManager.localizedString(for: "cashOverview.demandCash.footer"))) {
                 HStack {
-                    Text("Total Cash")
+                    Text(localizationManager.localizedString(for: "cashOverview.demandCash.totalCash"))
                         .font(.headline)
                         .fontWeight(.semibold)
 
@@ -340,11 +341,11 @@ struct CashOverviewView: View {
                         .font(.system(size: 48))
                         .foregroundColor(.secondary)
 
-                    Text("No Fixed Deposits")
+                    Text(localizationManager.localizedString(for: "cashOverview.fixedDeposits.noDepositsTitle"))
                         .font(.title3)
                         .fontWeight(.medium)
 
-                    Text("Create your first fixed deposit to start earning guaranteed returns.")
+                    Text(localizationManager.localizedString(for: "cashOverview.fixedDeposits.noDepositsMessage"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -354,7 +355,7 @@ struct CashOverviewView: View {
             }
         } else {
             if !activeDeposits.isEmpty {
-                Section(header: Text("Active Fixed Deposits")) {
+                Section(header: Text(localizationManager.localizedString(for: "cashOverview.fixedDeposits.activeHeader"))) {
                     ForEach(activeDeposits, id: \.objectID) { deposit in
                         FixedDepositRowView(
                             deposit: deposit,
@@ -369,7 +370,7 @@ struct CashOverviewView: View {
             }
 
             if !maturedDeposits.isEmpty {
-                Section(header: Text("Matured Fixed Deposits")) {
+                Section(header: Text(localizationManager.localizedString(for: "cashOverview.fixedDeposits.maturedHeader"))) {
                     ForEach(maturedDeposits, id: \.objectID) { deposit in
                         FixedDepositRowView(
                             deposit: deposit,
@@ -459,6 +460,7 @@ struct CashBalanceEditSheet: View {
     let onSave: () -> Error?
 
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     @State private var amountInput: String
     @State private var validationMessage: String?
@@ -478,12 +480,12 @@ struct CashBalanceEditSheet: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Institution")) {
-                    Text(institution.name ?? "Unknown Institution")
+                Section(header: Text(localizationManager.localizedString(for: "cashOverview.editSheet.institutionHeader"))) {
+                    Text(institution.name ?? localizationManager.localizedString(for: "cashOverview.demandCash.unknownInstitution"))
                 }
 
-                Section(header: Text("Edit Balance(\(currency.rawValue) \(currency.symbol))".uppercased())) {
-                    TextField("Amount", text: $amountInput)
+                Section(header: Text("\(localizationManager.localizedString(for: "cashOverview.editSheet.balanceHeader"))(\(currency.rawValue) \(currency.symbol))".uppercased())) {
+                    TextField(localizationManager.localizedString(for: "cashOverview.editSheet.amountPlaceholder"), text: $amountInput)
                         .keyboardType(.decimalPad)
                         .focused($amountFieldFocused)
                 }
@@ -495,17 +497,17 @@ struct CashBalanceEditSheet: View {
                     }
                 }
             }
-            .navigationTitle("\(currency.displayName) Cash")
+            .navigationTitle("\(currency.displayName) \(localizationManager.localizedString(for: "cashOverview.editSheet.cashTitle"))")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "cashOverview.editSheet.cancel")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
+                    Button(localizationManager.localizedString(for: "cashOverview.editSheet.save")) {
                         persistChanges()
                     }
                 }
@@ -523,7 +525,7 @@ struct CashBalanceEditSheet: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let value = Double(sanitizedInput), value.isFinite else {
-            validationMessage = "Please enter a valid number."
+            validationMessage = localizationManager.localizedString(for: "cashOverview.editSheet.validationError")
             return
         }
 
@@ -532,7 +534,7 @@ struct CashBalanceEditSheet: View {
         currencyBalance.amountSafe = roundedValue
 
         if let error = onSave() {
-            validationMessage = "Failed to save changes: \(error.localizedDescription)"
+            validationMessage = "\(localizationManager.localizedString(for: "cashOverview.editSheet.saveError")) \(error.localizedDescription)"
             return
         }
 

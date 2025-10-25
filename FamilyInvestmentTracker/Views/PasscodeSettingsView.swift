@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PasscodeSettingsView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Environment(\.dismiss) private var dismiss
     @State private var showingChangePasscode = false
     @State private var showingRemovePasscode = false
@@ -10,14 +11,14 @@ struct PasscodeSettingsView: View {
         NavigationView {
             List {
                 // Security Status Section
-                Section(header: Text("Security Status")) {
+                Section(header: Text(localizationManager.localizedString(for: "passcodeSettings.securityStatus"))) {
                     HStack {
                         Image(systemName: "lock.shield.fill")
                             .foregroundColor(.green)
                         VStack(alignment: .leading) {
-                            Text("App Passcode")
+                            Text(localizationManager.localizedString(for: "passcodeSettings.appPasscode"))
                                 .font(.headline)
-                            Text("Enabled")
+                            Text(localizationManager.localizedString(for: "passcodeSettings.enabled"))
                                 .font(.caption)
                                 .foregroundColor(.green)
                         }
@@ -31,7 +32,7 @@ struct PasscodeSettingsView: View {
                             VStack(alignment: .leading) {
                                 Text(authManager.getBiometricType())
                                     .font(.headline)
-                                Text("Available")
+                                Text(localizationManager.localizedString(for: "passcodeSettings.available"))
                                     .font(.caption)
                                     .foregroundColor(.blue)
                             }
@@ -41,14 +42,14 @@ struct PasscodeSettingsView: View {
                 }
 
                 // Security Actions Section
-                Section(header: Text("Passcode Management")) {
+                Section(header: Text(localizationManager.localizedString(for: "passcodeSettings.passcodeManagement"))) {
                     Button(action: {
                         showingChangePasscode = true
                     }) {
                         HStack {
                             Image(systemName: "key.horizontal")
                                 .foregroundColor(.blue)
-                            Text("Change Passcode")
+                            Text(localizationManager.localizedString(for: "passcodeSettings.changePasscode"))
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.gray)
@@ -62,7 +63,7 @@ struct PasscodeSettingsView: View {
                         HStack {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
-                            Text("Remove Passcode")
+                            Text(localizationManager.localizedString(for: "passcodeSettings.removePasscode"))
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.gray)
@@ -73,12 +74,12 @@ struct PasscodeSettingsView: View {
                 }
 
                 // Security Information Section
-                Section(header: Text("Security Information")) {
+                Section(header: Text(localizationManager.localizedString(for: "passcodeSettings.securityInformation"))) {
                     let failedAttempts = authManager.getFailedAttempts()
                     HStack {
                         Image(systemName: "exclamationmark.triangle")
                             .foregroundColor(failedAttempts > 0 ? .orange : .gray)
-                        Text("Failed Attempts")
+                        Text(localizationManager.localizedString(for: "passcodeSettings.failedAttempts"))
                         Spacer()
                         Text("\(failedAttempts)")
                             .foregroundColor(failedAttempts > 0 ? .orange : .secondary)
@@ -88,14 +89,14 @@ struct PasscodeSettingsView: View {
                         HStack {
                             Image(systemName: "info.circle")
                                 .foregroundColor(.blue)
-                            Text("Security Policy")
+                            Text(localizationManager.localizedString(for: "passcodeSettings.securityPolicy"))
                                 .font(.headline)
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• 3-4 failed attempts: 1 minute lockout")
-                            Text("• 5-6 failed attempts: 5 minute lockout")
-                            Text("• 7+ failed attempts: 15 minute lockout")
+                            Text(localizationManager.localizedString(for: "passcodeSettings.lockoutPolicy1"))
+                            Text(localizationManager.localizedString(for: "passcodeSettings.lockoutPolicy2"))
+                            Text(localizationManager.localizedString(for: "passcodeSettings.lockoutPolicy3"))
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -104,11 +105,11 @@ struct PasscodeSettingsView: View {
                     .padding(.vertical, 5)
                 }
             }
-            .navigationTitle("Passcode Settings")
+            .navigationTitle(localizationManager.localizedString(for: "passcodeSettings.navigationTitle"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(localizationManager.localizedString(for: "passcodeSettings.done")) {
                         dismiss()
                     }
                 }
@@ -125,6 +126,7 @@ struct PasscodeSettingsView: View {
 
 struct ChangePasscodeView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Environment(\.dismiss) private var dismiss
     @State private var currentPasscode = ""
     @State private var newPasscode = ""
@@ -187,11 +189,11 @@ struct ChangePasscodeView: View {
 
                 Spacer()
             }
-            .navigationTitle("Change Passcode")
+            .navigationTitle(localizationManager.localizedString(for: "changePasscode.navigationTitle"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "changePasscode.cancel")) {
                         dismiss()
                     }
                 }
@@ -201,25 +203,25 @@ struct ChangePasscodeView: View {
 
     private var stepTitle: String {
         switch step {
-        case .current: return "Current Passcode"
-        case .new: return "New Passcode"
-        case .confirm: return "Confirm Passcode"
+        case .current: return localizationManager.localizedString(for: "changePasscode.currentPasscode")
+        case .new: return localizationManager.localizedString(for: "changePasscode.newPasscode")
+        case .confirm: return localizationManager.localizedString(for: "changePasscode.confirmPasscode")
         }
     }
 
     private var stepDescription: String {
         switch step {
-        case .current: return "Enter your current passcode"
-        case .new: return "Enter your new passcode (4-6 digits)"
-        case .confirm: return "Confirm your new passcode"
+        case .current: return localizationManager.localizedString(for: "changePasscode.enterCurrent")
+        case .new: return localizationManager.localizedString(for: "changePasscode.enterNew")
+        case .confirm: return localizationManager.localizedString(for: "changePasscode.confirmNew")
         }
     }
 
     private var stepPlaceholder: String {
         switch step {
-        case .current: return "Current Passcode"
-        case .new: return "New Passcode"
-        case .confirm: return "Confirm Passcode"
+        case .current: return localizationManager.localizedString(for: "changePasscode.currentPasscode")
+        case .new: return localizationManager.localizedString(for: "changePasscode.newPasscode")
+        case .confirm: return localizationManager.localizedString(for: "changePasscode.confirmPasscode")
         }
     }
 
@@ -233,9 +235,9 @@ struct ChangePasscodeView: View {
 
     private var stepButtonTitle: String {
         switch step {
-        case .current: return "Continue"
-        case .new: return "Continue"
-        case .confirm: return "Change Passcode"
+        case .current: return localizationManager.localizedString(for: "changePasscode.continue")
+        case .new: return localizationManager.localizedString(for: "changePasscode.continue")
+        case .confirm: return localizationManager.localizedString(for: "changePasscode.changeButton")
         }
     }
 
@@ -260,7 +262,7 @@ struct ChangePasscodeView: View {
                 step = .new
                 error = nil
             } else {
-                error = "Incorrect current passcode"
+                error = localizationManager.localizedString(for: "changePasscode.errorIncorrect")
             }
 
         case .new:
@@ -272,7 +274,7 @@ struct ChangePasscodeView: View {
             if authManager.changeAppPasscode(currentPasscode: currentPasscode, newPasscode: newPasscode) {
                 dismiss()
             } else {
-                error = authManager.authenticationError ?? "Failed to change passcode"
+                error = authManager.authenticationError ?? localizationManager.localizedString(for: "changePasscode.errorFailed")
             }
         }
     }
@@ -280,6 +282,7 @@ struct ChangePasscodeView: View {
 
 struct RemovePasscodeView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Environment(\.dismiss) private var dismiss
     @State private var currentPasscode = ""
     @State private var error: String?
@@ -294,11 +297,11 @@ struct RemovePasscodeView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.red)
 
-                    Text("Remove Passcode")
+                    Text(localizationManager.localizedString(for: "removePasscode.title"))
                         .font(.largeTitle)
                         .fontWeight(.bold)
 
-                    Text("Enter your current passcode to remove app security")
+                    Text(localizationManager.localizedString(for: "removePasscode.subtitle"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -307,7 +310,7 @@ struct RemovePasscodeView: View {
                 Spacer()
 
                 VStack(spacing: 20) {
-                    SecureField("Current Passcode", text: $currentPasscode)
+                    SecureField(localizationManager.localizedString(for: "removePasscode.currentPasscode"), text: $currentPasscode)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .keyboardType(.numberPad)
 
@@ -319,7 +322,7 @@ struct RemovePasscodeView: View {
 
                     VStack(spacing: 10) {
                         Button(action: removePasscode) {
-                            Text("Remove Passcode")
+                            Text(localizationManager.localizedString(for: "removePasscode.removeButton"))
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -329,7 +332,7 @@ struct RemovePasscodeView: View {
                         }
                         .disabled(!isValid)
 
-                        Text("Warning: Removing passcode will make your data less secure")
+                        Text(localizationManager.localizedString(for: "removePasscode.warning"))
                             .font(.caption)
                             .foregroundColor(.orange)
                             .multilineTextAlignment(.center)
@@ -339,11 +342,11 @@ struct RemovePasscodeView: View {
 
                 Spacer()
             }
-            .navigationTitle("Remove Passcode")
+            .navigationTitle(localizationManager.localizedString(for: "removePasscode.navigationTitle"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "removePasscode.cancel")) {
                         dismiss()
                     }
                 }
@@ -359,7 +362,7 @@ struct RemovePasscodeView: View {
         if authManager.removeAppPasscode(currentPasscode: currentPasscode) {
             dismiss()
         } else {
-            error = authManager.authenticationError ?? "Failed to remove passcode"
+            error = authManager.authenticationError ?? localizationManager.localizedString(for: "removePasscode.errorFailed")
         }
     }
 }
@@ -367,4 +370,5 @@ struct RemovePasscodeView: View {
 #Preview {
     PasscodeSettingsView()
         .environmentObject(AuthenticationManager())
+        .environmentObject(LocalizationManager.shared)
 }

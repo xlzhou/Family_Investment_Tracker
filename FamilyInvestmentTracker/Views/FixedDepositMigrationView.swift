@@ -4,6 +4,7 @@ import CoreData
 struct FixedDepositMigrationView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     @State private var migrationSummary: MigrationSummary?
     @State private var isPerformingMigration = false
@@ -22,11 +23,11 @@ struct FixedDepositMigrationView: View {
                 }
             }
             .padding()
-            .navigationTitle("Fixed Deposit Enhancement")
+            .navigationTitle(localizationManager.localizedString(for: "fixedDepositMigration.navigation.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Reset") {
+                    Button(localizationManager.localizedString(for: "fixedDepositMigration.navigation.reset")) {
                         // Reset migration status for testing
                         FixedDepositMigrationService.shared.resetMigrationStatus()
                         dismiss()
@@ -34,7 +35,7 @@ struct FixedDepositMigrationView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Skip") {
+                    Button(localizationManager.localizedString(for: "fixedDepositMigration.navigation.skip")) {
                         // Perform automatic migration and close
                         performAutomaticMigration()
                     }
@@ -52,7 +53,7 @@ struct FixedDepositMigrationView: View {
             ProgressView()
                 .scaleEffect(1.2)
 
-            Text("Analyzing your deposit assets...")
+            Text(localizationManager.localizedString(for: "fixedDepositMigration.loading.analyzing"))
                 .font(.headline)
                 .foregroundColor(.secondary)
         }
@@ -64,16 +65,16 @@ struct FixedDepositMigrationView: View {
                 .font(.system(size: 64))
                 .foregroundColor(.green)
 
-            Text("Migration Complete!")
+            Text(localizationManager.localizedString(for: "fixedDepositMigration.completed.title"))
                 .font(.title)
                 .fontWeight(.bold)
 
-            Text("Your deposit assets have been successfully updated to use the new fixed deposit system.")
+            Text(localizationManager.localizedString(for: "fixedDepositMigration.completed.description"))
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
 
-            Button("Continue") {
+            Button(localizationManager.localizedString(for: "fixedDepositMigration.completed.continue")) {
                 dismiss()
             }
             .buttonStyle(.borderedProminent)
@@ -86,62 +87,62 @@ struct FixedDepositMigrationView: View {
             VStack(alignment: .leading, spacing: 20) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Enhanced Fixed Deposit Support")
+                    Text(localizationManager.localizedString(for: "fixedDepositMigration.header.title"))
                         .font(.title2)
                         .fontWeight(.bold)
 
-                    Text("We've improved how the app handles fixed deposits! Your existing deposit transactions will remain as cash deposits. You can now create dedicated fixed deposits using the new system.")
+                    Text(localizationManager.localizedString(for: "fixedDepositMigration.header.description"))
                         .font(.body)
                         .foregroundColor(.secondary)
                 }
 
                 // What's New Section
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("What's New")
+                    Text(localizationManager.localizedString(for: "fixedDepositMigration.whatsNew.title"))
                         .font(.headline)
 
                     VStack(alignment: .leading, spacing: 8) {
                         FeatureRow(
                             icon: "lock.circle.fill",
-                            title: "Fixed Deposit Tracking",
-                            description: "Properly track time-locked deposits separate from available cash"
+                            title: localizationManager.localizedString(for: "fixedDepositMigration.feature.tracking.title"),
+                            description: localizationManager.localizedString(for: "fixedDepositMigration.feature.tracking.description")
                         )
 
                         FeatureRow(
                             icon: "percent",
-                            title: "Interest Rate Tracking",
-                            description: "Track interest rates and maturity dates for fixed deposits"
+                            title: localizationManager.localizedString(for: "fixedDepositMigration.feature.interestRate.title"),
+                            description: localizationManager.localizedString(for: "fixedDepositMigration.feature.interestRate.description")
                         )
 
                         FeatureRow(
                             icon: "calendar.circle.fill",
-                            title: "Maturity Management",
-                            description: "Get notified when your fixed deposits mature"
+                            title: localizationManager.localizedString(for: "fixedDepositMigration.feature.maturity.title"),
+                            description: localizationManager.localizedString(for: "fixedDepositMigration.feature.maturity.description")
                         )
 
                         FeatureRow(
                             icon: "arrow.up.circle.fill",
-                            title: "Early Withdrawal Support",
-                            description: "Handle early withdrawals with penalty tracking"
+                            title: localizationManager.localizedString(for: "fixedDepositMigration.feature.earlyWithdrawal.title"),
+                            description: localizationManager.localizedString(for: "fixedDepositMigration.feature.earlyWithdrawal.description")
                         )
                     }
                 }
 
                 // Migration Summary
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Migration Summary")
+                    Text(localizationManager.localizedString(for: "fixedDepositMigration.summary.title"))
                         .font(.headline)
 
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("Total deposit assets to update:")
+                            Text(localizationManager.localizedString(for: "fixedDepositMigration.summary.totalAssets"))
                             Spacer()
                             Text("\(summary.totalAssetsToMigrate)")
                                 .fontWeight(.semibold)
                         }
 
                         HStack {
-                            Text("Likely fixed deposits:")
+                            Text(localizationManager.localizedString(for: "fixedDepositMigration.summary.fixedDeposits"))
                             Spacer()
                             Text("\(summary.fixedDepositCandidates)")
                                 .fontWeight(.semibold)
@@ -149,7 +150,7 @@ struct FixedDepositMigrationView: View {
                         }
 
                         HStack {
-                            Text("Likely demand deposits:")
+                            Text(localizationManager.localizedString(for: "fixedDepositMigration.summary.demandDeposits"))
                             Spacer()
                             Text("\(summary.demandDepositCandidates)")
                                 .fontWeight(.semibold)
@@ -164,11 +165,11 @@ struct FixedDepositMigrationView: View {
                 // Suggestions
                 if !summary.suggestions.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Suggested Actions")
+                        Text(localizationManager.localizedString(for: "fixedDepositMigration.suggestions.title"))
                             .font(.headline)
 
                         ForEach(Array(summary.suggestions.enumerated()), id: \.offset) { index, suggestion in
-                            SuggestionRow(suggestion: suggestion)
+                            SuggestionRow(suggestion: suggestion, localizationManager: localizationManager)
                         }
                     }
                 }
@@ -186,7 +187,7 @@ struct FixedDepositMigrationView: View {
                             } else {
                                 Image(systemName: "wand.and.stars")
                             }
-                            Text(isPerformingMigration ? "Enabling..." : "Enable Fixed Deposits")
+                            Text(isPerformingMigration ? localizationManager.localizedString(for: "fixedDepositMigration.button.enabling") : localizationManager.localizedString(for: "fixedDepositMigration.button.enable"))
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -196,7 +197,7 @@ struct FixedDepositMigrationView: View {
                     }
                     .disabled(isPerformingMigration)
 
-                    Text("This will enable the new fixed deposit features. Your existing deposit transactions will remain unchanged as cash deposits.")
+                    Text(localizationManager.localizedString(for: "fixedDepositMigration.button.description"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -238,7 +239,7 @@ struct FixedDepositMigrationView: View {
             } catch {
                 DispatchQueue.main.async {
                     self.isPerformingMigration = false
-                    self.errorMessage = "Migration failed: \(error.localizedDescription)"
+                    self.errorMessage = String(format: self.localizationManager.localizedString(for: "fixedDepositMigration.error.migrationFailed"), error.localizedDescription)
                 }
             }
         }
@@ -274,15 +275,16 @@ struct FeatureRow: View {
 
 struct SuggestionRow: View {
     let suggestion: MigrationSuggestion
+    let localizationManager: LocalizationManager
 
     private var actionDescription: String {
         switch suggestion.action {
         case .convertToFixedDeposit(let months, let rate, _):
-            return "Convert to \(months)-month fixed deposit (\(String(format: "%.1f", rate))% interest)"
+            return String(format: localizationManager.localizedString(for: "fixedDepositMigration.suggestion.convertToFixed"), months, rate)
         case .convertToDemandDeposit:
-            return "Keep as demand deposit"
+            return localizationManager.localizedString(for: "fixedDepositMigration.suggestion.convertToDemand")
         case .requiresManualReview:
-            return "Requires manual review"
+            return localizationManager.localizedString(for: "fixedDepositMigration.suggestion.manualReview")
         }
     }
 
@@ -299,7 +301,7 @@ struct SuggestionRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(suggestion.asset.name ?? suggestion.asset.symbol ?? "Unknown Asset")
+                Text(suggestion.asset.name ?? suggestion.asset.symbol ?? localizationManager.localizedString(for: "fixedDepositMigration.suggestion.unknownAsset"))
                     .font(.subheadline)
                     .fontWeight(.semibold)
 

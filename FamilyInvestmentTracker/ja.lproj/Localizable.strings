@@ -1,0 +1,847 @@
+"app.title" = "ファミリー投資トラッカー";
+"app.subtitle" = "ご家族の投資ポートフォリオに安全にアクセスします";
+"auth.enterPassword" = "パスワードを入力";
+"auth.unlock" = "ロック解除";
+"auth.biometric.use" = "%@ を使用";
+"auth.setPassword" = "パスワードを設定";
+"auth.passwordStrength" = "パスワード強度:";
+"auth.passwordRequirement.length" = "• 8文字以上必須";
+"auth.passwordRequirement.complexity" = "• 英字・数字・記号を含めてください";
+"auth.status.authenticated" = "認証済み";
+"auth.biometric.fallback" = "パスコードを使用";
+"auth.error.biometricUnavailable" = "生体認証を利用できません";
+"auth.biometric.reason" = "投資ポートフォリオへアクセスするために認証してください";
+"auth.error.generic" = "認証に失敗しました";
+"auth.error.tooManyAttemptsWait" = "失敗回数が多すぎます。しばらくしてから再試行してください。";
+"auth.error.incorrectPasscode" = "パスコードが正しくありません";
+"auth.error.lockedMinutes" = "失敗回数が多すぎます。%d 分後に再試行してください。";
+"auth.error.setPasscodeFailed" = "パスコードの設定に失敗しました";
+"auth.error.currentPasscodeIncorrect" = "現在のパスコードが正しくありません";
+"auth.error.removePasscodeFailed" = "パスコードの削除に失敗しました";
+"auth.biometric.reason.reset" = "%@ を使用してパスコードをリセットしてください";
+"auth.error.biometricFailed" = "生体認証に失敗しました";
+"auth.error.securityQuestionsIncorrect" = "セキュリティ質問の回答が正しくありません";
+"auth.error.resetPasscodeFailed" = "パスコードのリセットに失敗しました";
+"auth.biometric.faceID" = "Face ID";
+"auth.biometric.touchID" = "Touch ID";
+"auth.biometric.opticID" = "Optic ID";
+"auth.biometric.generic" = "生体認証";
+"auth.setupTitle" = "アプリのパスワードを設定";
+"auth.createPasswordPlaceholder" = "パスワードを作成";
+"auth.passwordPlaceholder" = "パスワード";
+"auth.forgotPassword" = "パスワードをお忘れですか？";
+"auth.locked.title" = "アカウントがロックされています";
+"auth.locked.subtitle" = "失敗回数が多すぎます";
+"auth.locked.remaining" = "残り時間: %@";
+"auth.passwordStrength.tooWeak" = "非常に弱い";
+"auth.passwordStrength.weak" = "弱い";
+"auth.passwordStrength.fair" = "ふつう";
+"auth.passwordStrength.good" = "良い";
+"auth.passwordStrength.strong" = "強い";
+"settings.restore.success" = "データは正常に復元されました。";
+"settings.restore.title" = "復元が完了しました";
+"settings.language.sectionTitle" = "アプリの言語";
+"settings.language.sectionFooter" = "アプリで使用する言語を選ぶか、システムのデフォルトを使用してください。";
+"settings.language.pickerLabel" = "言語";
+"settings.language.option.system" = "システムのデフォルト";
+"settings.language.option.en" = "英語";
+"settings.language.option.zh-Hant" = "繁体字中国語";
+"settings.language.option.ja" = "日本語";
+"settings.language.option.es" = "スペイン語";
+"settings.language.restart.title" = "言語変更";
+"settings.language.restart.message" = "アプリの言語がすぐに変更されます。";
+"settings.language.restart.cancel" = "キャンセル";
+"settings.language.restart.confirm" = "変更を適用";
+"holdings.summary.count" = "%@";
+"common.ok" = "OK";
+"common.cancel" = "キャンセル";
+"common.done" = "完了";
+"common.save" = "保存";
+"cashDiscipline.qty" = "数量 %@";
+"cashDiscipline.price" = "価格 %@";
+"cashDiscipline.fees" = "手数料 %@";
+"cashDiscipline.tax" = "税金 %@";
+"cashDiscipline.settlement" = "決済 %@";
+"cashDiscipline.date" = "日付 %@";
+"transaction.type.buy" = "買い";
+"transaction.type.sell" = "売り";
+"transaction.type.dividend" = "配当";
+"transaction.type.interest" = "利息";
+"transaction.type.insurance" = "保険";
+"transaction.type.depositWithdrawal" = "入出金";
+"transaction.type.deposit" = "入金";
+"transaction.type.withdrawal" = "出金";
+"asset.type.stock" = "株式";
+"asset.type.etf" = "ETF";
+"asset.type.bond" = "債券";
+"asset.type.mutualFund" = "投資信託";
+"asset.type.deposit" = "預入";
+"asset.type.cryptocurrency" = "暗号資産";
+"asset.type.preciousMetal" = "貴金属";
+"asset.type.insurance" = "保険";
+"asset.type.structuredProduct" = "構造化商品";
+"asset.type.other" = "その他";
+
+// Settings View Localization
+"settings.title" = "設定";
+"settings.profile.title" = "プロフィール";
+"settings.profile.footer" = "この名前は、ポートフォリオを共有する際に家族に表示されます。";
+"settings.profile.displayName" = "表示名";
+"settings.dashboard.title" = "ダッシュボード";
+"settings.dashboard.footer" = "投資ポートフォリオビューの合計に使用する通貨を選択してください。";
+"settings.dashboard.summaryCurrency" = "集計通貨";
+"settings.exchangeRates.title" = "通貨レート";
+"settings.exchangeRates.footer" = "リアルタイムの為替レートはYahoo Finance APIから取得され、オフライン使用のためにローカルにキャッシュされます。";
+"settings.exchangeRates.label" = "為替レート";
+"settings.exchangeRates.updating" = "更新中...";
+"settings.exchangeRates.updated" = "更新済み %@";
+"settings.exchangeRates.noData" = "データなし";
+"settings.exchangeRates.from" = "%@ から";
+"settings.icloud.title" = "iCloud同期";
+"settings.icloud.footer" = "iCloudを使用して、すべてのデバイス間でポートフォリオデータを安全に同期します。";
+"settings.icloud.sync" = "iCloud同期";
+"settings.icloud.enabled" = "有効";
+"settings.icloud.available" = "利用可能";
+"settings.icloud.notAvailable" = "利用不可";
+"settings.icloud.lastSync" = "最終同期";
+"settings.icloud.never" = "なし";
+"settings.icloud.syncNow" = "今すぐ同期";
+"settings.backup.title" = "バックアップと復元";
+"settings.backup.footer" = "すべてのポートフォリオ、取引、保有、機関のパスワード保護されたバックアップを作成するか、以前のバックアップから復元します。";
+"settings.backup.creating" = "バックアップ作成中...";
+"settings.backup.create" = "完全バックアップを作成";
+"settings.backup.restoring" = "バックアップ復元中...";
+"settings.backup.restore" = "バックアップから復元";
+"settings.migration.fdMigration" = "定期預金移行を開始";
+"settings.migration.rebuildGains" = "実現損益を再構築";
+"settings.migration.rebuilding" = "実現損益再構築中...";
+"settings.migration.linkCompanions" = "レガシー定期預金コンパニオンをリンク";
+"settings.migration.linking" = "コンパニオン取引をリンク中...";
+"settings.export.title" = "データエクスポート";
+"settings.export.footer" = "バックアップや分析のためにポートフォリオデータをエクスポートします。";
+"settings.export.button" = "ポートフォリオデータをエクスポート";
+"settings.info.title" = "アプリ情報";
+"settings.info.version" = "バージョン";
+"settings.info.build" = "ビルド";
+"settings.security.title" = "セキュリティ";
+"settings.security.changePassword" = "パスワード変更";
+"settings.security.securityQuestions" = "セキュリティ質問";
+"settings.security.questionsChange" = "セキュリティ質問を変更";
+"settings.security.questionsSetup" = "パスワード復旧用のセキュリティ質問を設定";
+"settings.security.signOut" = "サインアウト";
+"settings.password.requirement" = "パスワードには少なくとも1文字が必要です。";
+"settings.password.change" = "パスワード変更";
+"settings.password.requirements.length" = "• 最低8文字";
+"settings.password.requirements.complexity" = "• 英字、数字、特殊文字を含む";
+
+// Action Calendar View Localization
+"actionCalendar.title" = "アクションカレンダー";
+"actionCalendar.actionsFor" = "%@のアクション";
+"actionCalendar.noActionsFor" = "%@にスケジュールされたアクションはありません";
+"actionCalendar.thisMonth" = "今月";
+"actionCalendar.upcomingActions" = "今後のアクション";
+"actionCalendar.fixedDepositMaturity" = "定期預金満期";
+"actionCalendar.bondMaturity" = "債券満期";
+"actionCalendar.structuredProductMaturity" = "構造化商品満期";
+"actionCalendar.insuranceMaturity" = "保険満期";
+"actionCalendar.maturityDate" = "満期日";
+"actionCalendar.premiumPaymentDue" = "保険料支払期限";
+"actionCalendar.insuranceBenefitRedemption" = "保険給付金償還";
+
+// Add Fixed Deposit View Localization
+"addFixedDeposit.title" = "定期預金を追加";
+"addFixedDeposit.institution" = "金融機関";
+"addFixedDeposit.selectInstitution" = "金融機関を選択";
+"addFixedDeposit.details" = "定期預金詳細";
+"addFixedDeposit.currency" = "通貨";
+"addFixedDeposit.valueDate" = "預入日";
+"addFixedDeposit.term" = "期間";
+"addFixedDeposit.year" = "年";
+"addFixedDeposit.years" = "年";
+"addFixedDeposit.month" = "ヶ月";
+"addFixedDeposit.months" = "ヶ月";
+"addFixedDeposit.interestRate" = "金利 (%)";
+"addFixedDeposit.maturityDate" = "満期日";
+"addFixedDeposit.depositName" = "預金名";
+"addFixedDeposit.symbol" = "シンボル (自動生成)";
+"addFixedDeposit.amount" = "金額";
+"addFixedDeposit.options" = "オプション";
+"addFixedDeposit.allowEarlyWithdrawal" = "中途解約を許可";
+"addFixedDeposit.create" = "作成";
+"addFixedDeposit.insufficientCash" = "現金不足";
+"addFixedDeposit.selectedInstitution" = "選択した金融機関";
+"addFixedDeposit.insufficientCashMessage" = "%@ 利用可能: %@\n必要: %@\n\n定期預金作成時に現金を差し引かない場合は、ポートフォリオ設定で「現金統制を適用」をオフにしてください。";
+"addFixedDeposit.invalidInput" = "無効な入力値";
+"addFixedDeposit.creationFailed" = "定期預金の作成に失敗: %@";
+
+// Institution Picker View Localization
+"institutionPicker.title" = "金融機関を選択";
+"institutionPicker.selectInstitution" = "金融機関を選択";
+"institutionPicker.unknownInstitution" = "不明な金融機関";
+"institutionPicker.addNew" = "新しい金融機関を追加";
+"institutionPicker.addInstitution" = "金融機関を追加";
+"institutionPicker.institutionName" = "金融機関名";
+"institutionPicker.add" = "追加";
+
+// Add Portfolio View Localization
+"addPortfolio.title" = "ポートフォリオを追加";
+"addPortfolio.details" = "ポートフォリオの詳細";
+"addPortfolio.portfolioName" = "ポートフォリオ名";
+"addPortfolio.description" = "家族のメンバーや投資戦略ごとに別々のポートフォリオを作成できます。";
+
+// Add Transaction View Localization
+"addTransaction.add.title" = "取引を追加";
+"addTransaction.edit.title" = "取引を編集";
+"addTransaction.transactionType.title" = "取引種類";
+"addTransaction.transactionType.label" = "種類";
+"addTransaction.currency.title" = "通貨";
+"addTransaction.currency.label" = "通貨";
+"addTransaction.institution.title" = "取引機関";
+"addTransaction.institution.label" = "機関";
+"addTransaction.institution.placeholder" = "機関 (例：インタラクティブ・ブローカーズ)";
+"addTransaction.institution.add" = "追加";
+"addTransaction.institution.select" = "選択";
+"addTransaction.institution.selectPrompt" = "金融機関を選択";
+"addTransaction.institution.unknown" = "不明";
+"addTransaction.institution.typeNew" = "新しい金融機関を入力";
+"addTransaction.paymentInstitution.label" = "支払機関";
+"addTransaction.paymentInstitution.selectPrompt" = "支払機関を選択";
+"addTransaction.paymentInstitution.addPrompt" = "支払選択を有効にするために金融機関を追加してください。";
+"addTransaction.dividendSource.title" = "配当元";
+"addTransaction.dividendSource.footer" = "この配当を生成した証券を選択してください。";
+"addTransaction.dividendSource.label" = "証券";
+"addTransaction.dividendSource.none" = "なし";
+"addTransaction.interestSource.title" = "利息元";
+"addTransaction.interestSource.footer" = "この利息を生成したアカウントまたは証券を選択してください。";
+"addTransaction.interestSource.label" = "元";
+"addTransaction.sellSecurity.title" = "売却証券";
+"addTransaction.sellSecurity.footer" = "売却したい証券を選択してください。";
+"addTransaction.sellSecurity.label" = "証券";
+"addTransaction.sellSecurity.selectPrompt" = "証券を選択";
+"addTransaction.sellSecurity.noSecurities" = "この金融機関で売却可能な証券がありません。";
+"addTransaction.assetInfo.title" = "資産情報";
+"addTransaction.assetInfo.typeLabel" = "資産種類";
+"addTransaction.assetInfo.symbolPlaceholder" = "シンボル (例：AAPL)";
+"addTransaction.assetInfo.namePlaceholder" = "名前 (任意)";
+"addTransaction.details.title" = "取引詳細";
+"addTransaction.details.date" = "日付";
+"addTransaction.details.interestRate" = "金利";
+"addTransaction.details.quantity" = "数量";
+"addTransaction.details.quantityWithHint" = "数量 %@";
+"addTransaction.details.pricePerShare" = "1株あたりの価格";
+"addTransaction.details.investmentAmount" = "投資金額";
+"addTransaction.details.cashValue" = "キャッシュバリュー";
+"addTransaction.details.amount" = "金額";
+"addTransaction.details.withdrawalTip" = "ヒント：出金には負の金額を入力してください";
+"addTransaction.details.accruedInterest" = "経過利息";
+"addTransaction.details.totalValue" = "総価値";
+"addTransaction.details.fees" = "手数料";
+"addTransaction.details.tax" = "税金";
+"addTransaction.details.settlementAmount" = "決済金額";
+"addTransaction.details.notesPlaceholder" = "メモ (任意)";
+"addTransaction.fixedDeposit.editTitle" = "キャッシュマネジメントで定期預金を編集";
+"addTransaction.fixedDeposit.editMessage" = "この取引は定期預金に属しています。満期、期間、金利の同期を保つため、キャッシュマネジメントから詳細を管理してください。";
+"addTransaction.fixedDeposit.openCashManagement" = "キャッシュマネジメントを開く";
+"addTransaction.fixedDeposit.hintTitle" = "定期預金をお探しですか？";
+"addTransaction.fixedDeposit.hintMessage" = "キャッシュマネジメントから定期預金を作成・管理してください。これにより価値日、期間、満期が正確に保たれます。";
+"addTransaction.alerts.validationError" = "検証エラー";
+"addTransaction.insurance.details.title" = "保険詳細";
+"addTransaction.insurance.details.policySymbol" = "保険証券記号";
+"addTransaction.insurance.details.insuranceType" = "保険種類";
+"addTransaction.insurance.details.policyholder" = "契約者";
+"addTransaction.insurance.details.insuredPerson" = "被保険者";
+"addTransaction.insurance.details.policyNumber" = "証券番号";
+"addTransaction.insurance.types.life" = "生命保険";
+"addTransaction.insurance.types.criticalIllness" = "三大疾病保険";
+"addTransaction.insurance.types.accident" = "傷害保険";
+
+// Insurance Financial Details
+"addTransaction.insurance.financialDetails.title" = "財務詳細";
+"addTransaction.insurance.financialDetails.basicInsuredAmount" = "基本保険金額";
+"addTransaction.insurance.financialDetails.additionalPayment" = "追加支払い";
+"addTransaction.insurance.financialDetails.deathBenefit" = "死亡保険金";
+
+// Insurance Premium Details
+"addTransaction.insurance.premiumDetails.title" = "保険料詳細";
+"addTransaction.insurance.premiumDetails.singlePremium" = "一時払保険料";
+"addTransaction.insurance.premiumDetails.firstDiscountedPremium" = "初回割引保険料";
+"addTransaction.insurance.premiumDetails.paymentTerm" = "払込期間";
+"addTransaction.insurance.premiumDetails.totalPremium" = "総保険料";
+"addTransaction.insurance.premiumDetails.paymentStatus" = "支払状況";
+"addTransaction.insurance.premiumDetails.paymentType" = "支払方法";
+"addTransaction.insurance.premiumDetails.paid" = "支払済";
+"addTransaction.insurance.premiumDetails.paying" = "支払中";
+"addTransaction.insurance.premiumDetails.lumpSum" = "一括払い";
+"addTransaction.insurance.premiumDetails.installment" = "分割払い";
+
+// Insurance Policy Features
+"addTransaction.insurance.policyFeatures.title" = "保険特約";
+"addTransaction.insurance.policyFeatures.participatingPolicy" = "配当保険";
+"addTransaction.insurance.policyFeatures.rider" = "特約";
+"addTransaction.insurance.policyFeatures.canWithdrawPremiums" = "保険料引出可能";
+"addTransaction.insurance.policyFeatures.maxWithdrawalPercentage" = "最大引出比率";
+
+// Insurance Important Dates
+"addTransaction.insurance.importantDates.title" = "重要な日付";
+"addTransaction.insurance.importantDates.coverageExpiration" = "保障期限";
+"addTransaction.insurance.importantDates.maturityBenefitRedemption" = "満期給付金償還";
+"addTransaction.insurance.importantDates.estimatedMaturityBenefit" = "予想満期給付金";
+
+// Insurance Beneficiaries
+"addTransaction.insurance.beneficiaries.title" = "受益者";
+"addTransaction.insurance.beneficiaries.name" = "受益者名";
+"addTransaction.insurance.beneficiaries.addBeneficiary" = "受益者を追加";
+"addTransaction.insurance.beneficiaries.totalPercentage" = "合計比率：";
+
+// Maturity Date Toggle
+"addTransaction.maturity.setMaturityDate" = "満期日を設定";
+"addTransaction.maturity.maturityDate" = "満期日";
+
+// Deposit Category/Symbol Picker
+"addTransaction.deposit.symbol" = "シンボル";
+"addTransaction.deposit.category.demanddeposit" = "普通預金";
+"addTransaction.deposit.category.fixeddeposit" = "定期預金";
+
+// Analytics View Localization
+"analytics.performanceSummary.title" = "パフォーマンス概要";
+"analytics.performanceSummary.includeInsurance" = "パフォーマンスに保険を含める";
+"analytics.metrics.currentValue" = "現在価値";
+"analytics.metrics.costBasis" = "コストベース";
+"analytics.metrics.unrealizedPnL" = "未実現損益";
+"analytics.metrics.totalReturn" = "総リターン（生涯）";
+"analytics.metrics.realizedPnL" = "実現損益（生涯）";
+"analytics.metrics.totalDividends" = "総配当";
+"analytics.allocation.title" = "資産配分";
+"analytics.allocation.byAssetType" = "資産タイプ別";
+"analytics.allocation.byInstitution" = "金融機関別";
+"analytics.allocation.noAssets" = "表示する資産がありません";
+"analytics.performance.title" = "ポートフォリオパフォーマンス（30日）";
+"analytics.performance.notEnoughHistory" = "パフォーマンスを表示するには履歴が不足しています。";
+"analytics.dividends.title" = "配当履歴（12ヶ月）";
+"analytics.dividends.noIncome" = "この期間に記録された配当や利息収入はありません。";
+
+// Cash Overview View Localization
+"cashOverview.navigation.title" = "現金管理";
+"cashOverview.navigation.done" = "完了";
+"cashOverview.tabs.demandCash" = "要求払現金";
+"cashOverview.tabs.fixedDeposits" = "定期預金";
+"cashOverview.tabs.pickerLabel" = "現金種類";
+"cashOverview.summary.overview" = "概要";
+"cashOverview.summary.totalCash" = "総現金";
+"cashOverview.demandCash.noCashTitle" = "現金保有なし";
+"cashOverview.demandCash.noCashMessage" = "預金取引を行うと、現金残高がここに表示されます。";
+"cashOverview.demandCash.sectionHeader" = "金融機関・通貨別現金";
+"cashOverview.demandCash.unknownInstitution" = "不明な金融機関";
+"cashOverview.demandCash.currency" = "通貨";
+"cashOverview.demandCash.currencies" = "通貨";
+"cashOverview.demandCash.total" = "合計";
+"cashOverview.demandCash.totalCash" = "総現金";
+"cashOverview.demandCash.footer" = "総現金はすべての金融機関の現金残高を合計して計算されます。";
+"cashOverview.fixedDeposits.noDepositsTitle" = "定期預金なし";
+"cashOverview.fixedDeposits.noDepositsMessage" = "最初の定期預金を作成して、保証されたリターンを得始めましょう。";
+"cashOverview.fixedDeposits.activeHeader" = "有効な定期預金";
+"cashOverview.fixedDeposits.maturedHeader" = "満期の定期預金";
+"cashOverview.fixedDeposits.maturityAlert.title" = "満期の定期預金";
+"cashOverview.fixedDeposits.maturityAlert.review" = "確認";
+"cashOverview.fixedDeposits.maturityAlert.dismiss" = "閉じる";
+"cashOverview.editSheet.institutionHeader" = "金融機関";
+"cashOverview.editSheet.balanceHeader" = "残高編集";
+"cashOverview.editSheet.amountPlaceholder" = "金額";
+"cashOverview.editSheet.cashTitle" = "現金";
+"cashOverview.editSheet.cancel" = "キャンセル";
+"cashOverview.editSheet.save" = "保存";
+"cashOverview.editSheet.validationError" = "有効な数値を入力してください。";
+"cashOverview.editSheet.saveError" = "変更の保存に失敗しました：";
+
+// Cloud Share View Localization
+"cloudShare.portfolio.title" = "ポートフォリオ";
+
+// Export Data View Localization
+"exportData.navigation.title" = "データエクスポート";
+"exportData.navigation.cancel" = "キャンセル";
+"exportData.format.sectionHeader" = "エクスポート形式";
+"exportData.format.pickerLabel" = "形式";
+"exportData.portfolios.sectionHeader" = "ポートフォリオを選択";
+"exportData.portfolios.sectionFooter" = "エクスポートに含めるポートフォリオを選択してください。";
+"exportData.portfolios.unknownPortfolio" = "不明なポートフォリオ";
+"exportData.portfolios.transactions" = "件の取引";
+"exportData.portfolios.selectAll" = "すべて選択";
+"exportData.portfolios.deselectAll" = "すべて選択解除";
+"exportData.information.sectionHeader" = "エクスポート情報";
+"exportData.information.selectedPortfolios" = "選択されたポートフォリオ";
+"exportData.information.totalTransactions" = "総取引数";
+"exportData.information.fileFormat" = "ファイル形式";
+"exportData.button.exporting" = "エクスポート中...";
+"exportData.button.exportData" = "データをエクスポート";
+"exportData.error.exportFailed" = "データのエクスポートに失敗しました。再試行してください。";
+
+// Fixed Deposit Management View Localization
+"fixedDepositManagement.fixedDeposit" = "定期預金";
+"fixedDepositManagement.matured" = "満期";
+"fixedDepositManagement.active" = "有効";
+"fixedDepositManagement.daysLeft" = "残り%d日";
+"fixedDepositManagement.perAnnum" = "年利";
+"fixedDepositManagement.withdraw" = "引き出し";
+"fixedDepositManagement.earlyWithdraw" = "中途解約";
+
+// Fixed Deposit Withdrawal View Localization
+"fixedDepositWithdrawal.depositInformation" = "預金情報";
+"fixedDepositWithdrawal.depositName" = "預金名";
+"fixedDepositWithdrawal.currentValue" = "現在価値";
+"fixedDepositWithdrawal.status" = "状況";
+"fixedDepositWithdrawal.withdrawalDetails" = "引き出し詳細";
+"fixedDepositWithdrawal.withdrawalAmount" = "引き出し金額";
+"fixedDepositWithdrawal.accruedInterest" = "経過利息";
+"fixedDepositWithdrawal.institutionPenalty" = "金融機関ペナルティ";
+"fixedDepositWithdrawal.earlyWithdrawalWarning" = "中途解約にはペナルティが発生する可能性があります。経過利息とペナルティ金額は金融機関でご確認ください。";
+"fixedDepositWithdrawal.navigation.withdraw" = "引き出し";
+"fixedDepositWithdrawal.navigation.earlyWithdrawal" = "中途解約";
+"fixedDepositWithdrawal.navigation.cancel" = "キャンセル";
+"fixedDepositWithdrawal.error.invalidAmount" = "無効な引き出し金額";
+"fixedDepositWithdrawal.error.processingFailed" = "引き出し処理に失敗しました: %@";
+
+// Fixed Deposit Migration View Localization
+"fixedDepositMigration.navigation.title" = "定期預金機能の強化";
+"fixedDepositMigration.navigation.reset" = "リセット";
+"fixedDepositMigration.navigation.skip" = "スキップ";
+"fixedDepositMigration.loading.analyzing" = "預金資産を分析中...";
+"fixedDepositMigration.completed.title" = "移行完了！";
+"fixedDepositMigration.completed.description" = "預金資産は新しい定期預金システムを使用するように正常に更新されました。";
+"fixedDepositMigration.completed.continue" = "続行";
+"fixedDepositMigration.header.title" = "強化された定期預金サポート";
+"fixedDepositMigration.header.description" = "アプリの定期預金処理方法を改善しました！既存の預金取引は現金預金として残ります。新しいシステムを使用して専用の定期預金を作成できるようになりました。";
+"fixedDepositMigration.whatsNew.title" = "新機能";
+"fixedDepositMigration.feature.tracking.title" = "定期預金追跡";
+"fixedDepositMigration.feature.tracking.description" = "利用可能な現金と分けて時間ロック預金を適切に追跡";
+"fixedDepositMigration.feature.interestRate.title" = "金利追跡";
+"fixedDepositMigration.feature.interestRate.description" = "定期預金の金利と満期日を追跡";
+"fixedDepositMigration.feature.maturity.title" = "満期管理";
+"fixedDepositMigration.feature.maturity.description" = "定期預金が満期になったときに通知を受ける";
+"fixedDepositMigration.feature.earlyWithdrawal.title" = "中途解約サポート";
+"fixedDepositMigration.feature.earlyWithdrawal.description" = "ペナルティ追跡付きで中途解約を処理";
+"fixedDepositMigration.summary.title" = "移行概要";
+"fixedDepositMigration.summary.totalAssets" = "更新対象の預金資産総数：";
+"fixedDepositMigration.summary.fixedDeposits" = "定期預金の可能性：";
+"fixedDepositMigration.summary.demandDeposits" = "普通預金の可能性：";
+"fixedDepositMigration.suggestions.title" = "推奨アクション";
+"fixedDepositMigration.button.enabling" = "有効化中...";
+"fixedDepositMigration.button.enable" = "定期預金を有効化";
+"fixedDepositMigration.button.description" = "これにより新しい定期預金機能が有効になります。既存の預金取引は現金預金として変更されません。";
+"fixedDepositMigration.error.migrationFailed" = "移行に失敗しました: %@";
+"fixedDepositMigration.suggestion.unknownAsset" = "不明な資産";
+"fixedDepositMigration.suggestion.convertToFixed" = "%dヶ月定期預金に変換（%.1f%%利息）";
+"fixedDepositMigration.suggestion.convertToDemand" = "普通預金として保持";
+"fixedDepositMigration.suggestion.manualReview" = "手動レビューが必要";
+
+// Holding Detail View Localization
+"holdingDetail.navigation.title" = "保有詳細";
+"holdingDetail.assetInformation.title" = "資産情報";
+"holdingDetail.assetInformation.symbol" = "シンボル";
+"holdingDetail.assetInformation.name" = "名前";
+"holdingDetail.assetInformation.type" = "種類";
+"holdingDetail.assetInformation.currency" = "通貨";
+"holdingDetail.assetInformation.maturityDate" = "満期日";
+"holdingDetail.assetInformation.interestRate" = "金利";
+"holdingDetail.assetInformation.issuer" = "発行者";
+"holdingDetail.assetInformation.noName" = "名前なし";
+"holdingDetail.assetInformation.unknown" = "不明";
+
+"holdingDetail.holdingsInformation.title" = "保有情報";
+"holdingDetail.holdingsInformation.quantity" = "数量";
+"holdingDetail.holdingsInformation.averagePrice" = "平均価格";
+"holdingDetail.holdingsInformation.currentPrice" = "現在価格";
+"holdingDetail.holdingsInformation.priceDate" = "価格日付";
+"holdingDetail.holdingsInformation.costBasis" = "コストベース";
+"holdingDetail.holdingsInformation.currentValue" = "現在価値";
+"holdingDetail.holdingsInformation.totalInvestment" = "総投資";
+"holdingDetail.holdingsInformation.maturityValue" = "満期価値";
+"holdingDetail.holdingsInformation.effectiveInterestRate" = "実効金利";
+"holdingDetail.holdingsInformation.tenor" = "期間";
+"holdingDetail.holdingsInformation.daysToMaturity" = "満期までの日数";
+"holdingDetail.holdingsInformation.investmentAmount" = "投資金額";
+"holdingDetail.holdingsInformation.cashValue" = "キャッシュバリュー";
+"holdingDetail.holdingsInformation.paidPremium" = "支払済保険料";
+"holdingDetail.holdingsInformation.noQuantity" = "数量なし";
+"holdingDetail.holdingsInformation.manualPrice" = "手動価格";
+"holdingDetail.holdingsInformation.noPriceData" = "価格データなし";
+"holdingDetail.holdingsInformation.never" = "なし";
+"holdingDetail.holdingsInformation.years" = "年";
+"holdingDetail.holdingsInformation.days" = "日";
+"holdingDetail.holdingsInformation.matured" = "満期";
+
+"holdingDetail.insurance.details.title" = "保険詳細";
+"holdingDetail.insurance.details.policySymbol" = "保険証券記号";
+"holdingDetail.insurance.details.insuranceType" = "保険種類";
+"holdingDetail.insurance.details.policyNumber" = "証券番号";
+"holdingDetail.insurance.details.policyholder" = "契約者";
+"holdingDetail.insurance.details.insuredPerson" = "被保険者";
+
+"holdingDetail.insurance.financial.title" = "財務詳細";
+"holdingDetail.insurance.financial.basicInsuredAmount" = "基本保険金額";
+"holdingDetail.insurance.financial.additionalPayment" = "追加支払い";
+"holdingDetail.insurance.financial.deathBenefit" = "死亡保険金";
+"holdingDetail.insurance.financial.totalPremium" = "総保険料";
+
+"holdingDetail.insurance.premium.title" = "保険料詳細";
+"holdingDetail.insurance.premium.singlePremium" = "一時払保険料";
+"holdingDetail.insurance.premium.firstDiscountedPremium" = "初回割引保険料";
+"holdingDetail.insurance.premium.paymentTerm" = "払込期間";
+"holdingDetail.insurance.premium.paymentStatus" = "支払状況";
+"holdingDetail.insurance.premium.paymentType" = "支払方法";
+"holdingDetail.insurance.premium.participatingPolicy" = "配当保険";
+"holdingDetail.insurance.premium.rider" = "特約";
+"holdingDetail.insurance.premium.canWithdrawPremiums" = "保険料引出可能";
+"holdingDetail.insurance.premium.maxWithdrawalPercentage" = "最大引出比率";
+"holdingDetail.insurance.premium.paid" = "支払済";
+"holdingDetail.insurance.premium.paying" = "支払中";
+"holdingDetail.insurance.premium.lumpSum" = "一括払い";
+"holdingDetail.insurance.premium.installment" = "分割払い";
+"holdingDetail.insurance.premium.yes" = "はい";
+"holdingDetail.insurance.premium.no" = "いいえ";
+
+"holdingDetail.insurance.coverage.title" = "保障・満期";
+"holdingDetail.insurance.coverage.coverageExpiration" = "保障期限";
+"holdingDetail.insurance.coverage.maturityBenefitRedemption" = "満期給付金償還";
+"holdingDetail.insurance.coverage.estimatedMaturityBenefit" = "予想満期給付金";
+"holdingDetail.insurance.coverage.notSpecified" = "指定なし";
+
+"holdingDetail.insurance.beneficiaries.title" = "受益者";
+"holdingDetail.insurance.beneficiaries.noBeneficiaries" = "受益者が指定されていません";
+
+"holdingDetail.performance.title" = "パフォーマンス";
+"holdingDetail.performance.unrealizedPnL" = "未実現損益";
+"holdingDetail.performance.unrealizedReturn" = "未実現リターン";
+"holdingDetail.performance.realizedPnL" = "実現損益";
+"holdingDetail.performance.realizedReturn" = "実現リターン";
+"holdingDetail.performance.totalDividends" = "総配当";
+"holdingDetail.performance.totalInterest" = "総利息";
+
+"holdingDetail.transactions.title" = "取引履歴";
+"holdingDetail.transactions.noTransactions" = "この保有の取引記録はありません。";
+
+"holdingDetail.priceInformation.title" = "価格情報";
+"holdingDetail.priceInformation.lastUpdated" = "最終更新";
+"holdingDetail.priceInformation.updatePrice" = "価格更新";
+"holdingDetail.priceInformation.fetchingPrice" = "価格取得中...";
+"holdingDetail.priceInformation.failedToFetch" = "価格取得失敗";
+"holdingDetail.priceInformation.noPriceAvailable" = "価格データなし";
+
+"holdingDetail.priceEditor.title" = "価格更新";
+"holdingDetail.priceEditor.currentPrice" = "現在価格";
+"holdingDetail.priceEditor.newPrice" = "新価格";
+"holdingDetail.priceEditor.lastUpdated" = "最終更新";
+"holdingDetail.priceEditor.setToCurrentDate" = "現在日時に設定";
+"holdingDetail.priceEditor.cancel" = "キャンセル";
+"holdingDetail.priceEditor.save" = "保存";
+"holdingDetail.priceEditor.validationError" = "有効な価格を入力してください。";
+"holdingDetail.priceEditor.updateFailed" = "価格更新に失敗しました：%@";
+
+// Additional HoldingDetailView strings
+"holdingDetail.holdingsInformation.averageCostBasis" = "平均コストベース";
+"holdingDetail.holdingsInformation.lastRecordedPrice" = "最後に記録された価格";
+"holdingDetail.holdingsInformation.price" = "価格";
+"holdingDetail.holdingsInformation.totalValue" = "総価値";
+"holdingDetail.holdingsInformation.costBasis" = "コストベース";
+"holdingDetail.holdingsInformation.autoFetchPrice" = "Yahoo Financeから価格を自動取得";
+"holdingDetail.holdingsInformation.linkedAssets" = "連動資産";
+"holdingDetail.holdingsInformation.effectiveRate" = "実効レート";
+"holdingDetail.holdingsInformation.unassigned" = "未割当";
+
+"holdingDetail.actions.buyMore" = "追加購入";
+"holdingDetail.actions.sell" = "売却";
+"holdingDetail.actions.payments" = "支払い";
+
+"holdingDetail.performance.currentValue" = "現在価値";
+"holdingDetail.performance.total" = "合計";
+
+"holdingDetail.priceInformation.autoFetch" = "自動取得";
+"holdingDetail.priceInformation.manualEntry" = "手動入力";
+"holdingDetail.priceInformation.priceUpdate" = "価格更新";
+
+"holdingDetail.messages.noTransactions" = "この保有の取引記録はありません。";
+"holdingDetail.messages.noPortfolio" = "この保有に関連付けられたポートフォリオがありません。";
+"holdingDetail.messages.historicalCosts" = "過去のコストはポートフォリオ通貨を使用し、現在価値は取引通貨を使用します。";
+"holdingDetail.messages.priceDescription" = "これは最後に手動で入力した価格です。下で編集するか、自動取得を有効にして最新に保ってください。";
+
+"holdingDetail.currency.label" = "通貨";
+"holdingDetail.unknown" = "不明";
+
+// Additional comprehensive HoldingDetailView strings
+"holdingDetail.holdingsInformation.averageCostBasis" = "平均コストベース";
+"holdingDetail.performance.unrealizedGainLoss" = "未実現損益";
+"holdingDetail.performance.lastUpdate" = "最終更新";
+"holdingDetail.performance.cumulativeIncome" = "累積収入（配当/利息）";
+"holdingDetail.performance.totalReturnWithIncome" = "総リターン（収入含む）";
+"holdingDetail.performance.unrealizedReturn" = "未実現リターン";
+"holdingDetail.performance.realizedGainLoss" = "実現損益";
+"holdingDetail.performance.realizedReturn" = "実現リターン";
+"holdingDetail.performance.dividends" = "配当";
+"holdingDetail.performance.interest" = "利息";
+
+"holdingDetail.holdingsInformation.priceDate" = "価格日付";
+"holdingDetail.holdingsInformation.currentValue" = "現在価値";
+"holdingDetail.holdingsInformation.averagePrice" = "平均価格";
+"holdingDetail.holdingsInformation.currentPrice" = "現在価格";
+"holdingDetail.holdingsInformation.pricePerShare" = "1株あたりの価格";
+"holdingDetail.holdingsInformation.shares" = "株";
+
+"holdingDetail.insurance.financialDetails.title" = "財務詳細";
+"holdingDetail.insurance.premiumDetails.title" = "保険料詳細";
+"holdingDetail.insurance.coverage.title" = "保障・満期";
+
+"holdingDetail.priceInformation.title" = "価格情報";
+"holdingDetail.priceInformation.source" = "ソース";
+"holdingDetail.priceInformation.manual" = "手動";
+"holdingDetail.priceInformation.automatic" = "自動";
+
+"holdingDetail.structuredProduct.tenor" = "期間";
+"holdingDetail.structuredProduct.effectiveInterestRate" = "実効金利";
+"holdingDetail.structuredProduct.daysToMaturity" = "満期までの日数";
+"holdingDetail.structuredProduct.maturityValue" = "満期価値";
+
+"holdingDetail.currency" = "通貨";
+"holdingDetail.date.never" = "なし";
+"holdingDetail.quantity.shares" = "株";
+"holdingDetail.time.years" = "年";
+"holdingDetail.time.days" = "日";
+"holdingDetail.status.matured" = "満期";
+
+// Holdings View Localization
+"holdingsView.status.picker.label" = "保有状況";
+"holdingsView.status.holdings" = "保有";
+"holdingsView.status.sold" = "売却済み";
+"holdingsView.filters.allAssetTypes" = "すべての資産タイプ";
+"holdingsView.filters.allInstitutions" = "すべての機関";
+"holdingsView.filters.unknown" = "不明";
+"holdingsView.filters.clear" = "クリア";
+"holdingsView.filters.allTypes" = "すべてのタイプ";
+"holdingsView.filters.types" = "タイプ";
+"holdingsView.emptyState.noHoldings.title" = "保有なし";
+"holdingsView.emptyState.noHoldings.message" = "最初の取引を追加することから始めてください。";
+"holdingsView.emptyState.noHoldingsFiltered.title" = "フィルターに一致する保有がありません";
+"holdingsView.emptyState.noHoldingsFiltered.message" = "より多くのポジションを表示するため、フィルターを調整してみてください。";
+"holdingsView.emptyState.noSoldHoldings.title" = "売却済み保有なし";
+"holdingsView.emptyState.noSoldHoldings.message" = "資産を退出する際に売却取引を記録して、ここで追跡してください。";
+"holdingsView.emptyState.noSoldHoldingsFiltered.title" = "フィルターに一致する売却済み保有がありません";
+"holdingsView.emptyState.noSoldHoldingsFiltered.message" = "フィルターを調整するか、保有に戻ってアクティブなポジションを表示してください。";
+"holdingsView.summary.filteredResults" = "フィルター結果の概要";
+"holdingsView.summary.holdings" = "保有";
+"holdingsView.summary.soldHoldings" = "売却済み保有";
+"holdingsView.summary.totalValue" = "総価値";
+"holdingsView.summary.unrealizedPnL" = "未実現損益";
+"holdingsView.summary.totalDividends" = "総配当";
+
+// Holding Row View Localization
+"holdingRowView.unknownAsset" = "不明な資産";
+"holdingRowView.noSymbol" = "該当なし";
+"holdingRowView.cashValue" = "解約返戻金";
+"holdingRowView.unrealizedPnL" = "未実現損益";
+"holdingRowView.basicInsuredAmount" = "基本保険金額";
+"holdingRowView.policyHolder" = "契約者";
+"holdingRowView.paidPremium" = "支払済み保険料";
+"holdingRowView.quantity" = "数量";
+"holdingRowView.interestRate" = "金利";
+"holdingRowView.lastRecordedPrice" = "最終記録価格";
+"holdingRowView.totalDividendsInterest" = "総配当/利息：";
+"holdingRowView.avgCost" = "平均コスト";
+"holdingRowView.linkedAssets" = "連動資産";
+
+// Cash Value Editor View Localization
+"cashValueEditor.title" = "解約返戻金を更新";
+"cashValueEditor.currentCashValue" = "現在の解約返戻金";
+"cashValueEditor.policyInformation" = "保険契約情報";
+"cashValueEditor.policyType" = "契約タイプ";
+"cashValueEditor.insurancePolicy" = "保険契約";
+"cashValueEditor.policyholder" = "契約者";
+"cashValueEditor.policyOwner" = "契約者";
+"cashValueEditor.previousCashValue" = "前回の解約返戻金";
+"cashValueEditor.cancel" = "キャンセル";
+"cashValueEditor.save" = "保存";
+"cashValueEditor.error.negativeCashValue" = "解約返戻金は負の値にできません";
+"cashValueEditor.error.saveFailed" = "解約返戻金の保存に失敗しました：";
+
+// Lockout View Localization
+"lockoutView.title" = "アカウントが一時的にロックされています";
+"lockoutView.subtitle" = "パスコードの入力ミスが多すぎます";
+"lockoutView.timeRemaining" = "残り時間";
+"lockoutView.failedAttempts" = "失敗回数";
+"lockoutView.securityMessage" = "あなたのデータはセキュリティロックアウトによって保護されています";
+"lockoutView.tryBiometric" = "%@を試す";
+"lockoutView.securityInfo.attempts" = "回の試行：";
+"lockoutView.duration.oneMinute" = "1分";
+"lockoutView.duration.fiveMinutes" = "5分";
+"lockoutView.duration.fifteenMinutes" = "15分";
+
+// New Password Setup View Localization
+"newPasswordSetup.recoverySuccessful" = "復旧に成功しました！";
+"newPasswordSetup.setNewPasscode" = "新しいパスコードを設定";
+"newPasswordSetup.newPasscode" = "新しいパスコード";
+"newPasswordSetup.enterNewPasscode" = "新しいパスコードを入力";
+"newPasswordSetup.confirmPasscode" = "パスコードを確認";
+"newPasswordSetup.confirmNewPasscode" = "新しいパスコードを確認";
+"newPasswordSetup.passcodeRequirements" = "パスコード要件：";
+"newPasswordSetup.requirement.length" = "8文字以上";
+"newPasswordSetup.requirement.complexity" = "文字と数字を含む";
+"newPasswordSetup.requirement.match" = "パスコードが一致";
+"newPasswordSetup.settingPasscode" = "パスコードを設定中...";
+"newPasswordSetup.setNewPasscodeButton" = "新しいパスコードを設定";
+"newPasswordSetup.cancel" = "キャンセル";
+"newPasswordSetup.navigationTitle" = "新しいパスコード";
+"newPasswordSetup.biometricRecovery" = "%@を使用して本人確認が完了しました。アプリを保護するために新しいパスコードを設定してください。";
+"newPasswordSetup.securityQuestionsRecovery" = "セキュリティ質問を使用して本人確認が完了しました。アプリを保護するために新しいパスコードを設定してください。";
+"newPasswordSetup.defaultMessage" = "アプリを保護するために新しいパスコードを設定してください。";
+
+// Passcode Entry View Localization
+"passcodeEntry.title" = "パスコードを入力";
+"passcodeEntry.subtitle" = "続行するためにアプリのパスコードを入力してください";
+"passcodeEntry.useBiometric" = "%@を使用";
+"passcodeEntry.failedAttempts" = "失敗回数: %d";
+
+// Passcode Settings View Localization
+"passcodeSettings.navigationTitle" = "パスコード設定";
+"passcodeSettings.done" = "完了";
+"passcodeSettings.securityStatus" = "セキュリティ状態";
+"passcodeSettings.appPasscode" = "アプリパスコード";
+"passcodeSettings.enabled" = "有効";
+"passcodeSettings.available" = "利用可能";
+"passcodeSettings.passcodeManagement" = "パスコード管理";
+"passcodeSettings.changePasscode" = "パスコードを変更";
+"passcodeSettings.removePasscode" = "パスコードを削除";
+"passcodeSettings.securityInformation" = "セキュリティ情報";
+"passcodeSettings.failedAttempts" = "失敗回数";
+"passcodeSettings.securityPolicy" = "セキュリティポリシー";
+"passcodeSettings.lockoutPolicy1" = "• 3-4回失敗: 1分間ロック";
+"passcodeSettings.lockoutPolicy2" = "• 5-6回失敗: 5分間ロック";
+"passcodeSettings.lockoutPolicy3" = "• 7回以上失敗: 15分間ロック";
+
+// Change Passcode View Localization
+"changePasscode.navigationTitle" = "パスコード変更";
+"changePasscode.cancel" = "キャンセル";
+"changePasscode.currentPasscode" = "現在のパスコード";
+"changePasscode.newPasscode" = "新しいパスコード";
+"changePasscode.confirmPasscode" = "パスコード確認";
+"changePasscode.enterCurrent" = "現在のパスコードを入力してください";
+"changePasscode.enterNew" = "新しいパスコードを入力してください（4-6桁）";
+"changePasscode.confirmNew" = "新しいパスコードを確認してください";
+"changePasscode.continue" = "続行";
+"changePasscode.changeButton" = "パスコード変更";
+"changePasscode.errorIncorrect" = "現在のパスコードが正しくありません";
+"changePasscode.errorFailed" = "パスコード変更に失敗しました";
+
+// Remove Passcode View Localization
+"removePasscode.navigationTitle" = "パスコード削除";
+"removePasscode.title" = "パスコード削除";
+"removePasscode.subtitle" = "アプリのセキュリティを削除するため、現在のパスコードを入力してください";
+"removePasscode.currentPasscode" = "現在のパスコード";
+"removePasscode.removeButton" = "パスコード削除";
+"removePasscode.warning" = "警告: パスコードを削除すると、データのセキュリティが低下します";
+"removePasscode.cancel" = "キャンセル";
+"removePasscode.errorFailed" = "パスコード削除に失敗しました";
+
+// Passcode Setup View Localization
+"passcodeSetup.navigationTitle" = "セキュリティ設定";
+"passcodeSetup.title" = "アプリパスコード設定";
+"passcodeSetup.subtitle" = "投資データを保護するためのセキュアなパスコードを作成してください";
+"passcodeSetup.enterPasscode" = "パスコードを入力";
+"passcodeSetup.passcodeInput" = "パスコード";
+"passcodeSetup.passcodeHint" = "4-6桁の数字を使用";
+"passcodeSetup.confirmPasscode" = "パスコード確認";
+"passcodeSetup.confirmPasscodeInput" = "パスコード確認";
+"passcodeSetup.confirmHint" = "同じパスコードを再度入力してください";
+"passcodeSetup.continue" = "続行";
+"passcodeSetup.setPasscode" = "パスコード設定";
+"passcodeSetup.back" = "戻る";
+"passcodeSetup.errorLength" = "パスコードは4-6桁である必要があります";
+"passcodeSetup.errorMismatch" = "パスコードが一致しません";
+"passcodeSetup.errorInvalid" = "無効なパスコード形式";
+"passcodeSetup.errorFailed" = "パスコード設定に失敗しました";
+
+// Password Recovery View Localization
+"passwordRecovery.title" = "パスコードをお忘れですか？";
+"passwordRecovery.subtitle" = "パスコードをリセットする復旧方法を選択してください";
+"passwordRecovery.useBiometric" = "%@ を使用";
+"passwordRecovery.biometricSubtitle" = "%@ で認証してパスコードをリセット";
+"passwordRecovery.securityQuestions" = "セキュリティ質問に回答";
+"passwordRecovery.securityQuestionsSubtitle" = "セキュリティ質問に回答してパスコードをリセット";
+"passwordRecovery.noOptionsTitle" = "復旧オプションがありません";
+"passwordRecovery.noOptionsMessage" = "復旧方法が設定されていません。データを失うことなくパスコードを復旧する方法はありません。";
+"passwordRecovery.noOptionsWarning" = "アプリを削除して再インストールする必要があります。";
+"passwordRecovery.cancel" = "キャンセル";
+
+// Security Questions Management View Localization
+"securityQuestions.title" = "セキュリティ質問";
+"securityQuestions.done" = "完了";
+"securityQuestions.removeAlert.title" = "セキュリティ質問を削除しますか？";
+"securityQuestions.removeAlert.remove" = "削除";
+"securityQuestions.removeAlert.cancel" = "キャンセル";
+"securityQuestions.removeAlert.message" = "セキュリティ質問を削除してもよろしいですか？削除すると、パスワード復旧に使用できなくなります。";
+"securityQuestions.verification.title" = "パスワードを確認";
+"securityQuestions.verification.subtitle" = "セキュリティ質問を管理するために現在のパスワードを入力してください";
+"securityQuestions.verification.currentPassword" = "現在のパスワード";
+"securityQuestions.verification.placeholder" = "パスワードを入力";
+"securityQuestions.verification.verifying" = "確認中...";
+"securityQuestions.verification.verify" = "パスワード確認";
+"securityQuestions.verification.error" = "パスワードが正しくありません。再試行してください。";
+"securityQuestions.management.activeTitle" = "セキュリティ質問が有効";
+"securityQuestions.management.setupTitle" = "セキュリティ質問を設定";
+"securityQuestions.management.activeSubtitle" = "セキュリティ質問が設定され、パスワード復旧の準備ができています。";
+"securityQuestions.management.setupSubtitle" = "パスワードを忘れた場合の復旧のためにセキュリティ質問を設定してください。";
+"securityQuestions.management.configured" = "セキュリティ質問が設定済み";
+"securityQuestions.management.changeQuestions" = "セキュリティ質問を変更";
+"securityQuestions.management.removeQuestions" = "セキュリティ質問を削除";
+"securityQuestions.management.setupQuestions" = "セキュリティ質問を設定";
+"securityQuestions.management.infoTitle" = "なぜセキュリティ質問を設定するのですか？";
+"securityQuestions.management.infoBenefit1" = "• パスワードを忘れた場合の復旧";
+"securityQuestions.management.infoBenefit2" = "• 生体認証の代替手段";
+"securityQuestions.management.infoBenefit3" = "• データを安全かつアクセス可能に保つ";
+"securityQuestions.management.removeError" = "セキュリティ質問の削除に失敗しました。再試行してください。";
+
+// Security Questions Recovery View Localization
+"securityQuestionsRecovery.title" = "セキュリティ質問";
+"securityQuestionsRecovery.subtitle" = "パスコードをリセットするためにセキュリティ質問に回答してください";
+"securityQuestionsRecovery.loading" = "セキュリティ質問を読み込み中...";
+"securityQuestionsRecovery.verifying" = "確認中...";
+"securityQuestionsRecovery.verifyAnswers" = "回答を確認";
+"securityQuestionsRecovery.navigationTitle" = "パスコード復旧";
+"securityQuestionsRecovery.cancel" = "キャンセル";
+"securityQuestionsRecovery.answerPlaceholder" = "あなたの回答";
+
+// Predefined Security Questions
+"securityQuestion.firstPet" = "最初のペットの名前は何でしたか？";
+"securityQuestion.motherMaidenName" = "お母さんの旧姓は何ですか？";
+"securityQuestion.firstSchool" = "最初の学校の名前は何でしたか？";
+"securityQuestion.birthCity" = "どの都市で生まれましたか？";
+"securityQuestion.firstCar" = "最初の車のメーカーは何でしたか？";
+"securityQuestion.favoriteBook" = "好きな本は何ですか？";
+"securityQuestion.childhoodNickname" = "子供の頃のニックネームは何でしたか？";
+"securityQuestion.childhoodStreet" = "育った通りの名前は何ですか？";
+"securityQuestion.favoriteFood" = "好きな食べ物は何ですか？";
+"securityQuestion.bestFriendHighSchool" = "高校時代の親友の名前は何でしたか？";
+
+// Portfolio Dashboard View Localization
+"portfolioDashboard.tabs.holdings" = "保有";
+"portfolioDashboard.tabs.transactions" = "取引";
+"portfolioDashboard.tabs.analytics" = "分析";
+"portfolioDashboard.statCard.totalHoldingsValue" = "総保有価値";
+"portfolioDashboard.statCard.totalCash" = "総現金";
+"portfolioDashboard.statCard.unrealizedPnL" = "未実現損益";
+"portfolioDashboard.statCard.totalDividendsInterest" = "総配当・利息";
+"portfolioDashboard.statCard.realizedPnL" = "実現損益";
+"portfolioDashboard.quickActions.addTransaction" = "取引を追加";
+"portfolioDashboard.quickActions.cashManagement" = "現金管理";
+"portfolioDashboard.quickActions.addFixedDeposit" = "定期預金を追加";
+"portfolioDashboard.quickActions.analytics" = "分析";
+"portfolioDashboard.quickActions.actionCalendar" = "アクションカレンダー";
+"portfolioDashboard.shareDialog.title" = "ポートフォリオを共有";
+"portfolioDashboard.shareDialog.message" = "%@のポートフォリオ概要";
+"portfolioDashboard.shareDialog.subject" = "ポートフォリオ概要";
+"portfolioDashboard.shareDialog.intro" = "私の投資ポートフォリオの概要です：";
+"portfolioDashboard.shareDialog.totalValue" = "総価値：%@";
+"portfolioDashboard.shareDialog.totalCash" = "総現金：%@";
+"portfolioDashboard.shareDialog.unrealizedPnL" = "未実現損益：%@";
+"portfolioDashboard.shareDialog.dividendsInterest" = "配当・利息：%@";
+"portfolioDashboard.shareDialog.holdingsCount" = "保有数：%d";
+"portfolioDashboard.shareDialog.footer" = "ファミリー投資トラッカーからの共有";
+"portfolioDashboard.header.totalValue" = "総価値";
+"portfolioDashboard.header.holdings" = "保有";
+"portfolioDashboard.header.transactions" = "取引";

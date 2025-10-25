@@ -4,13 +4,13 @@ import CryptoKit
 
 struct SecurityQuestion {
     let id: String
-    let question: String
+    let question: String  // This will now store the localization key
     let hashedAnswer: Data
     let salt: Data
 
     init(id: String, question: String, answer: String) {
         self.id = id
-        self.question = question
+        self.question = question  // Now expects localization key
 
         // Generate salt for this answer
         var salt = Data(count: 32)
@@ -47,6 +47,22 @@ struct SecurityQuestion {
         let digest = SHA256.hash(data: combined)
         return Data(digest) == hashedAnswer
     }
+
+    // Get localized question text
+    func localizedQuestion(localizationManager: LocalizationManager) -> String {
+        // If question is already a localization key, use it
+        if question.starts(with: "securityQuestion.") {
+            return localizationManager.localizedString(for: question)
+        }
+
+        // Otherwise, it might be legacy English text - try to find corresponding key
+        if let key = SecurityQuestionManager.getLocalizationKeyForEnglishQuestion(question) {
+            return localizationManager.localizedString(for: key)
+        }
+
+        // Fallback: return the question as-is (for backwards compatibility)
+        return question
+    }
 }
 
 class SecurityQuestionManager: ObservableObject {
@@ -54,7 +70,7 @@ class SecurityQuestionManager: ObservableObject {
     private let questionsKey = "security_questions"
     private let questionsSetupKey = "security_questions_setup"
 
-    // Predefined security questions
+    // Predefined security questions (English fallback)
     static let availableQuestions = [
         "What was the name of your first pet?",
         "What is your mother's maiden name?",
@@ -67,6 +83,44 @@ class SecurityQuestionManager: ObservableObject {
         "What is your favorite food?",
         "What was the name of your best friend in high school?"
     ]
+
+    // Localization keys for predefined questions
+    static let availableQuestionKeys = [
+        "securityQuestion.firstPet",
+        "securityQuestion.motherMaidenName",
+        "securityQuestion.firstSchool",
+        "securityQuestion.birthCity",
+        "securityQuestion.firstCar",
+        "securityQuestion.favoriteBook",
+        "securityQuestion.childhoodNickname",
+        "securityQuestion.childhoodStreet",
+        "securityQuestion.favoriteFood",
+        "securityQuestion.bestFriendHighSchool"
+    ]
+
+    // Get localized security questions
+    static func getLocalizedQuestions(localizationManager: LocalizationManager) -> [String] {
+        return availableQuestionKeys.map { key in
+            localizationManager.localizedString(for: key)
+        }
+    }
+
+    // Get localization key for a localized question text
+    static func getLocalizationKey(for localizedQuestion: String, localizationManager: LocalizationManager) -> String? {
+        let localizedQuestions = getLocalizedQuestions(localizationManager: localizationManager)
+        if let index = localizedQuestions.firstIndex(of: localizedQuestion) {
+            return availableQuestionKeys[index]
+        }
+        return nil
+    }
+
+    // Get localization key for legacy English question text
+    static func getLocalizationKeyForEnglishQuestion(_ englishQuestion: String) -> String? {
+        if let index = availableQuestions.firstIndex(of: englishQuestion) {
+            return availableQuestionKeys[index]
+        }
+        return nil
+    }
 
     init() {}
 

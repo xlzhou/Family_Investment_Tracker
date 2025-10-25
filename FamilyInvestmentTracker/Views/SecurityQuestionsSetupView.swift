@@ -6,6 +6,8 @@ struct SecurityQuestionsSetupView: View {
     let onComplete: () -> Void
     let isUpdating: Bool
 
+    @EnvironmentObject private var localizationManager: LocalizationManager
+
     @State private var selectedQuestions: [String] = ["", ""]
     @State private var answers: [String] = ["", ""]
     @State private var isSettingUp = false
@@ -77,7 +79,8 @@ struct SecurityQuestionsSetupView: View {
                                     questionNumber: index + 1,
                                     selectedQuestion: $selectedQuestions[index],
                                     answer: $answers[index],
-                                    isCompleted: isQuestionCompleted(index)
+                                    isCompleted: isQuestionCompleted(index),
+                                    localizationManager: localizationManager
                                 )
                                 .id("question_\(index)")
                             }
@@ -187,7 +190,13 @@ struct SecurityQuestionsSetupView: View {
     private func setupSecurityQuestions() {
         isSettingUp = true
 
-        let questionsAndAnswers = zip(selectedQuestions, answers).map { (question: $0, answer: $1) }
+        // Convert localized questions to localization keys before storing
+        let questionsAndAnswers = zip(selectedQuestions, answers).compactMap { (localizedQuestion, answer) -> (question: String, answer: String)? in
+            if let key = SecurityQuestionManager.getLocalizationKey(for: localizedQuestion, localizationManager: localizationManager) {
+                return (question: key, answer: answer)
+            }
+            return nil
+        }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if authManager.securityQuestionManager.setupSecurityQuestions(questionsAndAnswers) {
@@ -208,6 +217,7 @@ struct SecurityQuestionSetupField: View {
     @Binding var selectedQuestion: String
     @Binding var answer: String
     let isCompleted: Bool
+    let localizationManager: LocalizationManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -232,7 +242,7 @@ struct SecurityQuestionSetupField: View {
                     .fontWeight(.medium)
 
                 Menu {
-                    ForEach(SecurityQuestionManager.availableQuestions, id: \.self) { question in
+                    ForEach(SecurityQuestionManager.getLocalizedQuestions(localizationManager: localizationManager), id: \.self) { question in
                         Button(question) {
                             selectedQuestion = question
                         }
@@ -308,6 +318,7 @@ struct SecurityQuestionSetupField: View {
         onComplete: {},
         isUpdating: false
     )
+    .environmentObject(LocalizationManager.shared)
 }
 
 // MARK: - Notification Extension

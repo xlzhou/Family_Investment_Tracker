@@ -45,12 +45,16 @@ class AuthenticationManager: ObservableObject {
     
     private func makeContext() -> LAContext {
         let ctx = LAContext()
-        ctx.localizedFallbackTitle = "Use Passcode"
+        ctx.localizedFallbackTitle = localized("auth.biometric.fallback")
         return ctx
     }
 
     init() {
         checkAuthenticationStatus()
+    }
+
+    private func localized(_ key: String) -> String {
+        NSLocalizedString(key, comment: "")
     }
 
     func checkAuthenticationStatus() {
@@ -87,11 +91,11 @@ class AuthenticationManager: ObservableObject {
     func authenticateWithBiometrics() {
         let context = makeContext()
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
-            authenticationError = "Biometric authentication not available"
+            authenticationError = localized("auth.error.biometricUnavailable")
             return
         }
         
-        let reason = "Authenticate to access your investment portfolio"
+        let reason = localized("auth.biometric.reason")
         
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] success, error in
             DispatchQueue.main.async {
@@ -99,7 +103,7 @@ class AuthenticationManager: ObservableObject {
                     self?.isAuthenticated = true
                     self?.authenticationError = nil
                 } else {
-                    self?.authenticationError = error?.localizedDescription ?? "Authentication failed"
+                    self?.authenticationError = error?.localizedDescription ?? self?.localized("auth.error.generic")
                 }
             }
         }
@@ -109,7 +113,7 @@ class AuthenticationManager: ObservableObject {
 
     func authenticateWithAppPassword(_ password: String) {
         guard !isTemporarilyLocked() else {
-            authenticationError = "Too many failed attempts. Please wait before trying again."
+            authenticationError = localized("auth.error.tooManyAttemptsWait")
             return
         }
 
@@ -119,14 +123,15 @@ class AuthenticationManager: ObservableObject {
             authenticationError = nil
             stopLockoutTimer()
         } else {
-            authenticationError = "Incorrect passcode"
+            authenticationError = localized("auth.error.incorrectPasscode")
 
             // Check if now temporarily locked
             if isTemporarilyLocked() {
                 authenticationState = .temporarilyLocked
                 startLockoutTimer()
                 let timeRemaining = getLockoutTimeRemaining()
-                authenticationError = "Too many failed attempts. Try again in \(Int(timeRemaining / 60)) minutes."
+                authenticationError = String(format: localized("auth.error.lockedMinutes"),
+                                             Int(timeRemaining / 60))
             }
         }
     }
@@ -138,14 +143,14 @@ class AuthenticationManager: ObservableObject {
             lastKnownPasswordPresence = .present
             return true
         } else {
-            authenticationError = "Failed to set passcode"
+            authenticationError = localized("auth.error.setPasscodeFailed")
             return false
         }
     }
 
     func changeAppPassword(currentPassword: String, newPassword: String) -> Bool {
         guard verifyPassword(currentPassword) else {
-            authenticationError = "Current passcode is incorrect"
+            authenticationError = localized("auth.error.currentPasscodeIncorrect")
             return false
         }
 
@@ -154,7 +159,7 @@ class AuthenticationManager: ObservableObject {
 
     func removeAppPassword(currentPassword: String) -> Bool {
         guard verifyPassword(currentPassword) else {
-            authenticationError = "Current passcode is incorrect"
+            authenticationError = localized("auth.error.currentPasscodeIncorrect")
             return false
         }
 
@@ -164,7 +169,7 @@ class AuthenticationManager: ObservableObject {
             lastKnownPasswordPresence = .absent
             return true
         } else {
-            authenticationError = "Failed to remove passcode"
+            authenticationError = localized("auth.error.removePasscodeFailed")
             return false
         }
     }
@@ -184,12 +189,13 @@ class AuthenticationManager: ObservableObject {
     func recoverPasswordWithBiometrics(completion: @escaping (Bool) -> Void) {
         let context = makeContext()
         guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) else {
-            authenticationError = "Biometric authentication not available"
+            authenticationError = localized("auth.error.biometricUnavailable")
             completion(false)
             return
         }
 
-        let reason = "Use \(getBiometricType()) to reset your passcode"
+        let reason = String(format: localized("auth.biometric.reason.reset"),
+                            getBiometricType())
 
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason) { [weak self] success, error in
             DispatchQueue.main.async {
@@ -197,7 +203,7 @@ class AuthenticationManager: ObservableObject {
                     self?.authenticationError = nil
                     completion(true)
                 } else {
-                    self?.authenticationError = error?.localizedDescription ?? "Biometric authentication failed"
+                    self?.authenticationError = error?.localizedDescription ?? self?.localized("auth.error.biometricFailed")
                     completion(false)
                 }
             }
@@ -209,7 +215,7 @@ class AuthenticationManager: ObservableObject {
             authenticationError = nil
             return true
         } else {
-            authenticationError = "Incorrect answers to security questions"
+            authenticationError = localized("auth.error.securityQuestionsIncorrect")
             return false
         }
     }
@@ -222,7 +228,7 @@ class AuthenticationManager: ObservableObject {
             lastKnownPasswordPresence = .present
             return true
         } else {
-            authenticationError = "Failed to reset passcode"
+            authenticationError = localized("auth.error.resetPasscodeFailed")
             return false
         }
     }
@@ -309,15 +315,15 @@ class AuthenticationManager: ObservableObject {
         _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
         switch context.biometryType {
         case .faceID:
-            return "Face ID"
+            return localized("auth.biometric.faceID")
         case .touchID:
-            return "Touch ID"
+            return localized("auth.biometric.touchID")
         case .opticID:
-            return "Optic ID"
+            return localized("auth.biometric.opticID")
         case .none:
-            return "Biometric"
+            return localized("auth.biometric.generic")
         @unknown default:
-            return "Biometric"
+            return localized("auth.biometric.generic")
         }
     }
 
@@ -352,14 +358,11 @@ class AuthenticationManager: ObservableObject {
     }
 
     func getLockoutTimeRemainingString() -> String {
-        let minutes = Int(lockoutTimeRemaining / 60)
-        let seconds = Int(lockoutTimeRemaining.truncatingRemainder(dividingBy: 60))
-
-        if minutes > 0 {
-            return "\(minutes)m \(seconds)s"
-        } else {
-            return "\(seconds)s"
-        }
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = lockoutTimeRemaining >= 60 ? [.minute, .second] : [.second]
+        formatter.unitsStyle = .positional
+        formatter.zeroFormattingBehavior = [.pad]
+        return formatter.string(from: lockoutTimeRemaining) ?? String(format: "%.0f", lockoutTimeRemaining)
     }
 
     // MARK: - Private Keychain Methods

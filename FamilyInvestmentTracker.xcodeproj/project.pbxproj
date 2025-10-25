@@ -8,8 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		02ABC2CEEA914C959E61E028 /* CloudKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 595D7062BFBF413DA8BA003C /* CloudKitService.swift */; };
+		A1E6152D2E2D4E7F00A6F0D1 /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1E6152D2E2D4E7F00A6F0B6 /* AppLanguage.swift */; };
 		03A1237FC77E43D2B6698A64 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F73691411C641EE9E5E0180 /* ContentView.swift */; };
 		0C269737CF02497A996C6DD8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1CCD403B2EA641EB8CD92769 /* Assets.xcassets */; };
+		A1E6152D2E2D4E7F00A6F0C0 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1E6152C2E2D4E7F00A6F0A0 /* Localizable.strings */; };
 		0CC6A3785A284F1C8628046C /* MarketDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6023B481F046438FB9D5AB1A /* MarketDataService.swift */; };
 		1AA2BB3CC4DD5EE6FF778899 /* Asset+Deposit.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F2A3C4D5E6071890ABCDEF /* Asset+Deposit.swift */; };
 		1BB2CC3DD4EE5FF6AA778899 /* Asset+Identifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F3A4C5D6E7081991ABCDEF /* Asset+Identifier.swift */; };
@@ -73,6 +75,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A1E6152D2E2D4E7F00A6F0B6 /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
 		0C99186756F54D068D8536E8 /* TransactionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionDetailView.swift; sourceTree = "<group>"; };
 		14EA6AA8835A46F9861D6378 /* CurrencyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyService.swift; sourceTree = "<group>"; };
 		15E592AC0E3F4869838779D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -97,6 +100,10 @@
 		98DC16DBA98343AEBC73F1F4 /* PortfolioDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioDashboardView.swift; sourceTree = "<group>"; };
 		A0900C7129C51F7F009D1EAB /* PortfolioInstitutionCurrencyCash+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PortfolioInstitutionCurrencyCash+Extensions.swift"; sourceTree = "<group>"; };
 		A136EB05B9154DEDA208FC05 /* PortfolioSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PortfolioSettingsView.swift; sourceTree = "<group>"; };
+		A1E6152C2E2D4E7F00A6F0B1 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1E6152C2E2D4E7F00A6F0B2 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = "zh-Hant.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		A1E6152C2E2D4E7F00A6F0B3 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A1E6152C2E2D4E7F00A6F0B4 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = Localizable.strings; path = es.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A597C86D50F2403B90A1C9D7 /* TransactionType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionType.swift; sourceTree = "<group>"; };
 		A6585115FE4F40BFBC1525C4 /* TransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
 		A7F0E1C2D3B4456699AA0011 /* CashDisciplineService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CashDisciplineService.swift; sourceTree = "<group>"; };
@@ -172,6 +179,7 @@
 		71681110CF994FF2BB88DCA3 /* FamilyInvestmentTracker */ = {
 			isa = PBXGroup;
 			children = (
+				A1E6152C2E2D4E7F00A6F0A0 /* Localizable.strings */,
 				E71634042E7BA470007ACEFC /* FamilyInvestmentTracker.entitlements */,
 				85FFAA3D58B9478DAE939C28 /* FamilyInvestmentTrackerApp.swift */,
 				4F73691411C641EE9E5E0180 /* ContentView.swift */,
@@ -249,6 +257,7 @@
 		EB5ECC97A7F24D478D120806 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				A1E6152D2E2D4E7F00A6F0B6 /* AppLanguage.swift */,
 				4E3FD956593F495A808BA082 /* Formatters.swift */,
 				F4E3D2C1B0A9988776655443 /* InsurancePaymentService.swift */,
 			);
@@ -330,6 +339,9 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hant",
+				ja,
+				es,
 			);
 			mainGroup = 033DADF6C8BF4CFBB1282EB6;
 			productRefGroup = FFECC19CF06946BC891F4785 /* Products */;
@@ -347,6 +359,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0C269737CF02497A996C6DD8 /* Assets.xcassets in Resources */,
+				A1E6152D2E2D4E7F00A6F0C0 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,6 +370,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1E6152D2E2D4E7F00A6F0D1 /* AppLanguage.swift in Sources */,
 				2022E4B164974B0DB2BBCD5E /* FamilyInvestmentTrackerApp.swift in Sources */,
 				03A1237FC77E43D2B6698A64 /* ContentView.swift in Sources */,
 				672CA89D46D34C8AA97BE10F /* Persistence.swift in Sources */,
@@ -423,6 +437,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		A1E6152C2E2D4E7F00A6F0A0 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A1E6152C2E2D4E7F00A6F0B1 /* Localizable.strings */,
+				A1E6152C2E2D4E7F00A6F0B2 /* Localizable.strings */,
+				A1E6152C2E2D4E7F00A6F0B3 /* Localizable.strings */,
+				A1E6152C2E2D4E7F00A6F0B4 /* Localizable.strings */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		3E9754C9A00A4F90AF522270 /* Release */ = {

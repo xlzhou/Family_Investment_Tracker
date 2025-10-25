@@ -6,6 +6,7 @@ struct CloudShareView: UIViewControllerRepresentable {
     let portfolioID: NSManagedObjectID
     let container: NSPersistentCloudKitContainer
     let context: NSManagedObjectContext
+    let localizationManager: LocalizationManager
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -43,7 +44,8 @@ struct CloudShareView: UIViewControllerRepresentable {
             do {
                 let object = try context.existingObject(with: portfolioID)
                 let name = (object.value(forKey: "name") as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
-                let titleString = (name?.isEmpty == false) ? (name ?? "Portfolio") : "Portfolio"
+                let portfolioFallback = localizationManager.localizedString(for: "cloudShare.portfolio.title")
+                let titleString = (name?.isEmpty == false) ? (name ?? portfolioFallback) : portfolioFallback
 
                 if let existingShares = try? container.fetchShares(matching: [object.objectID]),
                    let existingShare = existingShares[object.objectID] {
@@ -117,7 +119,9 @@ struct CloudShareView: UIViewControllerRepresentable {
             parent.handleStopSharing(csc.share)
         }
 
-        func itemTitle(for csc: UICloudSharingController) -> String? { "Portfolio" }
+        func itemTitle(for csc: UICloudSharingController) -> String? {
+            parent.localizationManager.localizedString(for: "cloudShare.portfolio.title")
+        }
 
         func cloudSharingController(_ csc: UICloudSharingController, failedToSaveShareWithError error: Error) {
             print("Cloud sharing save error: \(error)")

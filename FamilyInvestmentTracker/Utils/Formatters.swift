@@ -3,13 +3,11 @@ import Foundation
 enum Formatters {
     private static func makeNumberFormatter(style: NumberFormatter.Style = .decimal,
                                              fractionDigits: Int = 2,
-                                             groupingSeparator: String = ",",
-                                             decimalSeparator: String? = nil) -> NumberFormatter {
+                                             locale: Locale = .current) -> NumberFormatter {
         let f = NumberFormatter()
+        f.locale = locale
         f.numberStyle = style
         f.usesGroupingSeparator = true
-        f.groupingSeparator = groupingSeparator
-        if let decimalSeparator = decimalSeparator { f.decimalSeparator = decimalSeparator }
         f.minimumFractionDigits = fractionDigits
         f.maximumFractionDigits = fractionDigits
         return f
@@ -34,7 +32,8 @@ enum Formatters {
     static func percent(_ value: Double, fractionDigits: Int = 1) -> String {
         let f = makeNumberFormatter(style: .decimal, fractionDigits: fractionDigits)
         let core = f.string(from: NSNumber(value: value)) ?? String(format: "%0.*f", fractionDigits, value)
-        return core + "%"
+        let symbol = f.percentSymbol ?? "%"
+        return core + symbol
     }
 
     static func signedPercent(_ value: Double, fractionDigits: Int = 1, showPlus: Bool = true) -> String {
@@ -42,4 +41,3 @@ enum Formatters {
         return sign + percent(abs(value), fractionDigits: fractionDigits)
     }
 }
-

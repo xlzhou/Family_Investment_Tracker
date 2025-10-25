@@ -7,6 +7,7 @@ struct HoldingDetailView: View {
     @ObservedObject var asset: Asset
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     @State private var editingPrice: Double = 0
     @State private var editingCashValue: Double = 0
@@ -241,49 +242,49 @@ struct HoldingDetailView: View {
         NavigationView {
             Form {
                 // Asset Information Section
-                Section(header: Text("Asset Information")) {
+                Section(header: Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.title"))) {
                     HStack {
-                        Text("Symbol")
+                        Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.symbol"))
                         Spacer()
                         Text(asset.symbol ?? "N/A")
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Name")
+                        Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.name"))
                         Spacer()
                         Text(asset.name ?? "Unknown Asset")
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Type")
+                        Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.type"))
                         Spacer()
-                        Text(asset.assetType?.capitalized ?? "Unknown")
+                        Text(asset.assetType?.capitalized ?? localizationManager.localizedString(for: "holdingDetail.unknown"))
                             .foregroundColor(.secondary)
                     }
                 }
 
                 // Holdings Information Section
                 if !isInsurance {
-                    Section(header: Text("Holdings Information")) {
+                    Section(header: Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.title"))) {
                         if isStructuredProduct {
                             HStack {
-                                Text("Institution")
+                                Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.issuer"))
                                 Spacer()
-                                Text((holdingInstitution?.name ?? "Unassigned"))
+                                Text((holdingInstitution?.name ?? localizationManager.localizedString(for: "holdingDetail.holdingsInformation.unassigned")))
                                     .foregroundColor(.secondary)
                             }
 
                             HStack {
-                                Text("Investment Amount")
+                                Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.investmentAmount"))
                                 Spacer()
                                 Text(Formatters.currency(structuredProductInvestmentAmount, symbol: portfolioMainCurrency.displayName))
                                     .fontWeight(.medium)
                             }
 
                             HStack {
-                                Text("Interest Rate")
+                                Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.interestRate"))
                                 Spacer()
                                 Text(Formatters.percent(structuredProductInterestRate, fractionDigits: 2))
                                     .foregroundColor(.secondary)
@@ -291,7 +292,7 @@ struct HoldingDetailView: View {
 
                             if let maturityDate = structuredProductMaturityDate {
                                 HStack {
-                                    Text("Maturity Date")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.maturityDate"))
                                     Spacer()
                                     Text(maturityDate, style: .date)
                                         .foregroundColor(.secondary)
@@ -300,7 +301,7 @@ struct HoldingDetailView: View {
 
                             if !structuredProductLinkedAssets.isEmpty {
                                 HStack {
-                                    Text("Linked Assets")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.linkedAssets"))
                                     Spacer()
                                     Text(structuredProductLinkedAssets)
                                         .foregroundColor(.secondary)
@@ -309,7 +310,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Last Recorded Price")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.lastRecordedPrice"))
                                     /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -343,7 +344,7 @@ struct HoldingDetailView: View {
                                     }
                                 }
                             }
-                            Text("This is the last price you entered manually. Edit it below or enable auto-fetch to keep it current.")
+                            Text(localizationManager.localizedString(for: "holdingDetail.messages.priceDescription"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
 
@@ -362,7 +363,7 @@ struct HoldingDetailView: View {
                                 }
                             }
 
-                            Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
+                            Toggle(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.autoFetchPrice"), isOn: $autoFetchToggle)
                                 .toggleStyle(SwitchToggleStyle())
                                 .onChange(of: autoFetchToggle) { _, newValue in
                                     guard !isUpdatingAutoFetchPreference else { return }
@@ -371,7 +372,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Total Value")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.totalValue"))
                                     /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -383,10 +384,10 @@ struct HoldingDetailView: View {
 
                             if holding.portfolio != nil {
                                 HStack(spacing: 16) {
-                                    Button("Buy More") {
+                                    Button(localizationManager.localizedString(for: "holdingDetail.actions.buyMore")) {
                                         presentTrade(.buy)
                                     }
-                                    Button("Sell") {
+                                    Button(localizationManager.localizedString(for: "holdingDetail.actions.sell")) {
                                         presentTrade(.sell)
                                     }
                                 }
@@ -395,14 +396,14 @@ struct HoldingDetailView: View {
                         } else {
 
                             HStack {
-                                Text("Institution")
+                                Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.issuer"))
                                 Spacer()
-                                Text((holdingInstitution?.name ?? "Unassigned"))
+                                Text((holdingInstitution?.name ?? localizationManager.localizedString(for: "holdingDetail.holdingsInformation.unassigned")))
                                     .foregroundColor(.secondary)
                             }
                             
                             HStack {
-                                Text("Quantity")
+                                Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.quantity"))
                                 Spacer()
                                 Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
                                     .foregroundColor(.secondary)
@@ -410,7 +411,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Last Recorded Price")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.lastRecordedPrice"))
                                     /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -444,7 +445,7 @@ struct HoldingDetailView: View {
                                     }
                                 }
                             }
-                            Text("This is the last price you entered manually. Edit it below or enable auto-fetch to keep it current.")
+                            Text(localizationManager.localizedString(for: "holdingDetail.messages.priceDescription"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
 
@@ -463,7 +464,7 @@ struct HoldingDetailView: View {
                                 }
                             }
 
-                            Toggle("Auto-fetch price from Yahoo Finance", isOn: $autoFetchToggle)
+                            Toggle(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.autoFetchPrice"), isOn: $autoFetchToggle)
                                 .toggleStyle(SwitchToggleStyle())
                                 .onChange(of: autoFetchToggle) { _, newValue in
                                     guard !isUpdatingAutoFetchPreference else { return }
@@ -472,7 +473,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Average Cost Basis")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.averageCostBasis"))
                                     /*Text("(\(portfolioMainCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -484,7 +485,7 @@ struct HoldingDetailView: View {
 
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Total Value")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.totalValue"))
                                     /*Text("(\(displayCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -496,10 +497,10 @@ struct HoldingDetailView: View {
 
                             if holding.portfolio != nil {
                                 HStack(spacing: 16) {
-                                    Button("Buy More") {
+                                    Button(localizationManager.localizedString(for: "holdingDetail.actions.buyMore")) {
                                         presentTrade(.buy)
                                     }
-                                    Button("Sell") {
+                                    Button(localizationManager.localizedString(for: "holdingDetail.actions.sell")) {
                                         presentTrade(.sell)
                                     }
                                 }
@@ -520,10 +521,10 @@ struct HoldingDetailView: View {
 
                 // Performance Section (for non-insurance assets)
                 if !isInsurance {
-                    Section(header: Text("Performance")) {
+                    Section(header: Text(localizationManager.localizedString(for: "holdingDetail.performance.title"))) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Cost Basis")
+                                Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.costBasis"))
                                 /*Text("(\(portfolioMainCurrency.displayName))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)*/
@@ -535,7 +536,7 @@ struct HoldingDetailView: View {
 
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Unrealized Gain/Loss")
+                                Text(localizationManager.localizedString(for: "holdingDetail.performance.unrealizedGainLoss"))
                                 /*Text("(\(portfolioMainCurrency.displayName))")
                                     .font(.caption)
                                     .foregroundColor(.secondary)*/
@@ -556,7 +557,7 @@ struct HoldingDetailView: View {
                             let cumulativeIncome = holding.totalDividends
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Cumulative Income (Dividends/Interest)")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.performance.cumulativeIncome"))
                                     /*Text("(\(portfolioMainCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -571,7 +572,7 @@ struct HoldingDetailView: View {
                             let incomeAdjustedPercent = costBasis > 0 ? (incomeAdjustedGain / costBasis) * 100 : 0
                             HStack {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Total Return (with Income)")
+                                    Text(localizationManager.localizedString(for: "holdingDetail.performance.totalReturnWithIncome"))
                                     /*Text("(\(portfolioMainCurrency.displayName))")
                                         .font(.caption)
                                         .foregroundColor(.secondary)*/
@@ -608,7 +609,7 @@ struct HoldingDetailView: View {
 
                 // Transaction History Section
                 if !isInsurance {
-                    Section(header: Text("Transaction History")) {
+                    Section(header: Text(localizationManager.localizedString(for: "holdingDetail.transactions.title"))) {
                         if buySellHistory.isEmpty {
                             Text("No buy or sell transactions recorded for this asset.")
                                 .foregroundColor(.secondary)
@@ -624,21 +625,21 @@ struct HoldingDetailView: View {
                                     }
 
                                     HStack {
-                                        Text("Quantity")
+                                        Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.quantity"))
                                         Spacer()
                                         Text(Formatters.decimal(transaction.quantity, fractionDigits: 5))
                                             .foregroundColor(.secondary)
                                     }
 
                                     HStack {
-                                        Text("Price")
+                                        Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.price"))
                                         Spacer()
                                         Text(Formatters.currency(transaction.price, symbol: transactionCurrency(for: transaction).displayName, fractionDigits: 6))
                                             .foregroundColor(.secondary)
                                     }
 
                                     HStack {
-                                        Text("Total")
+                                        Text(localizationManager.localizedString(for: "holdingDetail.performance.total"))
                                         Spacer()
                                         Text(Formatters.currency(transaction.quantity * transaction.price, symbol: transactionCurrency(for: transaction).displayName))
                                             .foregroundColor(.secondary)
@@ -659,7 +660,7 @@ struct HoldingDetailView: View {
                 if let lastUpdate = asset.lastPriceUpdate {
                     Section(header: Text("Price Information")) {
                         HStack {
-                            Text("Last Updated")
+                            Text(localizationManager.localizedString(for: "holdingDetail.performance.lastUpdate"))
                             Spacer()
                             Text(lastUpdate, style: .relative)
                                 .foregroundColor(.secondary)
@@ -675,22 +676,22 @@ struct HoldingDetailView: View {
                 }
 
                 Section {
-                    Text("Historical costs use portfolio currency while current values use transaction currency.")
+                    Text(localizationManager.localizedString(for: "holdingDetail.messages.historicalCosts"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
             }
-            .navigationTitle(asset.symbol ?? "Asset Details")
+            .navigationTitle(asset.symbol ?? localizationManager.localizedString(for: "holdingDetail.navigation.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     if isInsurance, holding.portfolio != nil {
-                        Button("Payments") {
+                        Button(localizationManager.localizedString(for: "holdingDetail.actions.payments")) {
                             showingPaymentManagement = true
                         }
                     }
-                    Button("Done") {
+                    Button(localizationManager.localizedString(for: "common.done")) {
                         dismiss()
                     }
                 }
@@ -713,7 +714,7 @@ struct HoldingDetailView: View {
                     .environment(\.managedObjectContext, viewContext)
                     .interactiveDismissDisabled()
             } else {
-                Text("No portfolio associated with this holding.")
+                Text(localizationManager.localizedString(for: "holdingDetail.messages.noPortfolio"))
                     .font(.callout)
                     .foregroundColor(.secondary)
                     .padding()
@@ -724,7 +725,7 @@ struct HoldingDetailView: View {
                 InsurancePaymentManagementView(portfolio: portfolio, insuranceAsset: asset)
                     .environment(\.managedObjectContext, viewContext)
             } else {
-                Text("No portfolio associated with this holding.")
+                Text(localizationManager.localizedString(for: "holdingDetail.messages.noPortfolio"))
                     .font(.callout)
                     .foregroundColor(.secondary)
                     .padding()
@@ -736,9 +737,9 @@ struct HoldingDetailView: View {
 
     @ViewBuilder
     private var insuranceDetailsSection: some View {
-        Section(header: Text("Insurance Details")) {
+        Section(header: Text(localizationManager.localizedString(for: "holdingDetail.insurance.details.title"))) {
             HStack {
-                Text("Policy Symbol")
+                Text(localizationManager.localizedString(for: "holdingDetail.insurance.details.policySymbol"))
                 Spacer()
                 Text(asset.symbol ?? "-")
                     .foregroundColor(.secondary)
@@ -782,7 +783,7 @@ struct HoldingDetailView: View {
 
     @ViewBuilder
     private var insuranceFinancialSection: some View {
-        Section(header: Text("Financial Details")) {
+        Section(header: Text(localizationManager.localizedString(for: "holdingDetail.insurance.financialDetails.title"))) {
 
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
@@ -946,6 +947,7 @@ struct PriceEditorView: View {
     let portfolioMainCurrency: Currency
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var error: String?
 
     private let currencyService = CurrencyService.shared
@@ -953,10 +955,10 @@ struct PriceEditorView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Update Last Recorded Price")) {
+                Section(header: Text(localizationManager.localizedString(for: "holdingDetail.priceInformation.priceUpdate"))) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Last Recorded Price")
+                            Text(localizationManager.localizedString(for: "holdingDetail.holdingsInformation.lastRecordedPrice"))
                             /*Text("(\(displayCurrency.displayName))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)*/
@@ -980,7 +982,7 @@ struct PriceEditorView: View {
                     }
 
                     HStack {
-                        Text("Name")
+                        Text(localizationManager.localizedString(for: "holdingDetail.assetInformation.name"))
                         Spacer()
                         Text(asset.name ?? "Unknown Asset")
                             .foregroundColor(.secondary)
@@ -1010,17 +1012,17 @@ struct PriceEditorView: View {
                     }
                 }
             }
-            .navigationTitle("Update Price")
+            .navigationTitle(localizationManager.localizedString(for: "holdingDetail.priceEditor.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "holdingDetail.priceEditor.cancel")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button(localizationManager.localizedString(for: "holdingDetail.priceEditor.save")) {
                         savePrice()
                     }
                     .disabled(editingPrice <= 0)

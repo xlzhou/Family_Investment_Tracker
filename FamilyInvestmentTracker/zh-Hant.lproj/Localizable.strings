@@ -1,0 +1,847 @@
+"app.title" = "家庭投資追蹤器";
+"app.subtitle" = "安全存取您家庭的投資組合";
+"auth.enterPassword" = "輸入密碼";
+"auth.unlock" = "解鎖";
+"auth.biometric.use" = "使用 %@";
+"auth.setPassword" = "設定密碼";
+"auth.passwordStrength" = "密碼強度：";
+"auth.passwordRequirement.length" = "• 至少 8 個字元";
+"auth.passwordRequirement.complexity" = "• 需含字母、數字與特殊字元";
+"auth.status.authenticated" = "已驗證";
+"auth.biometric.fallback" = "使用密碼";
+"auth.error.biometricUnavailable" = "無法使用生物辨識";
+"auth.biometric.reason" = "請驗證以存取您的投資組合";
+"auth.error.generic" = "驗證失敗";
+"auth.error.tooManyAttemptsWait" = "嘗試次數過多，請稍後再試。";
+"auth.error.incorrectPasscode" = "密碼不正確";
+"auth.error.lockedMinutes" = "嘗試次數過多，請於 %d 分鐘後再試。";
+"auth.error.setPasscodeFailed" = "設定密碼失敗";
+"auth.error.currentPasscodeIncorrect" = "目前的密碼不正確";
+"auth.error.removePasscodeFailed" = "移除密碼失敗";
+"auth.biometric.reason.reset" = "使用 %@ 以重設您的密碼";
+"auth.error.biometricFailed" = "生物辨識驗證失敗";
+"auth.error.securityQuestionsIncorrect" = "安全問題答案不正確";
+"auth.error.resetPasscodeFailed" = "重設密碼失敗";
+"auth.biometric.faceID" = "Face ID";
+"auth.biometric.touchID" = "Touch ID";
+"auth.biometric.opticID" = "Optic ID";
+"auth.biometric.generic" = "生物辨識";
+"auth.setupTitle" = "設定應用程式密碼";
+"auth.createPasswordPlaceholder" = "建立密碼";
+"auth.passwordPlaceholder" = "密碼";
+"auth.forgotPassword" = "忘記密碼？";
+"auth.locked.title" = "帳戶已鎖定";
+"auth.locked.subtitle" = "嘗試次數過多";
+"auth.locked.remaining" = "剩餘時間：%@";
+"auth.passwordStrength.tooWeak" = "太弱";
+"auth.passwordStrength.weak" = "弱";
+"auth.passwordStrength.fair" = "普通";
+"auth.passwordStrength.good" = "良好";
+"auth.passwordStrength.strong" = "強";
+"settings.restore.success" = "您的資料已成功還原。";
+"settings.restore.title" = "還原完成";
+"settings.language.sectionTitle" = "應用程式語言";
+"settings.language.sectionFooter" = "選擇應用程式語言，或使用系統預設值。";
+"settings.language.pickerLabel" = "語言";
+"settings.language.option.system" = "系統預設";
+"settings.language.option.en" = "英文";
+"settings.language.option.zh-Hant" = "繁體中文";
+"settings.language.option.ja" = "日文";
+"settings.language.option.es" = "西班牙文";
+"settings.language.restart.title" = "變更語言";
+"settings.language.restart.message" = "應用程式語言將立即變更。";
+"settings.language.restart.cancel" = "取消";
+"settings.language.restart.confirm" = "套用變更";
+"holdings.summary.count" = "%@";
+"common.ok" = "確定";
+"common.cancel" = "取消";
+"common.done" = "完成";
+"common.save" = "儲存";
+"cashDiscipline.qty" = "數量 %@";
+"cashDiscipline.price" = "價格 %@";
+"cashDiscipline.fees" = "手續費 %@";
+"cashDiscipline.tax" = "稅金 %@";
+"cashDiscipline.settlement" = "結算 %@";
+"cashDiscipline.date" = "日期 %@";
+"transaction.type.buy" = "買入";
+"transaction.type.sell" = "賣出";
+"transaction.type.dividend" = "股息";
+"transaction.type.interest" = "利息";
+"transaction.type.insurance" = "保險";
+"transaction.type.depositWithdrawal" = "存款提領";
+"transaction.type.deposit" = "存款";
+"transaction.type.withdrawal" = "提領";
+"asset.type.stock" = "股票";
+"asset.type.etf" = "ETF";
+"asset.type.bond" = "債券";
+"asset.type.mutualFund" = "共同基金";
+"asset.type.deposit" = "存款";
+"asset.type.cryptocurrency" = "加密貨幣";
+"asset.type.preciousMetal" = "貴金屬";
+"asset.type.insurance" = "保險";
+"asset.type.structuredProduct" = "結構性商品";
+"asset.type.other" = "其他";
+
+// Settings View Localization
+"settings.title" = "設定";
+"settings.profile.title" = "個人資料";
+"settings.profile.footer" = "當您分享投資組合時，此名稱將顯示給家庭成員。";
+"settings.profile.displayName" = "顯示名稱";
+"settings.dashboard.title" = "儀表板";
+"settings.dashboard.footer" = "選擇投資組合檢視中總額使用的貨幣。";
+"settings.dashboard.summaryCurrency" = "匯總貨幣";
+"settings.exchangeRates.title" = "貨幣匯率";
+"settings.exchangeRates.footer" = "即時匯率從雅虎財經API獲取，並在本地快取以供離線使用。";
+"settings.exchangeRates.label" = "匯率";
+"settings.exchangeRates.updating" = "更新中...";
+"settings.exchangeRates.updated" = "已更新 %@";
+"settings.exchangeRates.noData" = "無資料";
+"settings.exchangeRates.from" = "從 %@";
+"settings.icloud.title" = "iCloud 同步";
+"settings.icloud.footer" = "使用iCloud在所有裝置間安全同步您的投資組合資料。";
+"settings.icloud.sync" = "iCloud 同步";
+"settings.icloud.enabled" = "已啟用";
+"settings.icloud.available" = "可用";
+"settings.icloud.notAvailable" = "不可用";
+"settings.icloud.lastSync" = "上次同步";
+"settings.icloud.never" = "從未";
+"settings.icloud.syncNow" = "立即同步";
+"settings.backup.title" = "備份與復原";
+"settings.backup.footer" = "建立包含所有投資組合、交易、持股和機構的密碼保護備份，或從先前的備份復原。";
+"settings.backup.creating" = "建立備份中...";
+"settings.backup.create" = "建立完整備份";
+"settings.backup.restoring" = "復原備份中...";
+"settings.backup.restore" = "從備份復原";
+"settings.migration.fdMigration" = "開始定期存款遷移";
+"settings.migration.rebuildGains" = "重建已實現損益";
+"settings.migration.rebuilding" = "重建已實現損益中...";
+"settings.migration.linkCompanions" = "連結舊版定期存款夥伴";
+"settings.migration.linking" = "連結夥伴交易中...";
+"settings.export.title" = "資料匯出";
+"settings.export.footer" = "匯出您的投資組合資料以進行備份或分析。";
+"settings.export.button" = "匯出投資組合資料";
+"settings.info.title" = "應用程式資訊";
+"settings.info.version" = "版本";
+"settings.info.build" = "建置";
+"settings.security.title" = "安全性";
+"settings.security.changePassword" = "變更密碼";
+"settings.security.securityQuestions" = "安全問題";
+"settings.security.questionsChange" = "變更安全問題";
+"settings.security.questionsSetup" = "設定密碼復原的安全問題";
+"settings.security.signOut" = "登出";
+"settings.password.requirement" = "密碼必須至少包含一個字元。";
+"settings.password.change" = "變更密碼";
+"settings.password.requirements.length" = "• 最少8個字元";
+"settings.password.requirements.complexity" = "• 包含字母、數字和特殊字元";
+
+// Action Calendar View Localization
+"actionCalendar.title" = "行動日曆";
+"actionCalendar.actionsFor" = "%@ 的行動";
+"actionCalendar.noActionsFor" = "%@ 沒有安排行動";
+"actionCalendar.thisMonth" = "本月";
+"actionCalendar.upcomingActions" = "即將到來的行動";
+"actionCalendar.fixedDepositMaturity" = "定期存款到期";
+"actionCalendar.bondMaturity" = "債券到期";
+"actionCalendar.structuredProductMaturity" = "結構性商品到期";
+"actionCalendar.insuranceMaturity" = "保險到期";
+"actionCalendar.maturityDate" = "到期日";
+"actionCalendar.premiumPaymentDue" = "保費到期";
+"actionCalendar.insuranceBenefitRedemption" = "保險給付贖回";
+
+// Add Fixed Deposit View Localization
+"addFixedDeposit.title" = "新增定期存款";
+"addFixedDeposit.institution" = "金融機構";
+"addFixedDeposit.selectInstitution" = "選擇金融機構";
+"addFixedDeposit.details" = "定期存款詳情";
+"addFixedDeposit.currency" = "貨幣";
+"addFixedDeposit.valueDate" = "起息日";
+"addFixedDeposit.term" = "期限";
+"addFixedDeposit.year" = "年";
+"addFixedDeposit.years" = "年";
+"addFixedDeposit.month" = "個月";
+"addFixedDeposit.months" = "個月";
+"addFixedDeposit.interestRate" = "利率 (%)";
+"addFixedDeposit.maturityDate" = "到期日";
+"addFixedDeposit.depositName" = "存款名稱";
+"addFixedDeposit.symbol" = "代號 (自動生成)";
+"addFixedDeposit.amount" = "金額";
+"addFixedDeposit.options" = "選項";
+"addFixedDeposit.allowEarlyWithdrawal" = "允許提前提取";
+"addFixedDeposit.create" = "建立";
+"addFixedDeposit.insufficientCash" = "現金不足";
+"addFixedDeposit.selectedInstitution" = "選定的機構";
+"addFixedDeposit.insufficientCashMessage" = "%@ 可用: %@\n需要: %@\n\n如果您不希望在建立定期存款時扣除現金，請前往投資組合設定並關閉「強制現金管理」。";
+"addFixedDeposit.invalidInput" = "無效輸入值";
+"addFixedDeposit.creationFailed" = "建立定期存款失敗: %@";
+
+// Institution Picker View Localization
+"institutionPicker.title" = "選擇金融機構";
+"institutionPicker.selectInstitution" = "選擇金融機構";
+"institutionPicker.unknownInstitution" = "未知機構";
+"institutionPicker.addNew" = "新增金融機構";
+"institutionPicker.addInstitution" = "新增機構";
+"institutionPicker.institutionName" = "機構名稱";
+"institutionPicker.add" = "新增";
+
+// Add Portfolio View Localization
+"addPortfolio.title" = "新增投資組合";
+"addPortfolio.details" = "投資組合詳情";
+"addPortfolio.portfolioName" = "投資組合名稱";
+"addPortfolio.description" = "您可以為每個家庭成員或投資策略創建單獨的投資組合。";
+
+// Add Transaction View Localization
+"addTransaction.add.title" = "新增交易";
+"addTransaction.edit.title" = "編輯交易";
+"addTransaction.transactionType.title" = "交易類型";
+"addTransaction.transactionType.label" = "類型";
+"addTransaction.currency.title" = "貨幣";
+"addTransaction.currency.label" = "貨幣";
+"addTransaction.institution.title" = "交易機構";
+"addTransaction.institution.label" = "機構";
+"addTransaction.institution.placeholder" = "機構 (例：盈透證券)";
+"addTransaction.institution.add" = "新增";
+"addTransaction.institution.select" = "選擇";
+"addTransaction.institution.selectPrompt" = "選擇機構";
+"addTransaction.institution.unknown" = "未知";
+"addTransaction.institution.typeNew" = "輸入新機構";
+"addTransaction.paymentInstitution.label" = "付款機構";
+"addTransaction.paymentInstitution.selectPrompt" = "選擇付款機構";
+"addTransaction.paymentInstitution.addPrompt" = "新增機構以啟用付款選擇。";
+"addTransaction.dividendSource.title" = "股息來源";
+"addTransaction.dividendSource.footer" = "選擇產生此股息的證券。";
+"addTransaction.dividendSource.label" = "證券";
+"addTransaction.dividendSource.none" = "無";
+"addTransaction.interestSource.title" = "利息來源";
+"addTransaction.interestSource.footer" = "選擇產生此利息的帳戶或證券。";
+"addTransaction.interestSource.label" = "來源";
+"addTransaction.sellSecurity.title" = "待售證券";
+"addTransaction.sellSecurity.footer" = "選擇您要出售的證券。";
+"addTransaction.sellSecurity.label" = "證券";
+"addTransaction.sellSecurity.selectPrompt" = "選擇證券";
+"addTransaction.sellSecurity.noSecurities" = "此機構沒有可出售的證券。";
+"addTransaction.assetInfo.title" = "資產資訊";
+"addTransaction.assetInfo.typeLabel" = "資產類型";
+"addTransaction.assetInfo.symbolPlaceholder" = "代號 (例：AAPL)";
+"addTransaction.assetInfo.namePlaceholder" = "名稱 (選填)";
+"addTransaction.details.title" = "交易詳情";
+"addTransaction.details.date" = "日期";
+"addTransaction.details.interestRate" = "利率";
+"addTransaction.details.quantity" = "數量";
+"addTransaction.details.quantityWithHint" = "數量 %@";
+"addTransaction.details.pricePerShare" = "每股價格";
+"addTransaction.details.investmentAmount" = "投資金額";
+"addTransaction.details.cashValue" = "現金價值";
+"addTransaction.details.amount" = "金額";
+"addTransaction.details.withdrawalTip" = "提示：輸入負數金額表示提取";
+"addTransaction.details.accruedInterest" = "應計利息";
+"addTransaction.details.totalValue" = "總價值";
+"addTransaction.details.fees" = "手續費";
+"addTransaction.details.tax" = "稅金";
+"addTransaction.details.settlementAmount" = "結算金額";
+"addTransaction.details.notesPlaceholder" = "備註 (選填)";
+"addTransaction.fixedDeposit.editTitle" = "在現金管理中編輯定期存款";
+"addTransaction.fixedDeposit.editMessage" = "此交易屬於定期存款。請從現金管理管理其詳情，以確保到期日、期限和利率保持同步。";
+"addTransaction.fixedDeposit.openCashManagement" = "開啟現金管理";
+"addTransaction.fixedDeposit.hintTitle" = "正在尋找定期存款？";
+"addTransaction.fixedDeposit.hintMessage" = "在現金管理中創建和管理定期存款。這確保價值日期、期限和到期日保持準確。";
+"addTransaction.alerts.validationError" = "驗證錯誤";
+"addTransaction.insurance.details.title" = "保險詳情";
+"addTransaction.insurance.details.policySymbol" = "保單代號";
+"addTransaction.insurance.details.insuranceType" = "保險類型";
+"addTransaction.insurance.details.policyholder" = "保單持有人";
+"addTransaction.insurance.details.insuredPerson" = "被保險人";
+"addTransaction.insurance.details.policyNumber" = "保單號碼";
+"addTransaction.insurance.types.life" = "人壽保險";
+"addTransaction.insurance.types.criticalIllness" = "重大疾病保險";
+"addTransaction.insurance.types.accident" = "意外保險";
+
+// Insurance Financial Details
+"addTransaction.insurance.financialDetails.title" = "財務詳情";
+"addTransaction.insurance.financialDetails.basicInsuredAmount" = "基本保險金額";
+"addTransaction.insurance.financialDetails.additionalPayment" = "額外付款";
+"addTransaction.insurance.financialDetails.deathBenefit" = "身故保險金";
+
+// Insurance Premium Details
+"addTransaction.insurance.premiumDetails.title" = "保費詳情";
+"addTransaction.insurance.premiumDetails.singlePremium" = "單次保費";
+"addTransaction.insurance.premiumDetails.firstDiscountedPremium" = "首期優惠保費";
+"addTransaction.insurance.premiumDetails.paymentTerm" = "繳費期";
+"addTransaction.insurance.premiumDetails.totalPremium" = "總保費";
+"addTransaction.insurance.premiumDetails.paymentStatus" = "繳費狀態";
+"addTransaction.insurance.premiumDetails.paymentType" = "繳費方式";
+"addTransaction.insurance.premiumDetails.paid" = "已繳";
+"addTransaction.insurance.premiumDetails.paying" = "繳費中";
+"addTransaction.insurance.premiumDetails.lumpSum" = "一次性付款";
+"addTransaction.insurance.premiumDetails.installment" = "分期付款";
+
+// Insurance Policy Features
+"addTransaction.insurance.policyFeatures.title" = "保單特色";
+"addTransaction.insurance.policyFeatures.participatingPolicy" = "分紅保單";
+"addTransaction.insurance.policyFeatures.rider" = "附加保險";
+"addTransaction.insurance.policyFeatures.canWithdrawPremiums" = "可提取保費";
+"addTransaction.insurance.policyFeatures.maxWithdrawalPercentage" = "最大提取百分比";
+
+// Insurance Important Dates
+"addTransaction.insurance.importantDates.title" = "重要日期";
+"addTransaction.insurance.importantDates.coverageExpiration" = "保障到期";
+"addTransaction.insurance.importantDates.maturityBenefitRedemption" = "滿期給付贖回";
+"addTransaction.insurance.importantDates.estimatedMaturityBenefit" = "預計滿期給付";
+
+// Insurance Beneficiaries
+"addTransaction.insurance.beneficiaries.title" = "受益人";
+"addTransaction.insurance.beneficiaries.name" = "受益人姓名";
+"addTransaction.insurance.beneficiaries.addBeneficiary" = "新增受益人";
+"addTransaction.insurance.beneficiaries.totalPercentage" = "總百分比：";
+
+// Maturity Date Toggle
+"addTransaction.maturity.setMaturityDate" = "設定到期日";
+"addTransaction.maturity.maturityDate" = "到期日";
+
+// Deposit Category/Symbol Picker
+"addTransaction.deposit.symbol" = "代號";
+"addTransaction.deposit.category.demanddeposit" = "活期存款";
+"addTransaction.deposit.category.fixeddeposit" = "定期存款";
+
+// Analytics View Localization
+"analytics.performanceSummary.title" = "績效摘要";
+"analytics.performanceSummary.includeInsurance" = "在績效中包含保險";
+"analytics.metrics.currentValue" = "目前價值";
+"analytics.metrics.costBasis" = "成本基礎";
+"analytics.metrics.unrealizedPnL" = "未實現損益";
+"analytics.metrics.totalReturn" = "總報酬率（終身）";
+"analytics.metrics.realizedPnL" = "已實現損益（終身）";
+"analytics.metrics.totalDividends" = "總股息";
+"analytics.allocation.title" = "資產配置";
+"analytics.allocation.byAssetType" = "按資產類型";
+"analytics.allocation.byInstitution" = "按機構";
+"analytics.allocation.noAssets" = "沒有資產可顯示";
+"analytics.performance.title" = "投資組合績效（30天）";
+"analytics.performance.notEnoughHistory" = "歷史資料不足以顯示績效。";
+"analytics.dividends.title" = "股息歷史（12個月）";
+"analytics.dividends.noIncome" = "此期間未記錄股息或利息收入。";
+
+// Cash Overview View Localization
+"cashOverview.navigation.title" = "現金管理";
+"cashOverview.navigation.done" = "完成";
+"cashOverview.tabs.demandCash" = "活期現金";
+"cashOverview.tabs.fixedDeposits" = "定期存款";
+"cashOverview.tabs.pickerLabel" = "現金類型";
+"cashOverview.summary.overview" = "概覽";
+"cashOverview.summary.totalCash" = "總現金";
+"cashOverview.demandCash.noCashTitle" = "無現金持有";
+"cashOverview.demandCash.noCashMessage" = "當您進行存款交易時，現金餘額將顯示在此處。";
+"cashOverview.demandCash.sectionHeader" = "按機構及貨幣顯示現金";
+"cashOverview.demandCash.unknownInstitution" = "未知機構";
+"cashOverview.demandCash.currency" = "貨幣";
+"cashOverview.demandCash.currencies" = "貨幣";
+"cashOverview.demandCash.total" = "總計";
+"cashOverview.demandCash.totalCash" = "總現金";
+"cashOverview.demandCash.footer" = "總現金是通過匯總所有機構現金餘額計算得出的。";
+"cashOverview.fixedDeposits.noDepositsTitle" = "無定期存款";
+"cashOverview.fixedDeposits.noDepositsMessage" = "創建您的第一筆定期存款以開始賺取保證回報。";
+"cashOverview.fixedDeposits.activeHeader" = "有效定期存款";
+"cashOverview.fixedDeposits.maturedHeader" = "到期定期存款";
+"cashOverview.fixedDeposits.maturityAlert.title" = "到期定期存款";
+"cashOverview.fixedDeposits.maturityAlert.review" = "查看";
+"cashOverview.fixedDeposits.maturityAlert.dismiss" = "關閉";
+"cashOverview.editSheet.institutionHeader" = "機構";
+"cashOverview.editSheet.balanceHeader" = "編輯餘額";
+"cashOverview.editSheet.amountPlaceholder" = "金額";
+"cashOverview.editSheet.cashTitle" = "現金";
+"cashOverview.editSheet.cancel" = "取消";
+"cashOverview.editSheet.save" = "儲存";
+"cashOverview.editSheet.validationError" = "請輸入有效數字。";
+"cashOverview.editSheet.saveError" = "儲存變更失敗：";
+
+// Cloud Share View Localization
+"cloudShare.portfolio.title" = "投資組合";
+
+// Export Data View Localization
+"exportData.navigation.title" = "匯出資料";
+"exportData.navigation.cancel" = "取消";
+"exportData.format.sectionHeader" = "匯出格式";
+"exportData.format.pickerLabel" = "格式";
+"exportData.portfolios.sectionHeader" = "選擇投資組合";
+"exportData.portfolios.sectionFooter" = "選擇要包含在匯出中的投資組合。";
+"exportData.portfolios.unknownPortfolio" = "未知投資組合";
+"exportData.portfolios.transactions" = "筆交易";
+"exportData.portfolios.selectAll" = "全選";
+"exportData.portfolios.deselectAll" = "全部取消選擇";
+"exportData.information.sectionHeader" = "匯出資訊";
+"exportData.information.selectedPortfolios" = "已選擇的投資組合";
+"exportData.information.totalTransactions" = "總交易數";
+"exportData.information.fileFormat" = "檔案格式";
+"exportData.button.exporting" = "匯出中...";
+"exportData.button.exportData" = "匯出資料";
+"exportData.error.exportFailed" = "匯出資料失敗。請重試。";
+
+// Fixed Deposit Management View Localization
+"fixedDepositManagement.fixedDeposit" = "定期存款";
+"fixedDepositManagement.matured" = "到期";
+"fixedDepositManagement.active" = "有效";
+"fixedDepositManagement.daysLeft" = "剩餘%d天";
+"fixedDepositManagement.perAnnum" = "年利率";
+"fixedDepositManagement.withdraw" = "提取";
+"fixedDepositManagement.earlyWithdraw" = "提前提取";
+
+// Fixed Deposit Withdrawal View Localization
+"fixedDepositWithdrawal.depositInformation" = "存款資訊";
+"fixedDepositWithdrawal.depositName" = "存款名稱";
+"fixedDepositWithdrawal.currentValue" = "目前價值";
+"fixedDepositWithdrawal.status" = "狀態";
+"fixedDepositWithdrawal.withdrawalDetails" = "提取詳情";
+"fixedDepositWithdrawal.withdrawalAmount" = "提取金額";
+"fixedDepositWithdrawal.accruedInterest" = "應計利息";
+"fixedDepositWithdrawal.institutionPenalty" = "機構罰金";
+"fixedDepositWithdrawal.earlyWithdrawalWarning" = "提前提取可能會產生罰金。請與您的機構確認應計利息和罰金金額。";
+"fixedDepositWithdrawal.navigation.withdraw" = "提取";
+"fixedDepositWithdrawal.navigation.earlyWithdrawal" = "提前提取";
+"fixedDepositWithdrawal.navigation.cancel" = "取消";
+"fixedDepositWithdrawal.error.invalidAmount" = "無效的提取金額";
+"fixedDepositWithdrawal.error.processingFailed" = "處理提取失敗：%@";
+
+// Fixed Deposit Migration View Localization
+"fixedDepositMigration.navigation.title" = "定期存款功能增強";
+"fixedDepositMigration.navigation.reset" = "重設";
+"fixedDepositMigration.navigation.skip" = "跳過";
+"fixedDepositMigration.loading.analyzing" = "正在分析您的存款資產...";
+"fixedDepositMigration.completed.title" = "遷移完成！";
+"fixedDepositMigration.completed.description" = "您的存款資產已成功更新為使用新的定期存款系統。";
+"fixedDepositMigration.completed.continue" = "繼續";
+"fixedDepositMigration.header.title" = "增強的定期存款支援";
+"fixedDepositMigration.header.description" = "我們改進了應用程式處理定期存款的方式！您現有的存款交易將保持為現金存款。您現在可以使用新系統創建專用的定期存款。";
+"fixedDepositMigration.whatsNew.title" = "新功能";
+"fixedDepositMigration.feature.tracking.title" = "定期存款追蹤";
+"fixedDepositMigration.feature.tracking.description" = "正確追蹤與可用現金分開的時間鎖定存款";
+"fixedDepositMigration.feature.interestRate.title" = "利率追蹤";
+"fixedDepositMigration.feature.interestRate.description" = "追蹤定期存款的利率和到期日";
+"fixedDepositMigration.feature.maturity.title" = "到期管理";
+"fixedDepositMigration.feature.maturity.description" = "當您的定期存款到期時收到通知";
+"fixedDepositMigration.feature.earlyWithdrawal.title" = "提前提取支援";
+"fixedDepositMigration.feature.earlyWithdrawal.description" = "處理帶有罰金追蹤的提前提取";
+"fixedDepositMigration.summary.title" = "遷移摘要";
+"fixedDepositMigration.summary.totalAssets" = "要更新的存款資產總數：";
+"fixedDepositMigration.summary.fixedDeposits" = "可能的定期存款：";
+"fixedDepositMigration.summary.demandDeposits" = "可能的活期存款：";
+"fixedDepositMigration.suggestions.title" = "建議操作";
+"fixedDepositMigration.button.enabling" = "啟用中...";
+"fixedDepositMigration.button.enable" = "啟用定期存款";
+"fixedDepositMigration.button.description" = "這將啟用新的定期存款功能。您現有的存款交易將保持不變作為現金存款。";
+"fixedDepositMigration.error.migrationFailed" = "遷移失敗：%@";
+"fixedDepositMigration.suggestion.unknownAsset" = "未知資產";
+"fixedDepositMigration.suggestion.convertToFixed" = "轉換為%d個月定期存款（%.1f%%利息）";
+"fixedDepositMigration.suggestion.convertToDemand" = "保持為活期存款";
+"fixedDepositMigration.suggestion.manualReview" = "需要手動審查";
+
+// Holding Detail View Localization
+"holdingDetail.navigation.title" = "持有詳情";
+"holdingDetail.assetInformation.title" = "資產資訊";
+"holdingDetail.assetInformation.symbol" = "代號";
+"holdingDetail.assetInformation.name" = "名稱";
+"holdingDetail.assetInformation.type" = "類型";
+"holdingDetail.assetInformation.currency" = "貨幣";
+"holdingDetail.assetInformation.maturityDate" = "到期日";
+"holdingDetail.assetInformation.interestRate" = "利率";
+"holdingDetail.assetInformation.issuer" = "發行人";
+"holdingDetail.assetInformation.noName" = "無名稱";
+"holdingDetail.assetInformation.unknown" = "未知";
+
+"holdingDetail.holdingsInformation.title" = "持有資訊";
+"holdingDetail.holdingsInformation.quantity" = "數量";
+"holdingDetail.holdingsInformation.averagePrice" = "平均價格";
+"holdingDetail.holdingsInformation.currentPrice" = "現價";
+"holdingDetail.holdingsInformation.priceDate" = "價格日期";
+"holdingDetail.holdingsInformation.costBasis" = "成本基礎";
+"holdingDetail.holdingsInformation.currentValue" = "現值";
+"holdingDetail.holdingsInformation.totalInvestment" = "總投資";
+"holdingDetail.holdingsInformation.maturityValue" = "到期價值";
+"holdingDetail.holdingsInformation.effectiveInterestRate" = "有效利率";
+"holdingDetail.holdingsInformation.tenor" = "期限";
+"holdingDetail.holdingsInformation.daysToMaturity" = "距到期天數";
+"holdingDetail.holdingsInformation.investmentAmount" = "投資金額";
+"holdingDetail.holdingsInformation.cashValue" = "現金價值";
+"holdingDetail.holdingsInformation.paidPremium" = "已付保費";
+"holdingDetail.holdingsInformation.noQuantity" = "無數量";
+"holdingDetail.holdingsInformation.manualPrice" = "手動價格";
+"holdingDetail.holdingsInformation.noPriceData" = "無價格資料";
+"holdingDetail.holdingsInformation.never" = "從未";
+"holdingDetail.holdingsInformation.years" = "年";
+"holdingDetail.holdingsInformation.days" = "天";
+"holdingDetail.holdingsInformation.matured" = "已到期";
+
+"holdingDetail.insurance.details.title" = "保險詳情";
+"holdingDetail.insurance.details.policySymbol" = "保單代號";
+"holdingDetail.insurance.details.insuranceType" = "保險類型";
+"holdingDetail.insurance.details.policyNumber" = "保單號碼";
+"holdingDetail.insurance.details.policyholder" = "保單持有人";
+"holdingDetail.insurance.details.insuredPerson" = "被保險人";
+
+"holdingDetail.insurance.financial.title" = "財務詳情";
+"holdingDetail.insurance.financial.basicInsuredAmount" = "基本保險金額";
+"holdingDetail.insurance.financial.additionalPayment" = "額外付款";
+"holdingDetail.insurance.financial.deathBenefit" = "身故保險金";
+"holdingDetail.insurance.financial.totalPremium" = "總保費";
+
+"holdingDetail.insurance.premium.title" = "保費詳情";
+"holdingDetail.insurance.premium.singlePremium" = "單次保費";
+"holdingDetail.insurance.premium.firstDiscountedPremium" = "首期優惠保費";
+"holdingDetail.insurance.premium.paymentTerm" = "繳費期";
+"holdingDetail.insurance.premium.paymentStatus" = "繳費狀態";
+"holdingDetail.insurance.premium.paymentType" = "繳費方式";
+"holdingDetail.insurance.premium.participatingPolicy" = "分紅保單";
+"holdingDetail.insurance.premium.rider" = "附加保險";
+"holdingDetail.insurance.premium.canWithdrawPremiums" = "可提取保費";
+"holdingDetail.insurance.premium.maxWithdrawalPercentage" = "最大提取百分比";
+"holdingDetail.insurance.premium.paid" = "已繳";
+"holdingDetail.insurance.premium.paying" = "繳費中";
+"holdingDetail.insurance.premium.lumpSum" = "一次性付款";
+"holdingDetail.insurance.premium.installment" = "分期付款";
+"holdingDetail.insurance.premium.yes" = "是";
+"holdingDetail.insurance.premium.no" = "否";
+
+"holdingDetail.insurance.coverage.title" = "保障與到期";
+"holdingDetail.insurance.coverage.coverageExpiration" = "保障到期";
+"holdingDetail.insurance.coverage.maturityBenefitRedemption" = "滿期給付贖回";
+"holdingDetail.insurance.coverage.estimatedMaturityBenefit" = "預計滿期給付";
+"holdingDetail.insurance.coverage.notSpecified" = "未指定";
+
+"holdingDetail.insurance.beneficiaries.title" = "受益人";
+"holdingDetail.insurance.beneficiaries.noBeneficiaries" = "未指定受益人";
+
+"holdingDetail.performance.title" = "績效";
+"holdingDetail.performance.unrealizedPnL" = "未實現損益";
+"holdingDetail.performance.unrealizedReturn" = "未實現報酬率";
+"holdingDetail.performance.realizedPnL" = "已實現損益";
+"holdingDetail.performance.realizedReturn" = "已實現報酬率";
+"holdingDetail.performance.totalDividends" = "總股息";
+"holdingDetail.performance.totalInterest" = "總利息";
+
+"holdingDetail.transactions.title" = "交易歷史";
+"holdingDetail.transactions.noTransactions" = "此持有沒有交易記錄。";
+
+"holdingDetail.priceInformation.title" = "價格資訊";
+"holdingDetail.priceInformation.lastUpdated" = "最後更新";
+"holdingDetail.priceInformation.updatePrice" = "更新價格";
+"holdingDetail.priceInformation.fetchingPrice" = "正在取得價格...";
+"holdingDetail.priceInformation.failedToFetch" = "無法取得價格";
+"holdingDetail.priceInformation.noPriceAvailable" = "無可用價格";
+
+"holdingDetail.priceEditor.title" = "更新價格";
+"holdingDetail.priceEditor.currentPrice" = "現價";
+"holdingDetail.priceEditor.newPrice" = "新價格";
+"holdingDetail.priceEditor.lastUpdated" = "最後更新";
+"holdingDetail.priceEditor.setToCurrentDate" = "設為現在日期";
+"holdingDetail.priceEditor.cancel" = "取消";
+"holdingDetail.priceEditor.save" = "儲存";
+"holdingDetail.priceEditor.validationError" = "請輸入有效價格。";
+"holdingDetail.priceEditor.updateFailed" = "更新價格失敗：%@";
+
+// Additional HoldingDetailView strings
+"holdingDetail.holdingsInformation.averageCostBasis" = "平均成本基礎";
+"holdingDetail.holdingsInformation.lastRecordedPrice" = "最後記錄價格";
+"holdingDetail.holdingsInformation.price" = "價格";
+"holdingDetail.holdingsInformation.totalValue" = "總價值";
+"holdingDetail.holdingsInformation.costBasis" = "成本基礎";
+"holdingDetail.holdingsInformation.autoFetchPrice" = "自動從雅虎財經取得價格";
+"holdingDetail.holdingsInformation.linkedAssets" = "連結資產";
+"holdingDetail.holdingsInformation.effectiveRate" = "有效利率";
+"holdingDetail.holdingsInformation.unassigned" = "未指定";
+
+"holdingDetail.actions.buyMore" = "買入更多";
+"holdingDetail.actions.sell" = "賣出";
+"holdingDetail.actions.payments" = "繳款";
+
+"holdingDetail.performance.currentValue" = "現值";
+"holdingDetail.performance.total" = "總計";
+
+"holdingDetail.priceInformation.autoFetch" = "自動取得";
+"holdingDetail.priceInformation.manualEntry" = "手動輸入";
+"holdingDetail.priceInformation.priceUpdate" = "價格更新";
+
+"holdingDetail.messages.noTransactions" = "此持有沒有交易記錄。";
+"holdingDetail.messages.noPortfolio" = "此持有沒有關聯的投資組合。";
+"holdingDetail.messages.historicalCosts" = "歷史成本使用投資組合貨幣，而現值使用交易貨幣。";
+"holdingDetail.messages.priceDescription" = "這是您最後手動輸入的價格。在下方編輯或啟用自動取得以保持更新。";
+
+"holdingDetail.currency.label" = "貨幣";
+"holdingDetail.unknown" = "未知";
+
+// Additional comprehensive HoldingDetailView strings
+"holdingDetail.holdingsInformation.averageCostBasis" = "平均成本基礎";
+"holdingDetail.performance.unrealizedGainLoss" = "未實現損益";
+"holdingDetail.performance.lastUpdate" = "最後更新";
+"holdingDetail.performance.cumulativeIncome" = "累積收入（股息/利息）";
+"holdingDetail.performance.totalReturnWithIncome" = "總報酬（含收入）";
+"holdingDetail.performance.unrealizedReturn" = "未實現報酬";
+"holdingDetail.performance.realizedGainLoss" = "已實現損益";
+"holdingDetail.performance.realizedReturn" = "已實現報酬";
+"holdingDetail.performance.dividends" = "股息";
+"holdingDetail.performance.interest" = "利息";
+
+"holdingDetail.holdingsInformation.priceDate" = "價格日期";
+"holdingDetail.holdingsInformation.currentValue" = "現值";
+"holdingDetail.holdingsInformation.averagePrice" = "平均價格";
+"holdingDetail.holdingsInformation.currentPrice" = "現價";
+"holdingDetail.holdingsInformation.pricePerShare" = "每股價格";
+"holdingDetail.holdingsInformation.shares" = "股";
+
+"holdingDetail.insurance.financialDetails.title" = "財務詳情";
+"holdingDetail.insurance.premiumDetails.title" = "保費詳情";
+"holdingDetail.insurance.coverage.title" = "保障與到期";
+
+"holdingDetail.priceInformation.title" = "價格資訊";
+"holdingDetail.priceInformation.source" = "來源";
+"holdingDetail.priceInformation.manual" = "手動";
+"holdingDetail.priceInformation.automatic" = "自動";
+
+"holdingDetail.structuredProduct.tenor" = "期限";
+"holdingDetail.structuredProduct.effectiveInterestRate" = "有效利率";
+"holdingDetail.structuredProduct.daysToMaturity" = "距到期天數";
+"holdingDetail.structuredProduct.maturityValue" = "到期價值";
+
+"holdingDetail.currency" = "貨幣";
+"holdingDetail.date.never" = "從未";
+"holdingDetail.quantity.shares" = "股";
+"holdingDetail.time.years" = "年";
+"holdingDetail.time.days" = "天";
+"holdingDetail.status.matured" = "已到期";
+
+// Holdings View Localization
+"holdingsView.status.picker.label" = "持有狀態";
+"holdingsView.status.holdings" = "持有";
+"holdingsView.status.sold" = "已售出";
+"holdingsView.filters.allAssetTypes" = "所有資產類型";
+"holdingsView.filters.allInstitutions" = "所有機構";
+"holdingsView.filters.unknown" = "未知";
+"holdingsView.filters.clear" = "清除";
+"holdingsView.filters.allTypes" = "所有類型";
+"holdingsView.filters.types" = "類型";
+"holdingsView.emptyState.noHoldings.title" = "無持有";
+"holdingsView.emptyState.noHoldings.message" = "從新增您的第一筆交易開始。";
+"holdingsView.emptyState.noHoldingsFiltered.title" = "沒有持有符合您的篩選條件";
+"holdingsView.emptyState.noHoldingsFiltered.message" = "嘗試調整您的篩選條件以查看更多持倉。";
+"holdingsView.emptyState.noSoldHoldings.title" = "無已售出持有";
+"holdingsView.emptyState.noSoldHoldings.message" = "當您退出資產時記錄賣出交易以在此追蹤。";
+"holdingsView.emptyState.noSoldHoldingsFiltered.title" = "沒有已售出持有符合您的篩選條件";
+"holdingsView.emptyState.noSoldHoldingsFiltered.message" = "調整篩選條件或切換回持有以查看活躍持倉。";
+"holdingsView.summary.filteredResults" = "篩選結果摘要";
+"holdingsView.summary.holdings" = "持有";
+"holdingsView.summary.soldHoldings" = "已售出持有";
+"holdingsView.summary.totalValue" = "總價值";
+"holdingsView.summary.unrealizedPnL" = "未實現損益";
+"holdingsView.summary.totalDividends" = "總股息";
+
+// Holding Row View Localization
+"holdingRowView.unknownAsset" = "未知資產";
+"holdingRowView.noSymbol" = "不適用";
+"holdingRowView.cashValue" = "現金價值";
+"holdingRowView.unrealizedPnL" = "未實現損益";
+"holdingRowView.basicInsuredAmount" = "基本保險金額";
+"holdingRowView.policyHolder" = "保單持有人";
+"holdingRowView.paidPremium" = "已付保費";
+"holdingRowView.quantity" = "數量";
+"holdingRowView.interestRate" = "利率";
+"holdingRowView.lastRecordedPrice" = "最後記錄價格";
+"holdingRowView.totalDividendsInterest" = "總股息/利息：";
+"holdingRowView.avgCost" = "平均成本";
+"holdingRowView.linkedAssets" = "連結資產";
+
+// Cash Value Editor View Localization
+"cashValueEditor.title" = "更新現金價值";
+"cashValueEditor.currentCashValue" = "目前現金價值";
+"cashValueEditor.policyInformation" = "保單資訊";
+"cashValueEditor.policyType" = "保單類型";
+"cashValueEditor.insurancePolicy" = "保險保單";
+"cashValueEditor.policyholder" = "保單持有人";
+"cashValueEditor.policyOwner" = "保單所有人";
+"cashValueEditor.previousCashValue" = "先前現金價值";
+"cashValueEditor.cancel" = "取消";
+"cashValueEditor.save" = "儲存";
+"cashValueEditor.error.negativeCashValue" = "現金價值不能為負數";
+"cashValueEditor.error.saveFailed" = "儲存現金價值失敗：";
+
+// Lockout View Localization
+"lockoutView.title" = "帳戶暫時鎖定";
+"lockoutView.subtitle" = "密碼錯誤次數過多";
+"lockoutView.timeRemaining" = "剩餘時間";
+"lockoutView.failedAttempts" = "失敗嘗試";
+"lockoutView.securityMessage" = "您的資料受到安全鎖定保護";
+"lockoutView.tryBiometric" = "嘗試 %@";
+"lockoutView.securityInfo.attempts" = "次嘗試：";
+"lockoutView.duration.oneMinute" = "1分鐘";
+"lockoutView.duration.fiveMinutes" = "5分鐘";
+"lockoutView.duration.fifteenMinutes" = "15分鐘";
+
+// New Password Setup View Localization
+"newPasswordSetup.recoverySuccessful" = "復原成功！";
+"newPasswordSetup.setNewPasscode" = "設定新密碼";
+"newPasswordSetup.newPasscode" = "新密碼";
+"newPasswordSetup.enterNewPasscode" = "輸入新密碼";
+"newPasswordSetup.confirmPasscode" = "確認密碼";
+"newPasswordSetup.confirmNewPasscode" = "確認新密碼";
+"newPasswordSetup.passcodeRequirements" = "密碼要求：";
+"newPasswordSetup.requirement.length" = "至少8個字元";
+"newPasswordSetup.requirement.complexity" = "包含字母和數字";
+"newPasswordSetup.requirement.match" = "密碼相符";
+"newPasswordSetup.settingPasscode" = "設定密碼中...";
+"newPasswordSetup.setNewPasscodeButton" = "設定新密碼";
+"newPasswordSetup.cancel" = "取消";
+"newPasswordSetup.navigationTitle" = "新密碼";
+"newPasswordSetup.biometricRecovery" = "已使用%@驗證您的身份。現在請設定新密碼以保護您的應用程式。";
+"newPasswordSetup.securityQuestionsRecovery" = "已使用您的安全問題驗證身份。現在請設定新密碼以保護您的應用程式。";
+"newPasswordSetup.defaultMessage" = "請設定新密碼以保護您的應用程式。";
+
+// Passcode Entry View Localization
+"passcodeEntry.title" = "輸入密碼";
+"passcodeEntry.subtitle" = "請輸入您的應用程式密碼以繼續";
+"passcodeEntry.useBiometric" = "使用 %@";
+"passcodeEntry.failedAttempts" = "失敗次數：%d";
+
+// Passcode Settings View Localization
+"passcodeSettings.navigationTitle" = "密碼設定";
+"passcodeSettings.done" = "完成";
+"passcodeSettings.securityStatus" = "安全狀態";
+"passcodeSettings.appPasscode" = "應用程式密碼";
+"passcodeSettings.enabled" = "已啟用";
+"passcodeSettings.available" = "可用";
+"passcodeSettings.passcodeManagement" = "密碼管理";
+"passcodeSettings.changePasscode" = "變更密碼";
+"passcodeSettings.removePasscode" = "移除密碼";
+"passcodeSettings.securityInformation" = "安全資訊";
+"passcodeSettings.failedAttempts" = "失敗次數";
+"passcodeSettings.securityPolicy" = "安全政策";
+"passcodeSettings.lockoutPolicy1" = "• 3-4次失敗：鎖定1分鐘";
+"passcodeSettings.lockoutPolicy2" = "• 5-6次失敗：鎖定5分鐘";
+"passcodeSettings.lockoutPolicy3" = "• 7次以上失敗：鎖定15分鐘";
+
+// Change Passcode View Localization
+"changePasscode.navigationTitle" = "變更密碼";
+"changePasscode.cancel" = "取消";
+"changePasscode.currentPasscode" = "目前密碼";
+"changePasscode.newPasscode" = "新密碼";
+"changePasscode.confirmPasscode" = "確認密碼";
+"changePasscode.enterCurrent" = "請輸入您目前的密碼";
+"changePasscode.enterNew" = "請輸入您的新密碼（4-6位數字）";
+"changePasscode.confirmNew" = "請確認您的新密碼";
+"changePasscode.continue" = "繼續";
+"changePasscode.changeButton" = "變更密碼";
+"changePasscode.errorIncorrect" = "目前密碼不正確";
+"changePasscode.errorFailed" = "變更密碼失敗";
+
+// Remove Passcode View Localization
+"removePasscode.navigationTitle" = "移除密碼";
+"removePasscode.title" = "移除密碼";
+"removePasscode.subtitle" = "請輸入您目前的密碼以移除應用程式安全";
+"removePasscode.currentPasscode" = "目前密碼";
+"removePasscode.removeButton" = "移除密碼";
+"removePasscode.warning" = "警告：移除密碼將使您的資料較不安全";
+"removePasscode.cancel" = "取消";
+"removePasscode.errorFailed" = "移除密碼失敗";
+
+// Passcode Setup View Localization
+"passcodeSetup.navigationTitle" = "安全設定";
+"passcodeSetup.title" = "設定應用程式密碼";
+"passcodeSetup.subtitle" = "創建安全密碼以保護您的投資資料";
+"passcodeSetup.enterPasscode" = "輸入密碼";
+"passcodeSetup.passcodeInput" = "密碼";
+"passcodeSetup.passcodeHint" = "使用4-6位數字";
+"passcodeSetup.confirmPasscode" = "確認密碼";
+"passcodeSetup.confirmPasscodeInput" = "確認密碼";
+"passcodeSetup.confirmHint" = "重新輸入相同的密碼";
+"passcodeSetup.continue" = "繼續";
+"passcodeSetup.setPasscode" = "設定密碼";
+"passcodeSetup.back" = "返回";
+"passcodeSetup.errorLength" = "密碼必須為4-6位數字";
+"passcodeSetup.errorMismatch" = "密碼不匹配";
+"passcodeSetup.errorInvalid" = "無效的密碼格式";
+"passcodeSetup.errorFailed" = "設定密碼失敗";
+
+// Password Recovery View Localization
+"passwordRecovery.title" = "忘記密碼？";
+"passwordRecovery.subtitle" = "選擇復原方式來重設您的密碼";
+"passwordRecovery.useBiometric" = "使用 %@";
+"passwordRecovery.biometricSubtitle" = "使用 %@ 驗證以重設您的密碼";
+"passwordRecovery.securityQuestions" = "回答安全問題";
+"passwordRecovery.securityQuestionsSubtitle" = "回答您的安全問題來重設密碼";
+"passwordRecovery.noOptionsTitle" = "沒有可用的復原選項";
+"passwordRecovery.noOptionsMessage" = "您尚未設定任何復原方式。很遺憾，在不丟失資料的情況下無法復原您的密碼。";
+"passwordRecovery.noOptionsWarning" = "您需要刪除並重新安裝應用程式以重新開始。";
+"passwordRecovery.cancel" = "取消";
+
+// Security Questions Management View Localization
+"securityQuestions.title" = "安全問題";
+"securityQuestions.done" = "完成";
+"securityQuestions.removeAlert.title" = "移除安全問題？";
+"securityQuestions.removeAlert.remove" = "移除";
+"securityQuestions.removeAlert.cancel" = "取消";
+"securityQuestions.removeAlert.message" = "您確定要移除您的安全問題嗎？您將無法使用它們來復原密碼。";
+"securityQuestions.verification.title" = "驗證您的密碼";
+"securityQuestions.verification.subtitle" = "請輸入您目前的密碼以管理安全問題";
+"securityQuestions.verification.currentPassword" = "目前密碼";
+"securityQuestions.verification.placeholder" = "輸入您的密碼";
+"securityQuestions.verification.verifying" = "驗證中...";
+"securityQuestions.verification.verify" = "驗證密碼";
+"securityQuestions.verification.error" = "密碼不正確。請重試。";
+"securityQuestions.management.activeTitle" = "安全問題已啟用";
+"securityQuestions.management.setupTitle" = "設定安全問題";
+"securityQuestions.management.activeSubtitle" = "您的安全問題已設定完成，可以幫助您復原密碼。";
+"securityQuestions.management.setupSubtitle" = "設定安全問題以在您忘記密碼時協助復原。";
+"securityQuestions.management.configured" = "安全問題已設定";
+"securityQuestions.management.changeQuestions" = "變更安全問題";
+"securityQuestions.management.removeQuestions" = "移除安全問題";
+"securityQuestions.management.setupQuestions" = "設定安全問題";
+"securityQuestions.management.infoTitle" = "為什麼要設定安全問題？";
+"securityQuestions.management.infoBenefit1" = "• 忘記密碼時可以復原";
+"securityQuestions.management.infoBenefit2" = "• 生物辨識的替代方案";
+"securityQuestions.management.infoBenefit3" = "• 保持資料安全且可存取";
+"securityQuestions.management.removeError" = "移除安全問題失敗。請重試。";
+
+// Security Questions Recovery View Localization
+"securityQuestionsRecovery.title" = "安全問題";
+"securityQuestionsRecovery.subtitle" = "回答您的安全問題以重設密碼";
+"securityQuestionsRecovery.loading" = "載入安全問題中...";
+"securityQuestionsRecovery.verifying" = "驗證中...";
+"securityQuestionsRecovery.verifyAnswers" = "驗證答案";
+"securityQuestionsRecovery.navigationTitle" = "復原密碼";
+"securityQuestionsRecovery.cancel" = "取消";
+"securityQuestionsRecovery.answerPlaceholder" = "您的回答";
+
+// Predefined Security Questions
+"securityQuestion.firstPet" = "您第一隻寵物的名字是什麼？";
+"securityQuestion.motherMaidenName" = "您母親的娘家姓是什麼？";
+"securityQuestion.firstSchool" = "您第一所學校的名字是什麼？";
+"securityQuestion.birthCity" = "您在哪個城市出生？";
+"securityQuestion.firstCar" = "您第一輛車的品牌是什麼？";
+"securityQuestion.favoriteBook" = "您最喜歡的書是什麼？";
+"securityQuestion.childhoodNickname" = "您童年的暱稱是什麼？";
+"securityQuestion.childhoodStreet" = "您成長的街道名稱是什麼？";
+"securityQuestion.favoriteFood" = "您最喜歡的食物是什麼？";
+"securityQuestion.bestFriendHighSchool" = "您高中時最好朋友的名字是什麼？";
+
+// Portfolio Dashboard View Localization
+"portfolioDashboard.tabs.holdings" = "持股";
+"portfolioDashboard.tabs.transactions" = "交易";
+"portfolioDashboard.tabs.analytics" = "分析";
+"portfolioDashboard.statCard.totalHoldingsValue" = "總持股價值";
+"portfolioDashboard.statCard.totalCash" = "總現金";
+"portfolioDashboard.statCard.unrealizedPnL" = "未實現損益";
+"portfolioDashboard.statCard.totalDividendsInterest" = "總股息與利息";
+"portfolioDashboard.statCard.realizedPnL" = "已實現損益";
+"portfolioDashboard.quickActions.addTransaction" = "新增交易";
+"portfolioDashboard.quickActions.cashManagement" = "現金管理";
+"portfolioDashboard.quickActions.addFixedDeposit" = "新增定期存款";
+"portfolioDashboard.quickActions.analytics" = "分析";
+"portfolioDashboard.quickActions.actionCalendar" = "行動日曆";
+"portfolioDashboard.shareDialog.title" = "分享投資組合";
+"portfolioDashboard.shareDialog.message" = "%@ 的投資組合摘要";
+"portfolioDashboard.shareDialog.subject" = "投資組合摘要";
+"portfolioDashboard.shareDialog.intro" = "以下是我的投資組合摘要：";
+"portfolioDashboard.shareDialog.totalValue" = "總價值：%@";
+"portfolioDashboard.shareDialog.totalCash" = "總現金：%@";
+"portfolioDashboard.shareDialog.unrealizedPnL" = "未實現損益：%@";
+"portfolioDashboard.shareDialog.dividendsInterest" = "股息與利息：%@";
+"portfolioDashboard.shareDialog.holdingsCount" = "持股數量：%d";
+"portfolioDashboard.shareDialog.footer" = "來自家庭投資追蹤器的分享";
+"portfolioDashboard.header.totalValue" = "總價值";
+"portfolioDashboard.header.holdings" = "持股";
+"portfolioDashboard.header.transactions" = "交易";

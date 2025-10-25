@@ -9,6 +9,7 @@ enum RecoveryMethod {
 
 struct PasswordRecoveryView: View {
     @ObservedObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var showingSecurityQuestions = false
     @State private var showingNewPasswordSetup = false
     @State private var recoveryMethod: RecoveryMethod = .none
@@ -21,11 +22,11 @@ struct PasswordRecoveryView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
 
-                Text("Forgot Your Passcode?")
+                Text(localizationManager.localizedString(for: "passwordRecovery.title"))
                     .font(.title2)
                     .fontWeight(.bold)
 
-                Text("Choose a recovery method to reset your passcode")
+                Text(localizationManager.localizedString(for: "passwordRecovery.subtitle"))
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -36,8 +37,8 @@ struct PasswordRecoveryView: View {
                 if authManager.isBiometricAvailable() {
                     RecoveryOptionButton(
                         icon: getBiometricIcon(),
-                        title: "Use \(authManager.getBiometricType())",
-                        subtitle: "Authenticate with \(authManager.getBiometricType()) to reset your passcode",
+                        title: String(format: localizationManager.localizedString(for: "passwordRecovery.useBiometric"), authManager.getBiometricType()),
+                        subtitle: String(format: localizationManager.localizedString(for: "passwordRecovery.biometricSubtitle"), authManager.getBiometricType()),
                         action: {
                             attemptBiometricRecovery()
                         }
@@ -48,8 +49,8 @@ struct PasswordRecoveryView: View {
                 if authManager.hasSecurityQuestionsSetup() {
                     RecoveryOptionButton(
                         icon: "questionmark.circle.fill",
-                        title: "Answer Security Questions",
-                        subtitle: "Answer your security questions to reset your passcode",
+                        title: localizationManager.localizedString(for: "passwordRecovery.securityQuestions"),
+                        subtitle: localizationManager.localizedString(for: "passwordRecovery.securityQuestionsSubtitle"),
                         action: {
                             showingSecurityQuestions = true
                         }
@@ -63,16 +64,16 @@ struct PasswordRecoveryView: View {
                             .font(.system(size: 40))
                             .foregroundColor(.orange)
 
-                        Text("No Recovery Options Available")
+                        Text(localizationManager.localizedString(for: "passwordRecovery.noOptionsTitle"))
                             .font(.headline)
                             .fontWeight(.bold)
 
-                        Text("You haven't set up any recovery methods. Unfortunately, there's no way to recover your passcode without losing your data.")
+                        Text(localizationManager.localizedString(for: "passwordRecovery.noOptionsMessage"))
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
 
-                        Text("You'll need to delete and reinstall the app to start fresh.")
+                        Text(localizationManager.localizedString(for: "passwordRecovery.noOptionsWarning"))
                             .font(.caption)
                             .foregroundColor(.red)
                             .multilineTextAlignment(.center)
@@ -86,7 +87,7 @@ struct PasswordRecoveryView: View {
             Spacer()
 
             // Cancel Button
-            Button("Cancel") {
+            Button(localizationManager.localizedString(for: "passwordRecovery.cancel")) {
                 authManager.cancelPasswordRecovery()
             }
             .font(.body)
@@ -178,4 +179,5 @@ struct RecoveryOptionButton: View {
 
 #Preview {
     PasswordRecoveryView(authManager: AuthenticationManager())
+        .environmentObject(LocalizationManager.shared)
 }

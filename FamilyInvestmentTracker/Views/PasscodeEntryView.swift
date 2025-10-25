@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PasscodeEntryView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var passcode = ""
     @State private var isShaking = false
 
@@ -15,11 +16,11 @@ struct PasscodeEntryView: View {
                     .font(.system(size: 60))
                     .foregroundColor(.blue)
 
-                Text("Enter Passcode")
+                Text(localizationManager.localizedString(for: "passcodeEntry.title"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Enter your app passcode to continue")
+                Text(localizationManager.localizedString(for: "passcodeEntry.subtitle"))
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -112,7 +113,7 @@ struct PasscodeEntryView: View {
                     HStack {
                         Image(systemName: authManager.getBiometricType() == "Face ID" ? "faceid" : "touchid")
                             .font(.title3)
-                        Text("Use \(authManager.getBiometricType())")
+                        Text(String(format: localizationManager.localizedString(for: "passcodeEntry.useBiometric"), authManager.getBiometricType()))
                             .font(.body)
                     }
                     .foregroundColor(.blue)
@@ -135,7 +136,7 @@ struct PasscodeEntryView: View {
             // Failed Attempts Counter
             let failedAttempts = authManager.getFailedAttempts()
             if failedAttempts > 0 {
-                Text("Failed attempts: \(failedAttempts)")
+                Text(String(format: localizationManager.localizedString(for: "passcodeEntry.failedAttempts"), failedAttempts))
                     .foregroundColor(.orange)
                     .font(.caption)
             }
@@ -207,4 +208,5 @@ struct ShakeEffect: ViewModifier {
 #Preview {
     PasscodeEntryView()
         .environmentObject(AuthenticationManager())
+        .environmentObject(LocalizationManager.shared)
 }

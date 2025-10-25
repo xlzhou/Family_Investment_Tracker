@@ -2,6 +2,7 @@ import SwiftUI
 
 struct LockoutView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     var body: some View {
         VStack(spacing: 40) {
@@ -13,12 +14,12 @@ struct LockoutView: View {
                     .font(.system(size: 80))
                     .foregroundColor(.red)
 
-                Text("Account Temporarily Locked")
+                Text(localizationManager.localizedString(for: "lockoutView.title"))
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("Too many failed passcode attempts")
+                Text(localizationManager.localizedString(for: "lockoutView.subtitle"))
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -29,7 +30,7 @@ struct LockoutView: View {
             // Lockout Information
             VStack(spacing: 20) {
                 VStack(spacing: 8) {
-                    Text("Time Remaining")
+                    Text(localizationManager.localizedString(for: "lockoutView.timeRemaining"))
                         .font(.headline)
                         .foregroundColor(.primary)
 
@@ -44,7 +45,7 @@ struct LockoutView: View {
                 .cornerRadius(12)
 
                 VStack(spacing: 8) {
-                    Text("Failed Attempts")
+                    Text(localizationManager.localizedString(for: "lockoutView.failedAttempts"))
                         .font(.headline)
                         .foregroundColor(.primary)
 
@@ -64,15 +65,15 @@ struct LockoutView: View {
                 HStack {
                     Image(systemName: "info.circle")
                         .foregroundColor(.blue)
-                    Text("Your data is protected by security lockout")
+                    Text(localizationManager.localizedString(for: "lockoutView.securityMessage"))
                         .font(.body)
                         .foregroundColor(.secondary)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    SecurityInfoRow(attempts: "3-4", duration: "1 minute")
-                    SecurityInfoRow(attempts: "5-6", duration: "5 minutes")
-                    SecurityInfoRow(attempts: "7+", duration: "15 minutes")
+                    SecurityInfoRow(attempts: "3-4", duration: localizationManager.localizedString(for: "lockoutView.duration.oneMinute"))
+                    SecurityInfoRow(attempts: "5-6", duration: localizationManager.localizedString(for: "lockoutView.duration.fiveMinutes"))
+                    SecurityInfoRow(attempts: "7+", duration: localizationManager.localizedString(for: "lockoutView.duration.fifteenMinutes"))
                 }
                 .padding()
                 .background(Color.blue.opacity(0.05))
@@ -88,7 +89,7 @@ struct LockoutView: View {
                     HStack {
                         Image(systemName: authManager.getBiometricType() == "Face ID" ? "faceid" : "touchid")
                             .font(.title2)
-                        Text("Try \(authManager.getBiometricType())")
+                        Text(String(format: localizationManager.localizedString(for: "lockoutView.tryBiometric"), authManager.getBiometricType()))
                             .font(.headline)
                     }
                     .foregroundColor(.white)
@@ -109,10 +110,11 @@ struct LockoutView: View {
 struct SecurityInfoRow: View {
     let attempts: String
     let duration: String
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     var body: some View {
         HStack {
-            Text("\(attempts) attempts:")
+            Text("\(attempts) \(localizationManager.localizedString(for: "lockoutView.securityInfo.attempts"))")
                 .font(.caption)
                 .foregroundColor(.secondary)
             Spacer()
@@ -127,4 +129,5 @@ struct SecurityInfoRow: View {
 #Preview {
     LockoutView()
         .environmentObject(AuthenticationManager())
+        .environmentObject(LocalizationManager())
 }

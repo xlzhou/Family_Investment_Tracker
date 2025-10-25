@@ -3,6 +3,7 @@ import Foundation
 
 struct NewPasswordSetupView: View {
     @ObservedObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Binding var isPresented: Bool
     let recoveryMethod: RecoveryMethod
 
@@ -19,7 +20,7 @@ struct NewPasswordSetupView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.green)
 
-                    Text("Recovery Successful!")
+                    Text(localizationManager.localizedString(for: "newPasswordSetup.recoverySuccessful"))
                         .font(.title2)
                         .fontWeight(.bold)
 
@@ -30,49 +31,49 @@ struct NewPasswordSetupView: View {
                 }
 
                 VStack(spacing: 16) {
-                    Text("Set New Passcode")
+                    Text(localizationManager.localizedString(for: "newPasswordSetup.setNewPasscode"))
                         .font(.headline)
                         .fontWeight(.semibold)
 
                     // New Password Field
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("New Passcode")
+                        Text(localizationManager.localizedString(for: "newPasswordSetup.newPasscode"))
                             .font(.body)
                             .fontWeight(.medium)
 
-                        SecureField("Enter new passcode", text: $newPassword)
+                        SecureField(localizationManager.localizedString(for: "newPasswordSetup.enterNewPasscode"), text: $newPassword)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
 
                     // Confirm Password Field
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Confirm Passcode")
+                        Text(localizationManager.localizedString(for: "newPasswordSetup.confirmPasscode"))
                             .font(.body)
                             .fontWeight(.medium)
 
-                        SecureField("Confirm new passcode", text: $confirmPassword)
+                        SecureField(localizationManager.localizedString(for: "newPasswordSetup.confirmNewPasscode"), text: $confirmPassword)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
 
                     // Password Requirements
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Passcode Requirements:")
+                        Text(localizationManager.localizedString(for: "newPasswordSetup.passcodeRequirements"))
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
 
                         RequirementText(
-                            text: "At least 8 characters",
+                            text: localizationManager.localizedString(for: "newPasswordSetup.requirement.length"),
                             isMet: newPassword.count >= 8
                         )
 
                         RequirementText(
-                            text: "Contains letters and numbers",
+                            text: localizationManager.localizedString(for: "newPasswordSetup.requirement.complexity"),
                             isMet: hasLettersAndNumbers(newPassword)
                         )
 
                         RequirementText(
-                            text: "Passcodes match",
+                            text: localizationManager.localizedString(for: "newPasswordSetup.requirement.match"),
                             isMet: !newPassword.isEmpty && !confirmPassword.isEmpty && newPassword == confirmPassword
                         )
                     }
@@ -98,7 +99,7 @@ struct NewPasswordSetupView: View {
                                 .scaleEffect(0.8)
                                 .tint(.white)
                         }
-                        Text(isSettingPassword ? "Setting Passcode..." : "Set New Passcode")
+                        Text(isSettingPassword ? localizationManager.localizedString(for: "newPasswordSetup.settingPasscode") : localizationManager.localizedString(for: "newPasswordSetup.setNewPasscodeButton"))
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -110,10 +111,10 @@ struct NewPasswordSetupView: View {
                 .disabled(!canSetPassword || isSettingPassword)
             }
             .padding()
-            .navigationTitle("New Passcode")
+            .navigationTitle(localizationManager.localizedString(for: "newPasswordSetup.navigationTitle"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "newPasswordSetup.cancel")) {
                         authManager.cancelPasswordRecovery()
                         isPresented = false
                     }
@@ -125,11 +126,11 @@ struct NewPasswordSetupView: View {
     private var recoveryMethodText: String {
         switch recoveryMethod {
         case .biometric:
-            return "Your identity was verified using \(authManager.getBiometricType()). Now set a new passcode to secure your app."
+            return String(format: localizationManager.localizedString(for: "newPasswordSetup.biometricRecovery"), authManager.getBiometricType())
         case .securityQuestions:
-            return "Your identity was verified using your security questions. Now set a new passcode to secure your app."
+            return localizationManager.localizedString(for: "newPasswordSetup.securityQuestionsRecovery")
         case .none:
-            return "Please set a new passcode to secure your app."
+            return localizationManager.localizedString(for: "newPasswordSetup.defaultMessage")
         }
     }
 
@@ -186,4 +187,5 @@ struct RequirementText: View {
         isPresented: Binding.constant(true),
         recoveryMethod: .biometric
     )
+    .environmentObject(LocalizationManager.shared)
 }

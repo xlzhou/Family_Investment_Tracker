@@ -44,6 +44,7 @@ struct AnalyticsView: View {
     @State private var performanceSnapshot: PortfolioPerformance?
     @State private var realizedPnLLifetime: Double = 0
     @State private var isShowingRealizedPnL = false
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     var body: some View {
         ScrollView {
@@ -132,6 +133,7 @@ struct PerformanceSummaryView: View {
     let realizedPnLLifetime: Double
     let onShowRealizedPnL: () -> Void
     @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -144,7 +146,7 @@ struct PerformanceSummaryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .center, spacing: 12) {
-                Text("Performance Summary")
+                Text(localizationManager.localizedString(for: "analytics.performanceSummary.title"))
                     .font(.title2)
                     .fontWeight(.semibold)
 
@@ -155,7 +157,7 @@ struct PerformanceSummaryView: View {
                         .labelsHidden()
                         .tint(.blue)
 
-                    Text("Include Insurance In Performance")
+                    Text(localizationManager.localizedString(for: "analytics.performanceSummary.includeInsurance"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -167,38 +169,38 @@ struct PerformanceSummaryView: View {
                 GridItem(.flexible())
             ], spacing: 16) {
                 PerformanceCardView(
-                    title: "Current Value",
+                    title: localizationManager.localizedString(for: "analytics.metrics.currentValue"),
                     value: Formatters.currency(performance.currentValue, symbol: currencySymbol),
                     color: .blue
                 )
-                
+
                 PerformanceCardView(
-                    title: "Cost Basis",
+                    title: localizationManager.localizedString(for: "analytics.metrics.costBasis"),
                     value: Formatters.currency(performance.costBasis, symbol: currencySymbol),
                     color: .gray
                 )
-                
+
                 PerformanceCardView(
-                    title: "Unrealized P&L",
+                    title: localizationManager.localizedString(for: "analytics.metrics.unrealizedPnL"),
                     value: Formatters.signedCurrency(performance.unrealizedGainLoss, symbol: currencySymbol),
                     color: performance.unrealizedGainLoss >= 0 ? .green : .red
                 )
-                
+
                 PerformanceCardView(
-                    title: "Total Return (Lifetime)",
+                    title: localizationManager.localizedString(for: "analytics.metrics.totalReturn"),
                     value: Formatters.signedPercent(performance.totalReturnPercentage),
                     color: performance.totalReturnPercentage >= 0 ? .green : .red
                 )
-                
+
                 PerformanceCardView(
-                    title: "Realized P&L (Lifetime)",
+                    title: localizationManager.localizedString(for: "analytics.metrics.realizedPnL"),
                     value: Formatters.signedCurrency(realizedPnLLifetime, symbol: currencySymbol),
                     color: realizedPnLLifetime >= 0 ? .green : .red,
                     action: onShowRealizedPnL
                 )
 
                 PerformanceCardView(
-                    title: "Total Dividends",
+                    title: localizationManager.localizedString(for: "analytics.metrics.totalDividends"),
                     value: Formatters.currency(performance.totalDividends, symbol: currencySymbol),
                     color: .purple
                 )
@@ -261,6 +263,7 @@ struct PerformanceCardView: View {
 struct AssetAllocationChartView: View {
     let portfolio: Portfolio
     let viewModel: PortfolioViewModel
+    @EnvironmentObject private var localizationManager: LocalizationManager
     
     private var allocations: [AssetAllocation] {
         viewModel.getAssetAllocation(portfolio: portfolio)
@@ -280,16 +283,16 @@ struct AssetAllocationChartView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Asset Allocation")
-                .font(.headline)            
+            Text(localizationManager.localizedString(for: "analytics.allocation.title"))
+                .font(.headline)
             if allocations.isEmpty {
-                Text("No assets to display")
+                Text(localizationManager.localizedString(for: "analytics.allocation.noAssets"))
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 200)
             } else {
                 HStack(alignment: .top, spacing: 32) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("By Asset Type")
+                        Text(localizationManager.localizedString(for: "analytics.allocation.byAssetType"))
                             .font(.headline)
 
                         HStack(spacing: 16) {
@@ -330,7 +333,7 @@ struct AssetAllocationChartView: View {
 
                     if !institutionAllocations.isEmpty {
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("By Institution")
+                            Text(localizationManager.localizedString(for: "analytics.allocation.byInstitution"))
                                 .font(.headline)
 
                             HStack(spacing: 16) {
@@ -394,17 +397,18 @@ struct PerformanceChartView: View {
     let data: [PerformanceDataPoint]
     let isLoading: Bool
     let currencySymbol: String
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Portfolio Performance (30 Days)")
+            Text(localizationManager.localizedString(for: "analytics.performance.title"))
                 .font(.title2)
                 .fontWeight(.semibold)
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 160)
             } else if data.count <= 1 {
-                Text("Not enough history to display performance.")
+                Text(localizationManager.localizedString(for: "analytics.performance.notEnoughHistory"))
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 160)
             } else {
@@ -452,17 +456,18 @@ struct DividendHistoryView: View {
     let data: [DividendDataPoint]
     let isLoading: Bool
     let currencySymbol: String
-    
+    @EnvironmentObject private var localizationManager: LocalizationManager
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Dividend History (12 Months)")
+            Text(localizationManager.localizedString(for: "analytics.dividends.title"))
                 .font(.title2)
                 .fontWeight(.semibold)
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, minHeight: 160)
             } else if data.isEmpty {
-                Text("No dividend or interest income recorded in this period.")
+                Text(localizationManager.localizedString(for: "analytics.dividends.noIncome"))
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 160)
             } else {

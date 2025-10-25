@@ -10,9 +10,22 @@ enum TransactionType: String, CaseIterable {
     case depositWithdrawal = "DepositWithdrawal"
 
     var displayName: String {
+        return NSLocalizedString(localizationKey,
+                                 tableName: nil,
+                                 bundle: .main,
+                                 value: rawValue,
+                                 comment: "Transaction type display name")
+    }
+
+    private var localizationKey: String {
         switch self {
-        case .depositWithdrawal: return "Deposit Withdrawal"
-        default: return self.rawValue
+        case .buy: return "transaction.type.buy"
+        case .sell: return "transaction.type.sell"
+        case .dividend: return "transaction.type.dividend"
+        case .interest: return "transaction.type.interest"
+        case .deposit: return "transaction.type.deposit"
+        case .insurance: return "transaction.type.insurance"
+        case .depositWithdrawal: return "transaction.type.depositWithdrawal"
         }
     }
 }
@@ -30,7 +43,26 @@ enum AssetType: String, CaseIterable {
     case other = "Other"
     
     var displayName: String {
-        return self.rawValue
+        return NSLocalizedString(localizationKey,
+                                 tableName: nil,
+                                 bundle: .main,
+                                 value: rawValue,
+                                 comment: "Asset type display name")
+    }
+
+    private var localizationKey: String {
+        switch self {
+        case .stock: return "asset.type.stock"
+        case .etf: return "asset.type.etf"
+        case .bond: return "asset.type.bond"
+        case .mutualFund: return "asset.type.mutualFund"
+        case .deposit: return "asset.type.deposit"
+        case .cryptocurrency: return "asset.type.cryptocurrency"
+        case .preciousMetal: return "asset.type.preciousMetal"
+        case .insurance: return "asset.type.insurance"
+        case .structuredProduct: return "asset.type.structuredProduct"
+        case .other: return "asset.type.other"
+        }
     }
 }
 

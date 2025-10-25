@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SecurityQuestionsRecoveryView: View {
     @ObservedObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Binding var isPresented: Bool
     let onSuccess: () -> Void
 
@@ -18,11 +19,11 @@ struct SecurityQuestionsRecoveryView: View {
                         .font(.system(size: 50))
                         .foregroundColor(.blue)
 
-                    Text("Security Questions")
+                    Text(localizationManager.localizedString(for: "securityQuestionsRecovery.title"))
                         .font(.title2)
                         .fontWeight(.bold)
 
-                    Text("Answer your security questions to reset your passcode")
+                    Text(localizationManager.localizedString(for: "securityQuestionsRecovery.subtitle"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -31,7 +32,7 @@ struct SecurityQuestionsRecoveryView: View {
                 if securityQuestions.isEmpty {
                     VStack(spacing: 16) {
                         ProgressView()
-                        Text("Loading security questions...")
+                        Text(localizationManager.localizedString(for: "securityQuestionsRecovery.loading"))
                             .font(.body)
                             .foregroundColor(.secondary)
                     }
@@ -41,7 +42,7 @@ struct SecurityQuestionsRecoveryView: View {
                         VStack(spacing: 20) {
                             ForEach(Array(securityQuestions.enumerated()), id: \.offset) { index, question in
                                 SecurityQuestionAnswerField(
-                                    question: question.question,
+                                    question: question.localizedQuestion(localizationManager: localizationManager),
                                     answer: $answers[index]
                                 )
                             }
@@ -66,7 +67,7 @@ struct SecurityQuestionsRecoveryView: View {
                                     .scaleEffect(0.8)
                                     .tint(.white)
                             }
-                            Text(isVerifying ? "Verifying..." : "Verify Answers")
+                            Text(isVerifying ? localizationManager.localizedString(for: "securityQuestionsRecovery.verifying") : localizationManager.localizedString(for: "securityQuestionsRecovery.verifyAnswers"))
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
@@ -82,10 +83,10 @@ struct SecurityQuestionsRecoveryView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Recover Passcode")
+            .navigationTitle(localizationManager.localizedString(for: "securityQuestionsRecovery.navigationTitle"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "securityQuestionsRecovery.cancel")) {
                         isPresented = false
                     }
                 }
@@ -127,6 +128,7 @@ struct SecurityQuestionsRecoveryView: View {
 }
 
 struct SecurityQuestionAnswerField: View {
+    @EnvironmentObject private var localizationManager: LocalizationManager
     let question: String
     @Binding var answer: String
 
@@ -137,7 +139,7 @@ struct SecurityQuestionAnswerField: View {
                 .fontWeight(.medium)
                 .foregroundColor(.primary)
 
-            TextField("Your answer", text: $answer)
+            TextField(localizationManager.localizedString(for: "securityQuestionsRecovery.answerPlaceholder"), text: $answer)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textInputAutocapitalization(.never)
                 .disableAutocorrection(true)
@@ -152,4 +154,5 @@ struct SecurityQuestionAnswerField: View {
         isPresented: Binding.constant(true),
         onSuccess: {}
     )
+    .environmentObject(LocalizationManager.shared)
 }

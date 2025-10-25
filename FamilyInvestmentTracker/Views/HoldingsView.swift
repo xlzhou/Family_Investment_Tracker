@@ -5,6 +5,7 @@ import Foundation
 struct HoldingsView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @FetchRequest private var holdingsFetch: FetchedResults<Holding>
     @State private var selectedAssetTypes: Set<AssetType> = []
     @State private var selectedInstitutionID: NSManagedObjectID? = nil
@@ -110,9 +111,9 @@ private extension HoldingsView {
     }
 
     var statusPicker: some View {
-        Picker("Holdings status", selection: $statusFilter) {
+        Picker(localizationManager.localizedString(for: "holdingsView.status.picker.label"), selection: $statusFilter) {
             ForEach(HoldingsStatus.allCases) { status in
-                Text(status.title).tag(status)
+                Text(status.localizedTitle(localizationManager: localizationManager)).tag(status)
             }
         }
         .pickerStyle(SegmentedPickerStyle())
@@ -126,7 +127,7 @@ private extension HoldingsView {
                     selectedAssetTypes.removeAll()
                 }) {
                     HStack {
-                        Text("All Asset Types")
+                        Text(localizationManager.localizedString(for: "holdingsView.filters.allAssetTypes"))
                         Spacer()
                         if selectedAssetTypes.isEmpty {
                             Image(systemName: "checkmark")
@@ -167,9 +168,9 @@ private extension HoldingsView {
             }
 
             Menu {
-                Button("All Institutions") { selectedInstitutionID = nil }
+                Button(localizationManager.localizedString(for: "holdingsView.filters.allInstitutions")) { selectedInstitutionID = nil }
                 ForEach(availableInstitutions, id: \.objectID) { institution in
-                    Button(institution.name ?? "Unknown") { selectedInstitutionID = institution.objectID }
+                    Button(institution.name ?? localizationManager.localizedString(for: "holdingsView.filters.unknown")) { selectedInstitutionID = institution.objectID }
                 }
             } label: {
                 HStack {
@@ -183,7 +184,7 @@ private extension HoldingsView {
             }
 
             if !selectedAssetTypes.isEmpty || selectedInstitutionID != nil {
-                Button("Clear") {
+                Button(localizationManager.localizedString(for: "holdingsView.filters.clear")) {
                     selectedAssetTypes.removeAll()
                     selectedInstitutionID = nil
                 }
@@ -202,11 +203,11 @@ private extension HoldingsView {
 
         switch statusFilter {
         case .active:
-            title = isFiltering ? "No holdings match your filters" : "No Holdings"
-            message = isFiltering ? "Try adjusting your filters to see more positions." : "Start by adding your first transaction."
+            title = isFiltering ? localizationManager.localizedString(for: "holdingsView.emptyState.noHoldingsFiltered.title") : localizationManager.localizedString(for: "holdingsView.emptyState.noHoldings.title")
+            message = isFiltering ? localizationManager.localizedString(for: "holdingsView.emptyState.noHoldingsFiltered.message") : localizationManager.localizedString(for: "holdingsView.emptyState.noHoldings.message")
         case .sold:
-            title = isFiltering ? "No sold holdings match your filters" : "No Sold Holdings"
-            message = isFiltering ? "Adjust the filters or switch back to Holdings to see active positions." : "Record sell transactions when you exit an asset to track it here."
+            title = isFiltering ? localizationManager.localizedString(for: "holdingsView.emptyState.noSoldHoldingsFiltered.title") : localizationManager.localizedString(for: "holdingsView.emptyState.noSoldHoldings.title")
+            message = isFiltering ? localizationManager.localizedString(for: "holdingsView.emptyState.noSoldHoldingsFiltered.message") : localizationManager.localizedString(for: "holdingsView.emptyState.noSoldHoldings.message")
         }
 
         return VStack(spacing: 20) {
@@ -230,18 +231,18 @@ private extension HoldingsView {
     var selectedInstitutionLabel: String {
         guard let institutionID = selectedInstitutionID,
               let institution = try? viewContext.existingObject(with: institutionID) as? Institution else {
-            return "All Institutions"
+            return localizationManager.localizedString(for: "holdingsView.filters.allInstitutions")
         }
-        return institution.name ?? "All Institutions"
+        return institution.name ?? localizationManager.localizedString(for: "holdingsView.filters.allInstitutions")
     }
 
     var assetTypeFilterLabel: String {
         if selectedAssetTypes.isEmpty {
-            return "All Types"
+            return localizationManager.localizedString(for: "holdingsView.filters.allTypes")
         } else if selectedAssetTypes.count == 1 {
-            return selectedAssetTypes.first?.displayName ?? "All Types"
+            return selectedAssetTypes.first?.displayName ?? localizationManager.localizedString(for: "holdingsView.filters.allTypes")
         } else {
-            return "\(selectedAssetTypes.count) Types"
+            return "\(selectedAssetTypes.count) \(localizationManager.localizedString(for: "holdingsView.filters.types"))"
         }
     }
 
@@ -294,11 +295,11 @@ private extension HoldingsView {
 
         return VStack(spacing: 8) {
             HStack {
-                Text("Filtered Results Summary")
+                Text(localizationManager.localizedString(for: "holdingsView.summary.filteredResults"))
                     .font(.headline)
                     .fontWeight(.semibold)
                 Spacer()
-                Text("\(filteredHoldings.count) \(statusFilter == .active ? "holdings" : "sold holdings")")
+                Text("\(filteredHoldings.count) \(statusFilter == .active ? localizationManager.localizedString(for: "holdingsView.summary.holdings") : localizationManager.localizedString(for: "holdingsView.summary.soldHoldings"))")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -309,7 +310,7 @@ private extension HoldingsView {
                 GridItem(.flexible())
             ], spacing: 16) {
                 VStack(alignment: .center, spacing: 4) {
-                    Text("Total Value")
+                    Text(localizationManager.localizedString(for: "holdingsView.summary.totalValue"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(Formatters.currency(summary.totalValue, symbol: portfolioCurrency.displayName))
@@ -319,7 +320,7 @@ private extension HoldingsView {
                 }
 
                 VStack(alignment: .center, spacing: 4) {
-                    Text("Unrealized P&L")
+                    Text(localizationManager.localizedString(for: "holdingsView.summary.unrealizedPnL"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(Formatters.signedCurrency(summary.totalUnrealizedPnL, symbol: portfolioCurrency.symbol))
@@ -329,7 +330,7 @@ private extension HoldingsView {
                 }
 
                 VStack(alignment: .center, spacing: 4) {
-                    Text("Total Dividends")
+                    Text(localizationManager.localizedString(for: "holdingsView.summary.totalDividends"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(Formatters.currency(summary.totalDividends, symbol: portfolioCurrency.displayName))
@@ -397,12 +398,20 @@ private enum HoldingsStatus: String, CaseIterable, Identifiable {
         case .sold: return "Sold"
         }
     }
+
+    func localizedTitle(localizationManager: LocalizationManager) -> String {
+        switch self {
+        case .active: return localizationManager.localizedString(for: "holdingsView.status.holdings")
+        case .sold: return localizationManager.localizedString(for: "holdingsView.status.sold")
+        }
+    }
 }
 
 struct HoldingRowView: View {
     @ObservedObject var holding: Holding
     @ObservedObject var asset: Asset
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var showingHoldingDetail = false
     @State private var showingCashValueEditor = false
     @State private var editingCashValue: Double = 0
@@ -491,11 +500,11 @@ struct HoldingRowView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(asset.name ?? "Unknown Asset")
+                    Text(asset.name ?? localizationManager.localizedString(for: "holdingRowView.unknownAsset"))
                         .font(.headline)
                         .fontWeight(.semibold)
 
-                    Text(asset.symbol ?? "N/A")
+                    Text(asset.symbol ?? localizationManager.localizedString(for: "holdingRowView.noSymbol"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
@@ -522,12 +531,12 @@ struct HoldingRowView: View {
                     }
 
                     if isInsurance {
-                        Text("Cash Value")
+                        Text(localizationManager.localizedString(for: "holdingRowView.cashValue"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
                         HStack(spacing: 4) {
-                            Text("Unrealized P/L")
+                            Text(localizationManager.localizedString(for: "holdingRowView.unrealizedPnL"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(Formatters.signedCurrency(unrealizedGainLoss, symbol: currencySymbol))
@@ -545,7 +554,7 @@ struct HoldingRowView: View {
             HStack {
                 if isInsurance {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Basic Insured Amount")
+                        Text(localizationManager.localizedString(for: "holdingRowView.basicInsuredAmount"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Text(Formatters.currency(basicInsuredAmountValue, symbol: portfolioCurrency.displayName))
@@ -556,7 +565,7 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .center, spacing: 2) {
-                        Text("Policy Holder")
+                        Text(localizationManager.localizedString(for: "holdingRowView.policyHolder"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Text(policyHolderName)
@@ -567,7 +576,7 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        Text("Paid Premium")
+                        Text(localizationManager.localizedString(for: "holdingRowView.paidPremium"))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Text(Formatters.currency(totalPaidPremiumValue, symbol: portfolioCurrency.displayName))
@@ -577,7 +586,7 @@ struct HoldingRowView: View {
                 } else if isStructuredProduct {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 2) {
-                            Text("Quantity")
+                            Text(localizationManager.localizedString(for: "holdingRowView.quantity"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
@@ -585,7 +594,7 @@ struct HoldingRowView: View {
                                 .fontWeight(.medium)
                         }
                         if isStructuredProduct, !structuredProductLinkedAssetsText.isEmpty {
-                            Text("Linked Assets: \(structuredProductLinkedAssetsText)")
+                            Text("\(localizationManager.localizedString(for: "holdingRowView.linkedAssets")): \(structuredProductLinkedAssetsText)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
             }
@@ -594,7 +603,7 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .center, spacing: 2) {
-                        Text("Interest Rate")
+                        Text(localizationManager.localizedString(for: "holdingRowView.interestRate"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(Formatters.percent(structuredProductInterestRateValue, fractionDigits: 2))
@@ -606,7 +615,7 @@ struct HoldingRowView: View {
 
                     VStack(alignment: .trailing, spacing: 2) {
                         HStack(spacing: 4) {
-                            Text("Last Recorded Price")
+                            Text(localizationManager.localizedString(for: "holdingRowView.lastRecordedPrice"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
@@ -618,7 +627,7 @@ struct HoldingRowView: View {
                         }
                         if holding.totalDividends >= 0 {
                             HStack {
-                                Text("Total Dividends/Interest:")
+                                Text(localizationManager.localizedString(for: "holdingRowView.totalDividendsInterest"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
 
@@ -631,7 +640,7 @@ struct HoldingRowView: View {
                     }
                 } else {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Quantity")
+                        Text(localizationManager.localizedString(for: "holdingRowView.quantity"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(Formatters.decimal(holding.quantity, fractionDigits: 5))
@@ -642,7 +651,7 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .center, spacing: 2) {
-                        Text("Avg Cost")
+                        Text(localizationManager.localizedString(for: "holdingRowView.avgCost"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(Formatters.currency(holding.averageCostBasis, symbol: portfolioCurrency.displayName, fractionDigits: 3))
@@ -653,9 +662,9 @@ struct HoldingRowView: View {
                     Spacer()
 
                     VStack(alignment: .trailing, spacing: 2) {
-                        
+
                         HStack {
-                            Text("Last Recorded Price")
+                            Text(localizationManager.localizedString(for: "holdingRowView.lastRecordedPrice"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(Formatters.currency(asset.currentPrice, symbol: portfolioCurrency.displayName, fractionDigits: 3))
@@ -680,11 +689,11 @@ struct HoldingRowView: View {
                             }
                         }
                         if holding.totalDividends >= 0 {
-                            HStack(){    
-                                Text("Total Dividends/Interest:")
+                            HStack(){
+                                Text(localizationManager.localizedString(for: "holdingRowView.totalDividendsInterest"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
-                                    
+
                                 Text(Formatters.currency(holding.totalDividends, symbol: portfolioCurrency.displayName))
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -721,6 +730,7 @@ struct CashValueEditorView: View {
     @Binding var editingCashValue: Double
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var error: String?
 
     private var originalTransactionCurrency: Currency {
@@ -764,10 +774,10 @@ struct CashValueEditorView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Update Cash Value")) {
+                Section(header: Text(localizationManager.localizedString(for: "cashValueEditor.title"))) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Current Cash Value")
+                            Text(localizationManager.localizedString(for: "cashValueEditor.currentCashValue"))
                             Text("(\(originalTransactionCurrency.displayName))")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
@@ -782,23 +792,23 @@ struct CashValueEditorView: View {
                     }
                 }
 
-                Section(header: Text("Policy Information")) {
+                Section(header: Text(localizationManager.localizedString(for: "cashValueEditor.policyInformation"))) {
                     HStack {
-                        Text("Policy Type")
+                        Text(localizationManager.localizedString(for: "cashValueEditor.policyType"))
                         Spacer()
-                        Text("Insurance Policy")
+                        Text(localizationManager.localizedString(for: "cashValueEditor.insurancePolicy"))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Policyholder")
+                        Text(localizationManager.localizedString(for: "cashValueEditor.policyholder"))
                         Spacer()
-                        Text("Policy Owner")
+                        Text(localizationManager.localizedString(for: "cashValueEditor.policyOwner"))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Previous Cash Value")
+                        Text(localizationManager.localizedString(for: "cashValueEditor.previousCashValue"))
                         Spacer()
                         Text(Formatters.currency(holding.value(forKey: "cashValue") as? Double ?? 0, symbol: originalTransactionCurrency.displayName))
                             .foregroundColor(.secondary)
@@ -812,17 +822,17 @@ struct CashValueEditorView: View {
                     }
                 }
             }
-            .navigationTitle("Update Cash Value")
+            .navigationTitle(localizationManager.localizedString(for: "cashValueEditor.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "cashValueEditor.cancel")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button(localizationManager.localizedString(for: "cashValueEditor.save")) {
                         saveCashValue()
                     }
                     .disabled(editingCashValue < 0)
@@ -833,7 +843,7 @@ struct CashValueEditorView: View {
 
     private func saveCashValue() {
         guard editingCashValue >= 0 else {
-            error = "Cash value cannot be negative"
+            error = localizationManager.localizedString(for: "cashValueEditor.error.negativeCashValue")
             return
         }
 
@@ -859,7 +869,7 @@ struct CashValueEditorView: View {
             print("💰 Updated cash value for \(holding.asset?.name ?? "Unknown"): \(editingCashValue)")
             dismiss()
         } catch {
-            self.error = "Failed to save cash value: \(error.localizedDescription)"
+            self.error = "\(localizationManager.localizedString(for: "cashValueEditor.error.saveFailed")) \(error.localizedDescription)"
         }
     }
 }

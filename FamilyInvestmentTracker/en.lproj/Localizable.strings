@@ -1,0 +1,848 @@
+/* English localization placeholder. Keys populated as localization is wired in code. */
+"app.title" = "Family Investment Tracker";
+"app.subtitle" = "Secure access to your family's investment portfolio";
+"auth.enterPassword" = "Enter Password";
+"auth.unlock" = "Unlock";
+"auth.biometric.use" = "Use %@";
+"auth.setPassword" = "Set Password";
+"auth.passwordStrength" = "Password Strength:";
+"auth.passwordRequirement.length" = "• Minimum 8 characters";
+"auth.passwordRequirement.complexity" = "• Letters, numbers, and special characters";
+"auth.status.authenticated" = "Authenticated";
+"auth.biometric.fallback" = "Use Passcode";
+"auth.error.biometricUnavailable" = "Biometric authentication not available";
+"auth.biometric.reason" = "Authenticate to access your investment portfolio";
+"auth.error.generic" = "Authentication failed";
+"auth.error.tooManyAttemptsWait" = "Too many failed attempts. Please wait before trying again.";
+"auth.error.incorrectPasscode" = "Incorrect passcode";
+"auth.error.lockedMinutes" = "Too many failed attempts. Try again in %d minutes.";
+"auth.error.setPasscodeFailed" = "Failed to set passcode";
+"auth.error.currentPasscodeIncorrect" = "Current passcode is incorrect";
+"auth.error.removePasscodeFailed" = "Failed to remove passcode";
+"auth.biometric.reason.reset" = "Use %@ to reset your passcode";
+"auth.error.biometricFailed" = "Biometric authentication failed";
+"auth.error.securityQuestionsIncorrect" = "Incorrect answers to security questions";
+"auth.error.resetPasscodeFailed" = "Failed to reset passcode";
+"auth.biometric.faceID" = "Face ID";
+"auth.biometric.touchID" = "Touch ID";
+"auth.biometric.opticID" = "Optic ID";
+"auth.biometric.generic" = "Biometric";
+"auth.setupTitle" = "Set Up App Password";
+"auth.createPasswordPlaceholder" = "Create password";
+"auth.passwordPlaceholder" = "Password";
+"auth.forgotPassword" = "Forgot Password?";
+"auth.locked.title" = "Account Locked";
+"auth.locked.subtitle" = "Too many failed attempts";
+"auth.locked.remaining" = "Time remaining: %@";
+"auth.passwordStrength.tooWeak" = "Too weak";
+"auth.passwordStrength.weak" = "Weak";
+"auth.passwordStrength.fair" = "Fair";
+"auth.passwordStrength.good" = "Good";
+"auth.passwordStrength.strong" = "Strong";
+"settings.restore.success" = "Your data has been restored successfully.";
+"settings.restore.title" = "Restore Complete";
+"settings.language.sectionTitle" = "App Language";
+"settings.language.sectionFooter" = "Choose a language for the app or follow the system default.";
+"settings.language.pickerLabel" = "Language";
+"settings.language.option.system" = "System Default";
+"settings.language.option.en" = "English";
+"settings.language.option.zh-Hant" = "Traditional Chinese";
+"settings.language.option.ja" = "Japanese";
+"settings.language.option.es" = "Spanish";
+"settings.language.restart.title" = "Change Language";
+"settings.language.restart.message" = "The app language will be changed immediately.";
+"settings.language.restart.cancel" = "Cancel";
+"settings.language.restart.confirm" = "Apply Change";
+"holdings.summary.count" = "%@";
+"common.ok" = "OK";
+"common.cancel" = "Cancel";
+"common.done" = "Done";
+"common.save" = "Save";
+"cashDiscipline.qty" = "Qty %@";
+"cashDiscipline.price" = "Price %@";
+"cashDiscipline.fees" = "Fees %@";
+"cashDiscipline.tax" = "Tax %@";
+"cashDiscipline.settlement" = "Settlement %@";
+"cashDiscipline.date" = "Date %@";
+"transaction.type.buy" = "Buy";
+"transaction.type.sell" = "Sell";
+"transaction.type.dividend" = "Dividend";
+"transaction.type.interest" = "Interest";
+"transaction.type.insurance" = "Insurance";
+"transaction.type.depositWithdrawal" = "Deposit Withdrawal";
+"transaction.type.deposit" = "Deposit";
+"transaction.type.withdrawal" = "Withdrawal";
+"asset.type.stock" = "Stock";
+"asset.type.etf" = "ETF";
+"asset.type.bond" = "Bond";
+"asset.type.mutualFund" = "Mutual Fund";
+"asset.type.deposit" = "Deposit";
+"asset.type.cryptocurrency" = "Cryptocurrency";
+"asset.type.preciousMetal" = "Precious Metal";
+"asset.type.insurance" = "Insurance";
+"asset.type.structuredProduct" = "Structured Product";
+"asset.type.other" = "Other";
+
+// Settings View Localization
+"settings.title" = "Settings";
+"settings.profile.title" = "Profile";
+"settings.profile.footer" = "This name will be shown to family members when you share portfolios.";
+"settings.profile.displayName" = "Display Name";
+"settings.dashboard.title" = "Dashboard";
+"settings.dashboard.footer" = "Choose the currency used for totals in the Investment Portfolios view.";
+"settings.dashboard.summaryCurrency" = "Summary Currency";
+"settings.exchangeRates.title" = "Currency Exchange Rates";
+"settings.exchangeRates.footer" = "Real-time exchange rates are fetched from Yahoo Finance API and cached locally for offline use.";
+"settings.exchangeRates.label" = "Exchange Rates";
+"settings.exchangeRates.updating" = "Updating...";
+"settings.exchangeRates.updated" = "Updated %@";
+"settings.exchangeRates.noData" = "No data";
+"settings.exchangeRates.from" = "From %@";
+"settings.icloud.title" = "iCloud Sync";
+"settings.icloud.footer" = "Securely sync your portfolio data across all your devices using iCloud.";
+"settings.icloud.sync" = "iCloud Sync";
+"settings.icloud.enabled" = "Enabled";
+"settings.icloud.available" = "Available";
+"settings.icloud.notAvailable" = "Not Available";
+"settings.icloud.lastSync" = "Last Sync";
+"settings.icloud.never" = "Never";
+"settings.icloud.syncNow" = "Sync Now";
+"settings.backup.title" = "Backup & Restore";
+"settings.backup.footer" = "Create a password-protected backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.";
+"settings.backup.creating" = "Creating Backup...";
+"settings.backup.create" = "Create Full Backup";
+"settings.backup.restoring" = "Restoring Backup...";
+"settings.backup.restore" = "Restore From Backup";
+"settings.migration.fdMigration" = "Start Fixed Deposit Migration";
+"settings.migration.rebuildGains" = "Rebuild Realized P&L";
+"settings.migration.rebuilding" = "Rebuilding Realized P&L...";
+"settings.migration.linkCompanions" = "Link Legacy Fixed Deposit Companions";
+"settings.migration.linking" = "Linking Companion Transactions...";
+"settings.export.title" = "Data Export";
+"settings.export.footer" = "Export your portfolio data for backup or analysis.";
+"settings.export.button" = "Export Portfolio Data";
+"settings.info.title" = "App Information";
+"settings.info.version" = "Version";
+"settings.info.build" = "Build";
+"settings.security.title" = "Security";
+"settings.security.changePassword" = "Change Password";
+"settings.security.securityQuestions" = "Security Questions";
+"settings.security.questionsChange" = "Change security questions";
+"settings.security.questionsSetup" = "Set up security questions for password recovery";
+"settings.security.signOut" = "Sign Out";
+"settings.password.requirement" = "Password must contain at least one character.";
+"settings.password.change" = "Change Password";
+"settings.password.requirements.length" = "• Minimum 8 characters";
+"settings.password.requirements.complexity" = "• Letters, numbers, and special characters";
+
+// Action Calendar View Localization
+"actionCalendar.title" = "Action Calendar";
+"actionCalendar.actionsFor" = "Actions for %@";
+"actionCalendar.noActionsFor" = "No actions scheduled for %@";
+"actionCalendar.thisMonth" = "This Month";
+"actionCalendar.upcomingActions" = "Upcoming Actions";
+"actionCalendar.fixedDepositMaturity" = "Fixed Deposit Maturity";
+"actionCalendar.bondMaturity" = "Bond Maturity";
+"actionCalendar.structuredProductMaturity" = "Structured Product Maturity";
+"actionCalendar.insuranceMaturity" = "Insurance Maturity";
+"actionCalendar.maturityDate" = "Maturity Date";
+"actionCalendar.premiumPaymentDue" = "Premium Payment Due";
+"actionCalendar.insuranceBenefitRedemption" = "Insurance Benefit Redemption";
+
+// Add Fixed Deposit View Localization
+"addFixedDeposit.title" = "Add Fixed Deposit";
+"addFixedDeposit.institution" = "Institution";
+"addFixedDeposit.selectInstitution" = "Select Institution";
+"addFixedDeposit.details" = "Fixed Deposit Details";
+"addFixedDeposit.currency" = "Currency";
+"addFixedDeposit.valueDate" = "Value Date";
+"addFixedDeposit.term" = "Term";
+"addFixedDeposit.year" = "year";
+"addFixedDeposit.years" = "years";
+"addFixedDeposit.month" = "month";
+"addFixedDeposit.months" = "months";
+"addFixedDeposit.interestRate" = "Interest Rate (%)";
+"addFixedDeposit.maturityDate" = "Maturity Date";
+"addFixedDeposit.depositName" = "Deposit Name";
+"addFixedDeposit.symbol" = "Symbol (auto-generated)";
+"addFixedDeposit.amount" = "Amount";
+"addFixedDeposit.options" = "Options";
+"addFixedDeposit.allowEarlyWithdrawal" = "Allow Early Withdrawal";
+"addFixedDeposit.create" = "Create";
+"addFixedDeposit.insufficientCash" = "Insufficient Cash";
+"addFixedDeposit.selectedInstitution" = "Selected institution";
+"addFixedDeposit.insufficientCashMessage" = "%@ available: %@\nRequired: %@\n\nIf you do not want cash to be deducted when creating a fixed deposit, go to portfolio settings and turn off 'Enforce Cash Discipline'.";
+"addFixedDeposit.invalidInput" = "Invalid input values";
+"addFixedDeposit.creationFailed" = "Failed to create fixed deposit: %@";
+
+// Institution Picker View Localization
+"institutionPicker.title" = "Choose Institution";
+"institutionPicker.selectInstitution" = "Select Institution";
+"institutionPicker.unknownInstitution" = "Unknown Institution";
+"institutionPicker.addNew" = "Add New Institution";
+"institutionPicker.addInstitution" = "Add Institution";
+"institutionPicker.institutionName" = "Institution Name";
+"institutionPicker.add" = "Add";
+
+// Add Portfolio View Localization
+"addPortfolio.title" = "Add Portfolio";
+"addPortfolio.details" = "Portfolio Details";
+"addPortfolio.portfolioName" = "Portfolio Name";
+"addPortfolio.description" = "You can create separate portfolios for each family member or investment strategy.";
+
+// Add Transaction View Localization
+"addTransaction.add.title" = "Add Transaction";
+"addTransaction.edit.title" = "Edit Transaction";
+"addTransaction.transactionType.title" = "Transaction Type";
+"addTransaction.transactionType.label" = "Type";
+"addTransaction.currency.title" = "Currency";
+"addTransaction.currency.label" = "Currency";
+"addTransaction.institution.title" = "Trading Institution";
+"addTransaction.institution.label" = "Institution";
+"addTransaction.institution.placeholder" = "Institution (e.g., Interactive Brokers)";
+"addTransaction.institution.add" = "Add";
+"addTransaction.institution.select" = "Select";
+"addTransaction.institution.selectPrompt" = "Select Institution";
+"addTransaction.institution.unknown" = "Unknown";
+"addTransaction.institution.typeNew" = "Type new institution";
+"addTransaction.paymentInstitution.label" = "Payment Institution";
+"addTransaction.paymentInstitution.selectPrompt" = "Select Payment Institution";
+"addTransaction.paymentInstitution.addPrompt" = "Add an institution to enable payment selection.";
+"addTransaction.dividendSource.title" = "Dividend Source";
+"addTransaction.dividendSource.footer" = "Select the security that generated this dividend.";
+"addTransaction.dividendSource.label" = "Security";
+"addTransaction.dividendSource.none" = "None";
+"addTransaction.interestSource.title" = "Interest Source";
+"addTransaction.interestSource.footer" = "Select the account or security that generated this interest.";
+"addTransaction.interestSource.label" = "Source";
+"addTransaction.sellSecurity.title" = "Security to Sell";
+"addTransaction.sellSecurity.footer" = "Select the security you want to sell.";
+"addTransaction.sellSecurity.label" = "Security";
+"addTransaction.sellSecurity.selectPrompt" = "Select Security";
+"addTransaction.sellSecurity.noSecurities" = "No securities available to sell at this institution.";
+"addTransaction.assetInfo.title" = "Asset Information";
+"addTransaction.assetInfo.typeLabel" = "Asset Type";
+"addTransaction.assetInfo.symbolPlaceholder" = "Symbol (e.g., AAPL)";
+"addTransaction.assetInfo.namePlaceholder" = "Name (optional)";
+"addTransaction.details.title" = "Transaction Details";
+"addTransaction.details.date" = "Date";
+"addTransaction.details.interestRate" = "Interest Rate";
+"addTransaction.details.quantity" = "Quantity";
+"addTransaction.details.quantityWithHint" = "Quantity %@";
+"addTransaction.details.pricePerShare" = "Price per Share";
+"addTransaction.details.investmentAmount" = "Investment Amount";
+"addTransaction.details.cashValue" = "Cash Value";
+"addTransaction.details.amount" = "Amount";
+"addTransaction.details.withdrawalTip" = "Tip: Enter negative amount for withdrawals";
+"addTransaction.details.accruedInterest" = "Accrued Interest";
+"addTransaction.details.totalValue" = "Total Value";
+"addTransaction.details.fees" = "Fees";
+"addTransaction.details.tax" = "Tax";
+"addTransaction.details.settlementAmount" = "Settlement Amount";
+"addTransaction.details.notesPlaceholder" = "Notes (optional)";
+"addTransaction.fixedDeposit.editTitle" = "Edit fixed deposits in Cash Management";
+"addTransaction.fixedDeposit.editMessage" = "This transaction belongs to a fixed deposit. Manage its details from Cash Management to ensure maturity, term, and rate stay in sync.";
+"addTransaction.fixedDeposit.openCashManagement" = "Open Cash Management";
+"addTransaction.fixedDeposit.hintTitle" = "Looking for fixed deposits?";
+"addTransaction.fixedDeposit.hintMessage" = "Create and manage fixed deposits from Cash Management. This ensures value date, term, and maturity stay accurate.";
+"addTransaction.alerts.validationError" = "Validation Error";
+"addTransaction.insurance.details.title" = "Insurance Details";
+"addTransaction.insurance.details.policySymbol" = "Policy Symbol";
+"addTransaction.insurance.details.insuranceType" = "Insurance Type";
+"addTransaction.insurance.details.policyholder" = "Policyholder";
+"addTransaction.insurance.details.insuredPerson" = "Insured Person";
+"addTransaction.insurance.details.policyNumber" = "Policy Number";
+"addTransaction.insurance.types.life" = "Life Insurance";
+"addTransaction.insurance.types.criticalIllness" = "Critical Illness Insurance";
+"addTransaction.insurance.types.accident" = "Accident Insurance";
+
+// Insurance Financial Details
+"addTransaction.insurance.financialDetails.title" = "Financial Details";
+"addTransaction.insurance.financialDetails.basicInsuredAmount" = "Basic Insured Amount";
+"addTransaction.insurance.financialDetails.additionalPayment" = "Additional Payment";
+"addTransaction.insurance.financialDetails.deathBenefit" = "Death Benefit";
+
+// Insurance Premium Details
+"addTransaction.insurance.premiumDetails.title" = "Premium Details";
+"addTransaction.insurance.premiumDetails.singlePremium" = "Single Premium";
+"addTransaction.insurance.premiumDetails.firstDiscountedPremium" = "First Discounted Premium";
+"addTransaction.insurance.premiumDetails.paymentTerm" = "Payment Term";
+"addTransaction.insurance.premiumDetails.totalPremium" = "Total Premium";
+"addTransaction.insurance.premiumDetails.paymentStatus" = "Payment Status";
+"addTransaction.insurance.premiumDetails.paymentType" = "Payment Type";
+"addTransaction.insurance.premiumDetails.paid" = "Paid";
+"addTransaction.insurance.premiumDetails.paying" = "Paying";
+"addTransaction.insurance.premiumDetails.lumpSum" = "Lump Sum";
+"addTransaction.insurance.premiumDetails.installment" = "Installment";
+
+// Insurance Policy Features
+"addTransaction.insurance.policyFeatures.title" = "Policy Features";
+"addTransaction.insurance.policyFeatures.participatingPolicy" = "Participating Policy";
+"addTransaction.insurance.policyFeatures.rider" = "Rider";
+"addTransaction.insurance.policyFeatures.canWithdrawPremiums" = "Can Withdraw Premiums";
+"addTransaction.insurance.policyFeatures.maxWithdrawalPercentage" = "Max Withdrawal %";
+
+// Insurance Important Dates
+"addTransaction.insurance.importantDates.title" = "Important Dates";
+"addTransaction.insurance.importantDates.coverageExpiration" = "Coverage Expiration";
+"addTransaction.insurance.importantDates.maturityBenefitRedemption" = "Maturity Benefit Redemption";
+"addTransaction.insurance.importantDates.estimatedMaturityBenefit" = "Estimated Maturity Benefit";
+
+// Insurance Beneficiaries
+"addTransaction.insurance.beneficiaries.title" = "Beneficiaries";
+"addTransaction.insurance.beneficiaries.name" = "Beneficiary Name";
+"addTransaction.insurance.beneficiaries.addBeneficiary" = "Add Beneficiary";
+"addTransaction.insurance.beneficiaries.totalPercentage" = "Total Percentage:";
+
+// Maturity Date Toggle
+"addTransaction.maturity.setMaturityDate" = "Set Maturity Date";
+"addTransaction.maturity.maturityDate" = "Maturity Date";
+
+// Deposit Category/Symbol Picker
+"addTransaction.deposit.symbol" = "Symbol";
+"addTransaction.deposit.category.demanddeposit" = "Demand Deposit";
+"addTransaction.deposit.category.fixeddeposit" = "Fixed Deposit";
+
+// Analytics View Localization
+"analytics.performanceSummary.title" = "Performance Summary";
+"analytics.performanceSummary.includeInsurance" = "Include Insurance In Performance";
+"analytics.metrics.currentValue" = "Current Value";
+"analytics.metrics.costBasis" = "Cost Basis";
+"analytics.metrics.unrealizedPnL" = "Unrealized P&L";
+"analytics.metrics.totalReturn" = "Total Return (Lifetime)";
+"analytics.metrics.realizedPnL" = "Realized P&L (Lifetime)";
+"analytics.metrics.totalDividends" = "Total Dividends";
+"analytics.allocation.title" = "Asset Allocation";
+"analytics.allocation.byAssetType" = "By Asset Type";
+"analytics.allocation.byInstitution" = "By Institution";
+"analytics.allocation.noAssets" = "No assets to display";
+"analytics.performance.title" = "Portfolio Performance (30 Days)";
+"analytics.performance.notEnoughHistory" = "Not enough history to display performance.";
+"analytics.dividends.title" = "Dividend History (12 Months)";
+"analytics.dividends.noIncome" = "No dividend or interest income recorded in this period.";
+
+// Cash Overview View Localization
+"cashOverview.navigation.title" = "Cash Management";
+"cashOverview.navigation.done" = "Done";
+"cashOverview.tabs.demandCash" = "Demand Cash";
+"cashOverview.tabs.fixedDeposits" = "Fixed Deposits";
+"cashOverview.tabs.pickerLabel" = "Cash Type";
+"cashOverview.summary.overview" = "Overview";
+"cashOverview.summary.totalCash" = "Total Cash";
+"cashOverview.demandCash.noCashTitle" = "No Cash Holdings";
+"cashOverview.demandCash.noCashMessage" = "Cash balances will appear here when you make deposit transactions.";
+"cashOverview.demandCash.sectionHeader" = "Cash by Institution & Currency";
+"cashOverview.demandCash.unknownInstitution" = "Unknown Institution";
+"cashOverview.demandCash.currency" = "currency";
+"cashOverview.demandCash.currencies" = "currencies";
+"cashOverview.demandCash.total" = "Total";
+"cashOverview.demandCash.totalCash" = "Total Cash";
+"cashOverview.demandCash.footer" = "Total cash is calculated by summing all institution cash balances.";
+"cashOverview.fixedDeposits.noDepositsTitle" = "No Fixed Deposits";
+"cashOverview.fixedDeposits.noDepositsMessage" = "Create your first fixed deposit to start earning guaranteed returns.";
+"cashOverview.fixedDeposits.activeHeader" = "Active Fixed Deposits";
+"cashOverview.fixedDeposits.maturedHeader" = "Matured Fixed Deposits";
+"cashOverview.fixedDeposits.maturityAlert.title" = "Matured Fixed Deposits";
+"cashOverview.fixedDeposits.maturityAlert.review" = "Review";
+"cashOverview.fixedDeposits.maturityAlert.dismiss" = "Dismiss";
+"cashOverview.editSheet.institutionHeader" = "Institution";
+"cashOverview.editSheet.balanceHeader" = "Edit Balance";
+"cashOverview.editSheet.amountPlaceholder" = "Amount";
+"cashOverview.editSheet.cashTitle" = "Cash";
+"cashOverview.editSheet.cancel" = "Cancel";
+"cashOverview.editSheet.save" = "Save";
+"cashOverview.editSheet.validationError" = "Please enter a valid number.";
+"cashOverview.editSheet.saveError" = "Failed to save changes:";
+
+// Cloud Share View Localization
+"cloudShare.portfolio.title" = "Portfolio";
+
+// Export Data View Localization
+"exportData.navigation.title" = "Export Data";
+"exportData.navigation.cancel" = "Cancel";
+"exportData.format.sectionHeader" = "Export Format";
+"exportData.format.pickerLabel" = "Format";
+"exportData.portfolios.sectionHeader" = "Select Portfolios";
+"exportData.portfolios.sectionFooter" = "Choose which portfolios to include in the export.";
+"exportData.portfolios.unknownPortfolio" = "Unknown Portfolio";
+"exportData.portfolios.transactions" = "transactions";
+"exportData.portfolios.selectAll" = "Select All";
+"exportData.portfolios.deselectAll" = "Deselect All";
+"exportData.information.sectionHeader" = "Export Information";
+"exportData.information.selectedPortfolios" = "Selected Portfolios";
+"exportData.information.totalTransactions" = "Total Transactions";
+"exportData.information.fileFormat" = "File Format";
+"exportData.button.exporting" = "Exporting...";
+"exportData.button.exportData" = "Export Data";
+"exportData.error.exportFailed" = "Failed to export data. Please try again.";
+
+// Fixed Deposit Management View Localization
+"fixedDepositManagement.fixedDeposit" = "Fixed Deposit";
+"fixedDepositManagement.matured" = "Matured";
+"fixedDepositManagement.active" = "Active";
+"fixedDepositManagement.daysLeft" = "%d days left";
+"fixedDepositManagement.perAnnum" = "p.a.";
+"fixedDepositManagement.withdraw" = "Withdraw";
+"fixedDepositManagement.earlyWithdraw" = "Early Withdraw";
+
+// Fixed Deposit Withdrawal View Localization
+"fixedDepositWithdrawal.depositInformation" = "Deposit Information";
+"fixedDepositWithdrawal.depositName" = "Deposit Name";
+"fixedDepositWithdrawal.currentValue" = "Current Value";
+"fixedDepositWithdrawal.status" = "Status";
+"fixedDepositWithdrawal.withdrawalDetails" = "Withdrawal Details";
+"fixedDepositWithdrawal.withdrawalAmount" = "Withdrawal Amount";
+"fixedDepositWithdrawal.accruedInterest" = "Accrued Interest";
+"fixedDepositWithdrawal.institutionPenalty" = "Institution Penalty";
+"fixedDepositWithdrawal.earlyWithdrawalWarning" = "Early withdrawal may incur penalties. Please confirm the accrued interest and penalty amounts with your institution.";
+"fixedDepositWithdrawal.navigation.withdraw" = "Withdraw";
+"fixedDepositWithdrawal.navigation.earlyWithdrawal" = "Early Withdrawal";
+"fixedDepositWithdrawal.navigation.cancel" = "Cancel";
+"fixedDepositWithdrawal.error.invalidAmount" = "Invalid withdrawal amount";
+"fixedDepositWithdrawal.error.processingFailed" = "Failed to process withdrawal: %@";
+
+// Fixed Deposit Migration View Localization
+"fixedDepositMigration.navigation.title" = "Fixed Deposit Enhancement";
+"fixedDepositMigration.navigation.reset" = "Reset";
+"fixedDepositMigration.navigation.skip" = "Skip";
+"fixedDepositMigration.loading.analyzing" = "Analyzing your deposit assets...";
+"fixedDepositMigration.completed.title" = "Migration Complete!";
+"fixedDepositMigration.completed.description" = "Your deposit assets have been successfully updated to use the new fixed deposit system.";
+"fixedDepositMigration.completed.continue" = "Continue";
+"fixedDepositMigration.header.title" = "Enhanced Fixed Deposit Support";
+"fixedDepositMigration.header.description" = "We've improved how the app handles fixed deposits! Your existing deposit transactions will remain as cash deposits. You can now create dedicated fixed deposits using the new system.";
+"fixedDepositMigration.whatsNew.title" = "What's New";
+"fixedDepositMigration.feature.tracking.title" = "Fixed Deposit Tracking";
+"fixedDepositMigration.feature.tracking.description" = "Properly track time-locked deposits separate from available cash";
+"fixedDepositMigration.feature.interestRate.title" = "Interest Rate Tracking";
+"fixedDepositMigration.feature.interestRate.description" = "Track interest rates and maturity dates for fixed deposits";
+"fixedDepositMigration.feature.maturity.title" = "Maturity Management";
+"fixedDepositMigration.feature.maturity.description" = "Get notified when your fixed deposits mature";
+"fixedDepositMigration.feature.earlyWithdrawal.title" = "Early Withdrawal Support";
+"fixedDepositMigration.feature.earlyWithdrawal.description" = "Handle early withdrawals with penalty tracking";
+"fixedDepositMigration.summary.title" = "Migration Summary";
+"fixedDepositMigration.summary.totalAssets" = "Total deposit assets to update:";
+"fixedDepositMigration.summary.fixedDeposits" = "Likely fixed deposits:";
+"fixedDepositMigration.summary.demandDeposits" = "Likely demand deposits:";
+"fixedDepositMigration.suggestions.title" = "Suggested Actions";
+"fixedDepositMigration.button.enabling" = "Enabling...";
+"fixedDepositMigration.button.enable" = "Enable Fixed Deposits";
+"fixedDepositMigration.button.description" = "This will enable the new fixed deposit features. Your existing deposit transactions will remain unchanged as cash deposits.";
+"fixedDepositMigration.error.migrationFailed" = "Migration failed: %@";
+"fixedDepositMigration.suggestion.unknownAsset" = "Unknown Asset";
+"fixedDepositMigration.suggestion.convertToFixed" = "Convert to %d-month fixed deposit (%.1f%% interest)";
+"fixedDepositMigration.suggestion.convertToDemand" = "Keep as demand deposit";
+"fixedDepositMigration.suggestion.manualReview" = "Requires manual review";
+
+// Holding Detail View Localization
+"holdingDetail.navigation.title" = "Holding Details";
+"holdingDetail.assetInformation.title" = "Asset Information";
+"holdingDetail.assetInformation.symbol" = "Symbol";
+"holdingDetail.assetInformation.name" = "Name";
+"holdingDetail.assetInformation.type" = "Type";
+"holdingDetail.assetInformation.currency" = "Currency";
+"holdingDetail.assetInformation.maturityDate" = "Maturity Date";
+"holdingDetail.assetInformation.interestRate" = "Interest Rate";
+"holdingDetail.assetInformation.issuer" = "Issuer";
+"holdingDetail.assetInformation.noName" = "No name";
+"holdingDetail.assetInformation.unknown" = "Unknown";
+
+"holdingDetail.holdingsInformation.title" = "Holdings Information";
+"holdingDetail.holdingsInformation.quantity" = "Quantity";
+"holdingDetail.holdingsInformation.averagePrice" = "Average Price";
+"holdingDetail.holdingsInformation.currentPrice" = "Current Price";
+"holdingDetail.holdingsInformation.priceDate" = "Price Date";
+"holdingDetail.holdingsInformation.costBasis" = "Cost Basis";
+"holdingDetail.holdingsInformation.currentValue" = "Current Value";
+"holdingDetail.holdingsInformation.totalInvestment" = "Total Investment";
+"holdingDetail.holdingsInformation.maturityValue" = "Maturity Value";
+"holdingDetail.holdingsInformation.effectiveInterestRate" = "Effective Interest Rate";
+"holdingDetail.holdingsInformation.tenor" = "Tenor";
+"holdingDetail.holdingsInformation.daysToMaturity" = "Days to Maturity";
+"holdingDetail.holdingsInformation.investmentAmount" = "Investment Amount";
+"holdingDetail.holdingsInformation.cashValue" = "Cash Value";
+"holdingDetail.holdingsInformation.paidPremium" = "Paid Premium";
+"holdingDetail.holdingsInformation.noQuantity" = "No quantity";
+"holdingDetail.holdingsInformation.manualPrice" = "Manual Price";
+"holdingDetail.holdingsInformation.noPriceData" = "No price data";
+"holdingDetail.holdingsInformation.never" = "Never";
+"holdingDetail.holdingsInformation.years" = "years";
+"holdingDetail.holdingsInformation.days" = "days";
+"holdingDetail.holdingsInformation.matured" = "Matured";
+
+"holdingDetail.insurance.details.title" = "Insurance Details";
+"holdingDetail.insurance.details.policySymbol" = "Policy Symbol";
+"holdingDetail.insurance.details.insuranceType" = "Insurance Type";
+"holdingDetail.insurance.details.policyNumber" = "Policy Number";
+"holdingDetail.insurance.details.policyholder" = "Policyholder";
+"holdingDetail.insurance.details.insuredPerson" = "Insured Person";
+
+"holdingDetail.insurance.financial.title" = "Financial Details";
+"holdingDetail.insurance.financial.basicInsuredAmount" = "Basic Insured Amount";
+"holdingDetail.insurance.financial.additionalPayment" = "Additional Payment";
+"holdingDetail.insurance.financial.deathBenefit" = "Death Benefit";
+"holdingDetail.insurance.financial.totalPremium" = "Total Premium";
+
+"holdingDetail.insurance.premium.title" = "Premium Details";
+"holdingDetail.insurance.premium.singlePremium" = "Single Premium";
+"holdingDetail.insurance.premium.firstDiscountedPremium" = "First Discounted Premium";
+"holdingDetail.insurance.premium.paymentTerm" = "Payment Term";
+"holdingDetail.insurance.premium.paymentStatus" = "Payment Status";
+"holdingDetail.insurance.premium.paymentType" = "Payment Type";
+"holdingDetail.insurance.premium.participatingPolicy" = "Participating Policy";
+"holdingDetail.insurance.premium.rider" = "Rider";
+"holdingDetail.insurance.premium.canWithdrawPremiums" = "Can Withdraw Premiums";
+"holdingDetail.insurance.premium.maxWithdrawalPercentage" = "Max Withdrawal %";
+"holdingDetail.insurance.premium.paid" = "Paid";
+"holdingDetail.insurance.premium.paying" = "Paying";
+"holdingDetail.insurance.premium.lumpSum" = "Lump Sum";
+"holdingDetail.insurance.premium.installment" = "Installment";
+"holdingDetail.insurance.premium.yes" = "Yes";
+"holdingDetail.insurance.premium.no" = "No";
+
+"holdingDetail.insurance.coverage.title" = "Coverage & Maturity";
+"holdingDetail.insurance.coverage.coverageExpiration" = "Coverage Expiration";
+"holdingDetail.insurance.coverage.maturityBenefitRedemption" = "Maturity Benefit Redemption";
+"holdingDetail.insurance.coverage.estimatedMaturityBenefit" = "Estimated Maturity Benefit";
+"holdingDetail.insurance.coverage.notSpecified" = "Not specified";
+
+"holdingDetail.insurance.beneficiaries.title" = "Beneficiaries";
+"holdingDetail.insurance.beneficiaries.noBeneficiaries" = "No beneficiaries specified";
+
+"holdingDetail.performance.title" = "Performance";
+"holdingDetail.performance.unrealizedPnL" = "Unrealized P&L";
+"holdingDetail.performance.unrealizedReturn" = "Unrealized Return";
+"holdingDetail.performance.realizedPnL" = "Realized P&L";
+"holdingDetail.performance.realizedReturn" = "Realized Return";
+"holdingDetail.performance.totalDividends" = "Total Dividends";
+"holdingDetail.performance.totalInterest" = "Total Interest";
+
+"holdingDetail.transactions.title" = "Transaction History";
+"holdingDetail.transactions.noTransactions" = "No transactions recorded for this holding.";
+
+"holdingDetail.priceInformation.title" = "Price Information";
+"holdingDetail.priceInformation.lastUpdated" = "Last Updated";
+"holdingDetail.priceInformation.updatePrice" = "Update Price";
+"holdingDetail.priceInformation.fetchingPrice" = "Fetching price...";
+"holdingDetail.priceInformation.failedToFetch" = "Failed to fetch price";
+"holdingDetail.priceInformation.noPriceAvailable" = "No price available";
+
+"holdingDetail.priceEditor.title" = "Update Price";
+"holdingDetail.priceEditor.currentPrice" = "Current Price";
+"holdingDetail.priceEditor.newPrice" = "New Price";
+"holdingDetail.priceEditor.lastUpdated" = "Last Updated";
+"holdingDetail.priceEditor.setToCurrentDate" = "Set to Current Date";
+"holdingDetail.priceEditor.cancel" = "Cancel";
+"holdingDetail.priceEditor.save" = "Save";
+"holdingDetail.priceEditor.validationError" = "Please enter a valid price.";
+"holdingDetail.priceEditor.updateFailed" = "Failed to update price: %@";
+
+// Additional HoldingDetailView strings
+"holdingDetail.holdingsInformation.averageCostBasis" = "Average Cost Basis";
+"holdingDetail.holdingsInformation.lastRecordedPrice" = "Last Recorded Price";
+"holdingDetail.holdingsInformation.price" = "Price";
+"holdingDetail.holdingsInformation.totalValue" = "Total Value";
+"holdingDetail.holdingsInformation.costBasis" = "Cost Basis";
+"holdingDetail.holdingsInformation.autoFetchPrice" = "Auto-fetch price from Yahoo Finance";
+"holdingDetail.holdingsInformation.linkedAssets" = "Linked Assets";
+"holdingDetail.holdingsInformation.effectiveRate" = "Effective Rate";
+"holdingDetail.holdingsInformation.unassigned" = "Unassigned";
+
+"holdingDetail.actions.buyMore" = "Buy More";
+"holdingDetail.actions.sell" = "Sell";
+"holdingDetail.actions.payments" = "Payments";
+
+"holdingDetail.performance.currentValue" = "Current Value";
+"holdingDetail.performance.total" = "Total";
+
+"holdingDetail.priceInformation.autoFetch" = "Auto-fetch";
+"holdingDetail.priceInformation.manualEntry" = "Manual Entry";
+"holdingDetail.priceInformation.priceUpdate" = "Price Update";
+
+"holdingDetail.messages.noTransactions" = "No transactions recorded for this holding.";
+"holdingDetail.messages.noPortfolio" = "No portfolio associated with this holding.";
+"holdingDetail.messages.historicalCosts" = "Historical costs use portfolio currency while current values use transaction currency.";
+"holdingDetail.messages.priceDescription" = "This is the last price you entered manually. Edit it below or enable auto-fetch to keep it current.";
+
+"holdingDetail.currency.label" = "Currency";
+"holdingDetail.unknown" = "Unknown";
+
+// Additional comprehensive HoldingDetailView strings
+"holdingDetail.holdingsInformation.averageCostBasis" = "Average Cost Basis";
+"holdingDetail.performance.unrealizedGainLoss" = "Unrealized Gain/Loss";
+"holdingDetail.performance.lastUpdate" = "Last Update";
+"holdingDetail.performance.cumulativeIncome" = "Cumulative Income (Dividends/Interest)";
+"holdingDetail.performance.totalReturnWithIncome" = "Total Return (with Income)";
+"holdingDetail.performance.unrealizedReturn" = "Unrealized Return";
+"holdingDetail.performance.realizedGainLoss" = "Realized Gain/Loss";
+"holdingDetail.performance.realizedReturn" = "Realized Return";
+"holdingDetail.performance.dividends" = "Dividends";
+"holdingDetail.performance.interest" = "Interest";
+
+"holdingDetail.holdingsInformation.priceDate" = "Price Date";
+"holdingDetail.holdingsInformation.currentValue" = "Current Value";
+"holdingDetail.holdingsInformation.averagePrice" = "Average Price";
+"holdingDetail.holdingsInformation.currentPrice" = "Current Price";
+"holdingDetail.holdingsInformation.pricePerShare" = "Price per Share";
+"holdingDetail.holdingsInformation.shares" = "Shares";
+
+"holdingDetail.insurance.financialDetails.title" = "Financial Details";
+"holdingDetail.insurance.premiumDetails.title" = "Premium Details";
+"holdingDetail.insurance.coverage.title" = "Coverage & Maturity";
+
+"holdingDetail.priceInformation.title" = "Price Information";
+"holdingDetail.priceInformation.source" = "Source";
+"holdingDetail.priceInformation.manual" = "Manual";
+"holdingDetail.priceInformation.automatic" = "Automatic";
+
+"holdingDetail.structuredProduct.tenor" = "Tenor";
+"holdingDetail.structuredProduct.effectiveInterestRate" = "Effective Interest Rate";
+"holdingDetail.structuredProduct.daysToMaturity" = "Days to Maturity";
+"holdingDetail.structuredProduct.maturityValue" = "Maturity Value";
+
+"holdingDetail.currency" = "Currency";
+"holdingDetail.date.never" = "Never";
+"holdingDetail.quantity.shares" = "shares";
+"holdingDetail.time.years" = "years";
+"holdingDetail.time.days" = "days";
+"holdingDetail.status.matured" = "Matured";
+
+// Holdings View Localization
+"holdingsView.status.picker.label" = "Holdings status";
+"holdingsView.status.holdings" = "Holdings";
+"holdingsView.status.sold" = "Sold";
+"holdingsView.filters.allAssetTypes" = "All Asset Types";
+"holdingsView.filters.allInstitutions" = "All Institutions";
+"holdingsView.filters.unknown" = "Unknown";
+"holdingsView.filters.clear" = "Clear";
+"holdingsView.filters.allTypes" = "All Types";
+"holdingsView.filters.types" = "Types";
+"holdingsView.emptyState.noHoldings.title" = "No Holdings";
+"holdingsView.emptyState.noHoldings.message" = "Start by adding your first transaction.";
+"holdingsView.emptyState.noHoldingsFiltered.title" = "No holdings match your filters";
+"holdingsView.emptyState.noHoldingsFiltered.message" = "Try adjusting your filters to see more positions.";
+"holdingsView.emptyState.noSoldHoldings.title" = "No Sold Holdings";
+"holdingsView.emptyState.noSoldHoldings.message" = "Record sell transactions when you exit an asset to track it here.";
+"holdingsView.emptyState.noSoldHoldingsFiltered.title" = "No sold holdings match your filters";
+"holdingsView.emptyState.noSoldHoldingsFiltered.message" = "Adjust the filters or switch back to Holdings to see active positions.";
+"holdingsView.summary.filteredResults" = "Filtered Results Summary";
+"holdingsView.summary.holdings" = "holdings";
+"holdingsView.summary.soldHoldings" = "sold holdings";
+"holdingsView.summary.totalValue" = "Total Value";
+"holdingsView.summary.unrealizedPnL" = "Unrealized P&L";
+"holdingsView.summary.totalDividends" = "Total Dividends";
+
+// Holding Row View Localization
+"holdingRowView.unknownAsset" = "Unknown Asset";
+"holdingRowView.noSymbol" = "N/A";
+"holdingRowView.cashValue" = "Cash Value";
+"holdingRowView.unrealizedPnL" = "Unrealized P/L";
+"holdingRowView.basicInsuredAmount" = "Basic Insured Amount";
+"holdingRowView.policyHolder" = "Policy Holder";
+"holdingRowView.paidPremium" = "Paid Premium";
+"holdingRowView.quantity" = "Quantity";
+"holdingRowView.interestRate" = "Interest Rate";
+"holdingRowView.lastRecordedPrice" = "Last Recorded Price";
+"holdingRowView.totalDividendsInterest" = "Total Dividends/Interest:";
+"holdingRowView.avgCost" = "Avg Cost";
+"holdingRowView.linkedAssets" = "Linked Assets";
+
+// Cash Value Editor View Localization
+"cashValueEditor.title" = "Update Cash Value";
+"cashValueEditor.currentCashValue" = "Current Cash Value";
+"cashValueEditor.policyInformation" = "Policy Information";
+"cashValueEditor.policyType" = "Policy Type";
+"cashValueEditor.insurancePolicy" = "Insurance Policy";
+"cashValueEditor.policyholder" = "Policyholder";
+"cashValueEditor.policyOwner" = "Policy Owner";
+"cashValueEditor.previousCashValue" = "Previous Cash Value";
+"cashValueEditor.cancel" = "Cancel";
+"cashValueEditor.save" = "Save";
+"cashValueEditor.error.negativeCashValue" = "Cash value cannot be negative";
+"cashValueEditor.error.saveFailed" = "Failed to save cash value:";
+
+// Lockout View Localization
+"lockoutView.title" = "Account Temporarily Locked";
+"lockoutView.subtitle" = "Too many failed passcode attempts";
+"lockoutView.timeRemaining" = "Time Remaining";
+"lockoutView.failedAttempts" = "Failed Attempts";
+"lockoutView.securityMessage" = "Your data is protected by security lockout";
+"lockoutView.tryBiometric" = "Try %@";
+"lockoutView.securityInfo.attempts" = "attempts:";
+"lockoutView.duration.oneMinute" = "1 minute";
+"lockoutView.duration.fiveMinutes" = "5 minutes";
+"lockoutView.duration.fifteenMinutes" = "15 minutes";
+
+// New Password Setup View Localization
+"newPasswordSetup.recoverySuccessful" = "Recovery Successful!";
+"newPasswordSetup.setNewPasscode" = "Set New Passcode";
+"newPasswordSetup.newPasscode" = "New Passcode";
+"newPasswordSetup.enterNewPasscode" = "Enter new passcode";
+"newPasswordSetup.confirmPasscode" = "Confirm Passcode";
+"newPasswordSetup.confirmNewPasscode" = "Confirm new passcode";
+"newPasswordSetup.passcodeRequirements" = "Passcode Requirements:";
+"newPasswordSetup.requirement.length" = "At least 8 characters";
+"newPasswordSetup.requirement.complexity" = "Contains letters and numbers";
+"newPasswordSetup.requirement.match" = "Passcodes match";
+"newPasswordSetup.settingPasscode" = "Setting Passcode...";
+"newPasswordSetup.setNewPasscodeButton" = "Set New Passcode";
+"newPasswordSetup.cancel" = "Cancel";
+"newPasswordSetup.navigationTitle" = "New Passcode";
+"newPasswordSetup.biometricRecovery" = "Your identity was verified using %@. Now set a new passcode to secure your app.";
+"newPasswordSetup.securityQuestionsRecovery" = "Your identity was verified using your security questions. Now set a new passcode to secure your app.";
+"newPasswordSetup.defaultMessage" = "Please set a new passcode to secure your app.";
+
+// Passcode Entry View Localization
+"passcodeEntry.title" = "Enter Passcode";
+"passcodeEntry.subtitle" = "Enter your app passcode to continue";
+"passcodeEntry.useBiometric" = "Use %@";
+"passcodeEntry.failedAttempts" = "Failed attempts: %d";
+
+// Passcode Settings View Localization
+"passcodeSettings.navigationTitle" = "Passcode Settings";
+"passcodeSettings.done" = "Done";
+"passcodeSettings.securityStatus" = "Security Status";
+"passcodeSettings.appPasscode" = "App Passcode";
+"passcodeSettings.enabled" = "Enabled";
+"passcodeSettings.available" = "Available";
+"passcodeSettings.passcodeManagement" = "Passcode Management";
+"passcodeSettings.changePasscode" = "Change Passcode";
+"passcodeSettings.removePasscode" = "Remove Passcode";
+"passcodeSettings.securityInformation" = "Security Information";
+"passcodeSettings.failedAttempts" = "Failed Attempts";
+"passcodeSettings.securityPolicy" = "Security Policy";
+"passcodeSettings.lockoutPolicy1" = "• 3-4 failed attempts: 1 minute lockout";
+"passcodeSettings.lockoutPolicy2" = "• 5-6 failed attempts: 5 minute lockout";
+"passcodeSettings.lockoutPolicy3" = "• 7+ failed attempts: 15 minute lockout";
+
+// Change Passcode View Localization
+"changePasscode.navigationTitle" = "Change Passcode";
+"changePasscode.cancel" = "Cancel";
+"changePasscode.currentPasscode" = "Current Passcode";
+"changePasscode.newPasscode" = "New Passcode";
+"changePasscode.confirmPasscode" = "Confirm Passcode";
+"changePasscode.enterCurrent" = "Enter your current passcode";
+"changePasscode.enterNew" = "Enter your new passcode (4-6 digits)";
+"changePasscode.confirmNew" = "Confirm your new passcode";
+"changePasscode.continue" = "Continue";
+"changePasscode.changeButton" = "Change Passcode";
+"changePasscode.errorIncorrect" = "Incorrect current passcode";
+"changePasscode.errorFailed" = "Failed to change passcode";
+
+// Remove Passcode View Localization
+"removePasscode.navigationTitle" = "Remove Passcode";
+"removePasscode.title" = "Remove Passcode";
+"removePasscode.subtitle" = "Enter your current passcode to remove app security";
+"removePasscode.currentPasscode" = "Current Passcode";
+"removePasscode.removeButton" = "Remove Passcode";
+"removePasscode.warning" = "Warning: Removing passcode will make your data less secure";
+"removePasscode.cancel" = "Cancel";
+"removePasscode.errorFailed" = "Failed to remove passcode";
+
+// Passcode Setup View Localization
+"passcodeSetup.navigationTitle" = "Security Setup";
+"passcodeSetup.title" = "Set Up App Passcode";
+"passcodeSetup.subtitle" = "Create a secure passcode to protect your investment data";
+"passcodeSetup.enterPasscode" = "Enter Passcode";
+"passcodeSetup.passcodeInput" = "Passcode";
+"passcodeSetup.passcodeHint" = "Use 4-6 digits";
+"passcodeSetup.confirmPasscode" = "Confirm Passcode";
+"passcodeSetup.confirmPasscodeInput" = "Confirm Passcode";
+"passcodeSetup.confirmHint" = "Enter the same passcode again";
+"passcodeSetup.continue" = "Continue";
+"passcodeSetup.setPasscode" = "Set Passcode";
+"passcodeSetup.back" = "Back";
+"passcodeSetup.errorLength" = "Passcode must be 4-6 digits";
+"passcodeSetup.errorMismatch" = "Passcodes don't match";
+"passcodeSetup.errorInvalid" = "Invalid passcode format";
+"passcodeSetup.errorFailed" = "Failed to set passcode";
+
+// Password Recovery View Localization
+"passwordRecovery.title" = "Forgot Your Passcode?";
+"passwordRecovery.subtitle" = "Choose a recovery method to reset your passcode";
+"passwordRecovery.useBiometric" = "Use %@";
+"passwordRecovery.biometricSubtitle" = "Authenticate with %@ to reset your passcode";
+"passwordRecovery.securityQuestions" = "Answer Security Questions";
+"passwordRecovery.securityQuestionsSubtitle" = "Answer your security questions to reset your passcode";
+"passwordRecovery.noOptionsTitle" = "No Recovery Options Available";
+"passwordRecovery.noOptionsMessage" = "You haven't set up any recovery methods. Unfortunately, there's no way to recover your passcode without losing your data.";
+"passwordRecovery.noOptionsWarning" = "You'll need to delete and reinstall the app to start fresh.";
+"passwordRecovery.cancel" = "Cancel";
+
+// Security Questions Management View Localization
+"securityQuestions.title" = "Security Questions";
+"securityQuestions.done" = "Done";
+"securityQuestions.removeAlert.title" = "Remove Security Questions?";
+"securityQuestions.removeAlert.remove" = "Remove";
+"securityQuestions.removeAlert.cancel" = "Cancel";
+"securityQuestions.removeAlert.message" = "Are you sure you want to remove your security questions? You won't be able to recover your password using them.";
+"securityQuestions.verification.title" = "Verify Your Password";
+"securityQuestions.verification.subtitle" = "Enter your current password to manage security questions";
+"securityQuestions.verification.currentPassword" = "Current Password";
+"securityQuestions.verification.placeholder" = "Enter your password";
+"securityQuestions.verification.verifying" = "Verifying...";
+"securityQuestions.verification.verify" = "Verify Password";
+"securityQuestions.verification.error" = "Incorrect password. Please try again.";
+"securityQuestions.management.activeTitle" = "Security Questions Active";
+"securityQuestions.management.setupTitle" = "Set Up Security Questions";
+"securityQuestions.management.activeSubtitle" = "Your security questions are set up and ready to help you recover your password.";
+"securityQuestions.management.setupSubtitle" = "Set up security questions to help recover your password if you forget it.";
+"securityQuestions.management.configured" = "Security questions configured";
+"securityQuestions.management.changeQuestions" = "Change Security Questions";
+"securityQuestions.management.removeQuestions" = "Remove Security Questions";
+"securityQuestions.management.setupQuestions" = "Set Up Security Questions";
+"securityQuestions.management.infoTitle" = "Why set up security questions?";
+"securityQuestions.management.infoBenefit1" = "• Recover your password if you forget it";
+"securityQuestions.management.infoBenefit2" = "• Alternative to biometric authentication";
+"securityQuestions.management.infoBenefit3" = "• Keep your data safe and accessible";
+"securityQuestions.management.removeError" = "Failed to remove security questions. Please try again.";
+
+// Security Questions Recovery View Localization
+"securityQuestionsRecovery.title" = "Security Questions";
+"securityQuestionsRecovery.subtitle" = "Answer your security questions to reset your passcode";
+"securityQuestionsRecovery.loading" = "Loading security questions...";
+"securityQuestionsRecovery.verifying" = "Verifying...";
+"securityQuestionsRecovery.verifyAnswers" = "Verify Answers";
+"securityQuestionsRecovery.navigationTitle" = "Recover Passcode";
+"securityQuestionsRecovery.cancel" = "Cancel";
+"securityQuestionsRecovery.answerPlaceholder" = "Your answer";
+
+// Predefined Security Questions
+"securityQuestion.firstPet" = "What was the name of your first pet?";
+"securityQuestion.motherMaidenName" = "What is your mother's maiden name?";
+"securityQuestion.firstSchool" = "What was the name of your first school?";
+"securityQuestion.birthCity" = "What city were you born in?";
+"securityQuestion.firstCar" = "What was the make of your first car?";
+"securityQuestion.favoriteBook" = "What is your favorite book?";
+"securityQuestion.childhoodNickname" = "What was your childhood nickname?";
+"securityQuestion.childhoodStreet" = "What street did you grow up on?";
+"securityQuestion.favoriteFood" = "What is your favorite food?";
+"securityQuestion.bestFriendHighSchool" = "What was the name of your best friend in high school?";
+
+// Portfolio Dashboard View Localization
+"portfolioDashboard.tabs.holdings" = "Holdings";
+"portfolioDashboard.tabs.transactions" = "Transactions";
+"portfolioDashboard.tabs.analytics" = "Analytics";
+"portfolioDashboard.statCard.totalHoldingsValue" = "Total Holdings Value";
+"portfolioDashboard.statCard.totalCash" = "Total Cash";
+"portfolioDashboard.statCard.unrealizedPnL" = "Unrealized P&L";
+"portfolioDashboard.statCard.totalDividendsInterest" = "Total Dividends & Interest";
+"portfolioDashboard.statCard.realizedPnL" = "Realized P&L";
+"portfolioDashboard.quickActions.addTransaction" = "Add Transaction";
+"portfolioDashboard.quickActions.cashManagement" = "Cash Management";
+"portfolioDashboard.quickActions.addFixedDeposit" = "Add Fixed Deposit";
+"portfolioDashboard.quickActions.analytics" = "Analytics";
+"portfolioDashboard.quickActions.actionCalendar" = "Action Calendar";
+"portfolioDashboard.shareDialog.title" = "Share Portfolio";
+"portfolioDashboard.shareDialog.message" = "Portfolio Summary for %@";
+"portfolioDashboard.shareDialog.subject" = "Portfolio Summary";
+"portfolioDashboard.shareDialog.intro" = "Here's a summary of my investment portfolio:";
+"portfolioDashboard.shareDialog.totalValue" = "Total Value: %@";
+"portfolioDashboard.shareDialog.totalCash" = "Total Cash: %@";
+"portfolioDashboard.shareDialog.unrealizedPnL" = "Unrealized P&L: %@";
+"portfolioDashboard.shareDialog.dividendsInterest" = "Dividends & Interest: %@";
+"portfolioDashboard.shareDialog.holdingsCount" = "Number of Holdings: %d";
+"portfolioDashboard.shareDialog.footer" = "Shared from Family Investment Tracker";
+"portfolioDashboard.header.totalValue" = "Total Value";
+"portfolioDashboard.header.holdings" = "Holdings";
+"portfolioDashboard.header.transactions" = "Transactions";

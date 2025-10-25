@@ -48,14 +48,19 @@ struct SettingsView: View {
     @State private var isLinkingCompanions = false
     @State private var companionLinkMessage: String?
     @State private var companionLinkError: String?
+    @EnvironmentObject private var localizationManager: LocalizationManager
+    @State private var showingLanguageChangeAlert = false
+    @State private var initialLanguage = AppLanguage.system.rawValue
+    @State private var pendingLanguageChange: String?
+    @State private var selectedLanguage = AppLanguage.system.rawValue
     
     var body: some View {
         NavigationView {
             Form {
                 // User Profile Section
-                Section(header: Text("Profile"), footer: Text("This name will be shown to family members when you share portfolios.")) {
+                Section(header: localizationManager.text("settings.profile.title"), footer: localizationManager.text("settings.profile.footer")) {
                     HStack {
-                        Text("Display Name")
+                        localizationManager.text("settings.profile.displayName")
                         TextField("Enter your name", text: $displayName)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .onSubmit {
@@ -63,9 +68,19 @@ struct SettingsView: View {
                             }
                     }
                 }
+
+                Section(header: localizationManager.text("settings.language.sectionTitle"),
+                        footer: localizationManager.text("settings.language.sectionFooter")) {
+                    Picker(localizationManager.localizedString(for: "settings.language.pickerLabel"), selection: $selectedLanguage) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(localizationManager.localizedString(for: language.localizationKey)).tag(language.rawValue)
+                        }
+                    }
+                    .pickerStyle(.inline)
+                }
                
-                Section(header: Text("Dashboard"), footer: Text("Choose the currency used for totals in the Investment Portfolios view.")) {
-                    Picker("Summary Currency", selection: $selectedDashboardCurrency) {
+                Section(header: localizationManager.text("settings.dashboard.title"), footer: localizationManager.text("settings.dashboard.footer")) {
+                    Picker(localizationManager.localizedString(for: "settings.dashboard.summaryCurrency"), selection: $selectedDashboardCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
                             Text(currency.displayName).tag(currency)
                         }
@@ -74,7 +89,7 @@ struct SettingsView: View {
                 }
 
                 // Currency Exchange Rates Section
-                Section(header: Text("Currency Exchange Rates"), footer: Text("Real-time exchange rates are fetched from Yahoo Finance API and cached locally for offline use.")) {
+                Section(header: localizationManager.text("settings.exchangeRates.title"), footer: localizationManager.text("settings.exchangeRates.footer")) {
                     HStack {
                         Button(action: {
                             withAnimation {
@@ -87,19 +102,19 @@ struct SettingsView: View {
                         .buttonStyle(.plain)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Exchange Rates")
+                            localizationManager.text("settings.exchangeRates.label")
                                 .font(.headline)
 
                             if currencyService.isLoading {
-                                Text("Updating...")
+                                localizationManager.text("settings.exchangeRates.updating")
                                     .font(.caption)
                                     .foregroundColor(.blue)
                             } else if currencyService.lastUpdateDate != nil {
-                                Text("Updated \(currencyService.getRateAge() ?? "recently")")
+                                Text(localizationManager.localizedString(for: "settings.exchangeRates.updated", arguments: currencyService.getRateAge() ?? "recently"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             } else {
-                                Text("No data")
+                                localizationManager.text("settings.exchangeRates.noData")
                                     .font(.caption)
                                     .foregroundColor(.red)
                             }
@@ -129,7 +144,7 @@ struct SettingsView: View {
                             ForEach(Currency.allCases, id: \.self) { baseCurrency in
                                 if let rates = currencyService.exchangeRates[baseCurrency.rawValue] {
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text("From \(baseCurrency.rawValue)")
+                                        Text(localizationManager.localizedString(for: "settings.exchangeRates.from", arguments: baseCurrency.rawValue))
                                             .font(.caption)
                                             .fontWeight(.semibold)
                                             .foregroundColor(.primary)
@@ -164,27 +179,27 @@ struct SettingsView: View {
                 }
 
                 // iCloud Sync Section
-                Section(header: Text("iCloud Sync"), footer: Text("Securely sync your portfolio data across all your devices using iCloud.")) {
+                Section(header: localizationManager.text("settings.icloud.title"), footer: localizationManager.text("settings.icloud.footer")) {
                     HStack {
                         Image(systemName: "icloud.fill")
                             .foregroundColor(.blue)
-                        
+
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("iCloud Sync")
+                            localizationManager.text("settings.icloud.sync")
                                 .font(.headline)
-                            
+
                             if cloudKitService.isEnabled {
                                 if cloudKitService.isCloudSyncEnabled {
-                                    Text("Enabled")
+                                    localizationManager.text("settings.icloud.enabled")
                                         .font(.caption)
                                         .foregroundColor(.green)
                                 } else {
-                                    Text("Available")
+                                    localizationManager.text("settings.icloud.available")
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                             } else {
-                                Text(cloudKitService.syncError ?? "Not Available")
+                                Text(cloudKitService.syncError ?? localizationManager.localizedString(for: "settings.icloud.notAvailable"))
                                     .font(.caption)
                                     .foregroundColor(.red)
                             }
@@ -207,17 +222,17 @@ struct SettingsView: View {
                     
                     if cloudKitService.isCloudSyncEnabled {
                         HStack {
-                            Text("Last Sync")
+                            localizationManager.text("settings.icloud.lastSync")
                                 .foregroundColor(.secondary)
-                            
+
                             Spacer()
-                            
+
                             if let lastSync = cloudKitService.lastSyncDate {
                                 Text(lastSync, style: .relative)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             } else {
-                                Text("Never")
+                                localizationManager.text("settings.icloud.never")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -234,7 +249,7 @@ struct SettingsView: View {
                                     Image(systemName: "arrow.clockwise")
                                 }
                                 
-                                Text("Sync Now")
+                                localizationManager.text("settings.icloud.syncNow")
                             }
                         }
                         .disabled(cloudKitService.isSyncing)
@@ -242,7 +257,7 @@ struct SettingsView: View {
                 }
 
                 // Backup & Restore Section
-                Section(header: Text("Backup & Restore"), footer: Text("Create a password-protected backup of all portfolios, transactions, holdings, and institutions or restore from a previous backup.")) {
+                Section(header: localizationManager.text("settings.backup.title"), footer: localizationManager.text("settings.backup.footer")) {
                     Button(action: createBackup) {
                         HStack {
                             if isCreatingBackup {
@@ -252,7 +267,7 @@ struct SettingsView: View {
                                 Image(systemName: "externaldrive.badge.icloud")
                                     .foregroundColor(.blue)
                             }
-                            Text(isCreatingBackup ? "Creating Backup..." : "Create Full Backup")
+                            Text(isCreatingBackup ? localizationManager.localizedString(for: "settings.backup.creating") : localizationManager.localizedString(for: "settings.backup.create"))
                                 .foregroundColor(.primary)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -273,7 +288,7 @@ struct SettingsView: View {
                                 Image(systemName: "arrow.clockwise.circle")
                                     .foregroundColor(.orange)
                             }
-                            Text(isRestoring ? "Restoring Backup..." : "Restore From Backup")
+                            Text(isRestoring ? localizationManager.localizedString(for: "settings.backup.restoring") : localizationManager.localizedString(for: "settings.backup.restore"))
                                 .foregroundColor(.primary)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -290,7 +305,7 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "wand.and.stars")
                                 .foregroundColor(.purple)
-                            Text("Start Fixed Deposit Migration")
+                            localizationManager.text("settings.migration.fdMigration")
                                 .foregroundColor(.primary)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -309,7 +324,7 @@ struct SettingsView: View {
                                 Image(systemName: "hammer.circle")
                                     .foregroundColor(.green)
                             }
-                            Text(isRepairingRealizedGains ? "Rebuilding Realized P&L..." : "Rebuild Realized P&L")
+                            Text(isRepairingRealizedGains ? localizationManager.localizedString(for: "settings.migration.rebuilding") : localizationManager.localizedString(for: "settings.migration.rebuildGains"))
                                 .foregroundColor(.primary)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -328,7 +343,7 @@ struct SettingsView: View {
                                 Image(systemName: "link.circle")
                                     .foregroundColor(.teal)
                             }
-                            Text(isLinkingCompanions ? "Linking Companion Transactions..." : "Link Legacy Fixed Deposit Companions")
+                            Text(isLinkingCompanions ? localizationManager.localizedString(for: "settings.migration.linking") : localizationManager.localizedString(for: "settings.migration.linkCompanions"))
                                 .foregroundColor(.primary)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -371,7 +386,7 @@ struct SettingsView: View {
                 }
 
                 // Data Export Section
-                Section(header: Text("Data Export"), footer: Text("Export your portfolio data for backup or analysis.")) {
+                Section(header: localizationManager.text("settings.export.title"), footer: localizationManager.text("settings.export.footer")) {
                     Button(action: {
                         showingExportSheet = true
                     }) {
@@ -379,7 +394,7 @@ struct SettingsView: View {
                             Image(systemName: "square.and.arrow.up")
                                 .foregroundColor(.blue)
                             
-                            Text("Export Portfolio Data")
+                            localizationManager.text("settings.export.button")
                                 .foregroundColor(.primary)
                             
                             Spacer()
@@ -392,16 +407,16 @@ struct SettingsView: View {
                 }
  
                 // App Information Section
-                Section(header: Text("App Information")) {
+                Section(header: localizationManager.text("settings.info.title")) {
                     HStack {
-                        Text("Version")
+                        localizationManager.text("settings.info.version")
                         Spacer()
                         Text("1.0.0")
                             .foregroundColor(.secondary)
                     }
-                    
+
                     HStack {
-                        Text("Build")
+                        localizationManager.text("settings.info.build")
                         Spacer()
                         Text("1")
                             .foregroundColor(.secondary)
@@ -409,7 +424,7 @@ struct SettingsView: View {
                 }
                 
                 // Security Section
-                Section(header: Text("Security")) {
+                Section(header: localizationManager.text("settings.security.title")) {
                     Button(action: {
                         showingChangePassword = true
                     }) {
@@ -417,7 +432,7 @@ struct SettingsView: View {
                             Image(systemName: "key.horizontal")
                                 .foregroundColor(.blue)
 
-                            Text("Change Password")
+                            localizationManager.text("settings.security.changePassword")
                                 .foregroundColor(.primary)
 
                             Spacer()
@@ -436,10 +451,10 @@ struct SettingsView: View {
                                 .foregroundColor(.blue)
 
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Security Questions")
+                                localizationManager.text("settings.security.securityQuestions")
                                     .foregroundColor(.primary)
 
-                                Text(authManager.hasSecurityQuestionsSetup() ? "Change security questions" : "Set up security questions for password recovery")
+                                Text(authManager.hasSecurityQuestionsSetup() ? localizationManager.localizedString(for: "settings.security.questionsChange") : localizationManager.localizedString(for: "settings.security.questionsSetup"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -459,17 +474,17 @@ struct SettingsView: View {
                             Image(systemName: "lock.fill")
                                 .foregroundColor(.red)
 
-                            Text("Sign Out")
+                            localizationManager.text("settings.security.signOut")
                                 .foregroundColor(.red)
                         }
                     }
                 }
             }
-            .navigationTitle("Settings")
+            .navigationTitle(localizationManager.localizedString(for: "settings.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(localizationManager.localizedString(for: "common.done")) {
                         // Save display name before dismissing
                         ownershipService.setUserDisplayName(displayName)
                         dismiss()
@@ -550,19 +565,39 @@ struct SettingsView: View {
                 restoreMessage = nil
             }
         }
-        .alert("Restore Complete", isPresented: $showRestoreAlert, actions: {
-            Button("OK", role: .cancel) { }
+        .alert(localizationManager.localizedString(for: "settings.restore.title"), isPresented: $showRestoreAlert, actions: {
+            Button(localizationManager.localizedString(for: "common.ok"), role: .cancel) { }
         }, message: {
-            Text("Your data has been restored successfully.")
+            Text(localizationManager.localizedString(for: "settings.restore.success"))
         })
         .onAppear {
             cloudKitService.checkAccountStatus()
             displayName = ownershipService.userDisplayName
             selectedDashboardCurrency = dashboardSettings.dashboardCurrency
+            selectedLanguage = localizationManager.currentLanguage.rawValue
+            initialLanguage = selectedLanguage
         }
         .onChange(of: selectedDashboardCurrency) { _, newValue in
             dashboardSettings.updateCurrency(newValue)
         }
+        .onChange(of: selectedLanguage) { _, newValue in
+            if initialLanguage != newValue {
+                pendingLanguageChange = newValue
+                showingLanguageChangeAlert = true
+            }
+        }
+        .alert(localizationManager.localizedString(for: "settings.language.restart.title"), isPresented: $showingLanguageChangeAlert, actions: {
+            Button(localizationManager.localizedString(for: "settings.language.restart.cancel"), role: .cancel) {
+                // Revert to the initial language selection
+                selectedLanguage = initialLanguage
+                pendingLanguageChange = nil
+            }
+            Button(localizationManager.localizedString(for: "settings.language.restart.confirm"), role: .destructive) {
+                applyLanguageChange()
+            }
+        }, message: {
+            Text(localizationManager.localizedString(for: "settings.language.restart.message"))
+        })
     }
 
     private func triggerRealizedGainRepair() {
@@ -741,6 +776,18 @@ struct SettingsView: View {
         if clearURL {
             pendingRestoreURL = nil
         }
+    }
+
+    private func applyLanguageChange() {
+        guard let pendingLanguage = pendingLanguageChange,
+              let newLanguage = AppLanguage(rawValue: pendingLanguage) else { return }
+
+        // Apply the language change immediately using LocalizationManager
+        localizationManager.setLanguage(newLanguage)
+
+        // Update the initial language to the new one
+        initialLanguage = pendingLanguage
+        pendingLanguageChange = nil
     }
 }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SecurityQuestionsManagementView: View {
     @ObservedObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Binding var isPresented: Bool
 
     @State private var currentPassword = ""
@@ -25,10 +26,10 @@ struct SecurityQuestionsManagementView: View {
                 }
             }
             .padding()
-            .navigationTitle("Security Questions")
+            .navigationTitle(localizationManager.localizedString(for: "securityQuestions.title"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(localizationManager.localizedString(for: "securityQuestions.done")) {
                         isPresented = false
                     }
                 }
@@ -44,13 +45,13 @@ struct SecurityQuestionsManagementView: View {
                 isUpdating: hasSecurityQuestions
             )
         }
-        .alert("Remove Security Questions?", isPresented: $showingRemoveAlert) {
-            Button("Remove", role: .destructive) {
+        .alert(localizationManager.localizedString(for: "securityQuestions.removeAlert.title"), isPresented: $showingRemoveAlert) {
+            Button(localizationManager.localizedString(for: "securityQuestions.removeAlert.remove"), role: .destructive) {
                 removeSecurityQuestions()
             }
-            Button("Cancel", role: .cancel) { }
+            Button(localizationManager.localizedString(for: "securityQuestions.removeAlert.cancel"), role: .cancel) { }
         } message: {
-            Text("Are you sure you want to remove your security questions? You won't be able to recover your password using them.")
+            Text(localizationManager.localizedString(for: "securityQuestions.removeAlert.message"))
         }
     }
 
@@ -62,11 +63,11 @@ struct SecurityQuestionsManagementView: View {
                     .font(.system(size: 50))
                     .foregroundColor(.blue)
 
-                Text("Verify Your Password")
+                Text(localizationManager.localizedString(for: "securityQuestions.verification.title"))
                     .font(.title2)
                     .fontWeight(.bold)
 
-                Text("Enter your current password to manage security questions")
+                Text(localizationManager.localizedString(for: "securityQuestions.verification.subtitle"))
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -74,11 +75,11 @@ struct SecurityQuestionsManagementView: View {
 
             // Password Input
             VStack(alignment: .leading, spacing: 8) {
-                Text("Current Password")
+                Text(localizationManager.localizedString(for: "securityQuestions.verification.currentPassword"))
                     .font(.body)
                     .fontWeight(.medium)
 
-                SecureField("Enter your password", text: $currentPassword)
+                SecureField(localizationManager.localizedString(for: "securityQuestions.verification.placeholder"), text: $currentPassword)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .textContentType(.password)
                     .onSubmit {
@@ -102,7 +103,7 @@ struct SecurityQuestionsManagementView: View {
                             .scaleEffect(0.8)
                             .tint(.white)
                     }
-                    Text(isVerifyingPassword ? "Verifying..." : "Verify Password")
+                    Text(isVerifyingPassword ? localizationManager.localizedString(for: "securityQuestions.verification.verifying") : localizationManager.localizedString(for: "securityQuestions.verification.verify"))
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)
@@ -125,13 +126,13 @@ struct SecurityQuestionsManagementView: View {
                     .font(.system(size: 50))
                     .foregroundColor(hasSecurityQuestions ? .green : .blue)
 
-                Text(hasSecurityQuestions ? "Security Questions Active" : "Set Up Security Questions")
+                Text(hasSecurityQuestions ? localizationManager.localizedString(for: "securityQuestions.management.activeTitle") : localizationManager.localizedString(for: "securityQuestions.management.setupTitle"))
                     .font(.title2)
                     .fontWeight(.bold)
 
                 Text(hasSecurityQuestions ?
-                     "Your security questions are set up and ready to help you recover your password." :
-                     "Set up security questions to help recover your password if you forget it.")
+                     localizationManager.localizedString(for: "securityQuestions.management.activeSubtitle") :
+                     localizationManager.localizedString(for: "securityQuestions.management.setupSubtitle"))
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -144,7 +145,7 @@ struct SecurityQuestionsManagementView: View {
                         HStack {
                             Image(systemName: "questionmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("Security questions configured")
+                            Text(localizationManager.localizedString(for: "securityQuestions.management.configured"))
                                 .fontWeight(.medium)
                             Spacer()
                         }
@@ -158,7 +159,7 @@ struct SecurityQuestionsManagementView: View {
                         }) {
                             HStack {
                                 Image(systemName: "pencil.circle")
-                                Text("Change Security Questions")
+                                Text(localizationManager.localizedString(for: "securityQuestions.management.changeQuestions"))
                                     .fontWeight(.semibold)
                             }
                             .frame(maxWidth: .infinity)
@@ -174,7 +175,7 @@ struct SecurityQuestionsManagementView: View {
                         }) {
                             HStack {
                                 Image(systemName: "trash.circle")
-                                Text("Remove Security Questions")
+                                Text(localizationManager.localizedString(for: "securityQuestions.management.removeQuestions"))
                                     .fontWeight(.semibold)
                             }
                             .frame(maxWidth: .infinity)
@@ -191,7 +192,7 @@ struct SecurityQuestionsManagementView: View {
                     }) {
                         HStack {
                             Image(systemName: "plus.circle")
-                            Text("Set Up Security Questions")
+                            Text(localizationManager.localizedString(for: "securityQuestions.management.setupQuestions"))
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
@@ -206,14 +207,14 @@ struct SecurityQuestionsManagementView: View {
                         HStack {
                             Image(systemName: "info.circle")
                                 .foregroundColor(.blue)
-                            Text("Why set up security questions?")
+                            Text(localizationManager.localizedString(for: "securityQuestions.management.infoTitle"))
                                 .fontWeight(.medium)
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("• Recover your password if you forget it")
-                            Text("• Alternative to biometric authentication")
-                            Text("• Keep your data safe and accessible")
+                            Text(localizationManager.localizedString(for: "securityQuestions.management.infoBenefit1"))
+                            Text(localizationManager.localizedString(for: "securityQuestions.management.infoBenefit2"))
+                            Text(localizationManager.localizedString(for: "securityQuestions.management.infoBenefit3"))
                         }
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -247,7 +248,7 @@ struct SecurityQuestionsManagementView: View {
                 isVerifyingPassword = false
                 currentPassword = "" // Clear password for security
             } else {
-                errorMessage = "Incorrect password. Please try again."
+                errorMessage = localizationManager.localizedString(for: "securityQuestions.verification.error")
                 isVerifyingPassword = false
                 currentPassword = ""
             }
@@ -259,7 +260,7 @@ struct SecurityQuestionsManagementView: View {
             // Successfully removed
             // The view will automatically update since hasSecurityQuestions will now return false
         } else {
-            errorMessage = "Failed to remove security questions. Please try again."
+            errorMessage = localizationManager.localizedString(for: "securityQuestions.management.removeError")
         }
     }
 }
@@ -269,4 +270,5 @@ struct SecurityQuestionsManagementView: View {
         authManager: AuthenticationManager(),
         isPresented: Binding.constant(true)
     )
+    .environmentObject(LocalizationManager.shared)
 }

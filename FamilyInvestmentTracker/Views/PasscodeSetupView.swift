@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PasscodeSetupView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var passcode = ""
     @State private var confirmPasscode = ""
     @State private var showingConfirmation = false
@@ -18,12 +19,12 @@ struct PasscodeSetupView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.blue)
 
-                    Text("Set Up App Passcode")
+                    Text(localizationManager.localizedString(for: "passcodeSetup.title"))
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .multilineTextAlignment(.center)
 
-                    Text("Create a secure passcode to protect your investment data")
+                    Text(localizationManager.localizedString(for: "passcodeSetup.subtitle"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -37,11 +38,11 @@ struct PasscodeSetupView: View {
                     if !showingConfirmation {
                         // Initial passcode entry
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Enter Passcode")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.enterPasscode"))
                                 .font(.headline)
                                 .foregroundColor(.primary)
 
-                            SecureField("Passcode", text: $passcode)
+                            SecureField(localizationManager.localizedString(for: "passcodeSetup.passcodeInput"), text: $passcode)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .keyboardType(.numberPad)
                                 .onSubmit {
@@ -50,25 +51,25 @@ struct PasscodeSetupView: View {
                                     }
                                 }
 
-                            Text("Use 4-6 digits")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.passcodeHint"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                     } else {
                         // Confirmation entry
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Confirm Passcode")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.confirmPasscode"))
                                 .font(.headline)
                                 .foregroundColor(.primary)
 
-                            SecureField("Confirm Passcode", text: $confirmPasscode)
+                            SecureField(localizationManager.localizedString(for: "passcodeSetup.confirmPasscodeInput"), text: $confirmPasscode)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
                                 .keyboardType(.numberPad)
                                 .onSubmit {
                                     setupPasscode()
                                 }
 
-                            Text("Enter the same passcode again")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.confirmHint"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -93,10 +94,10 @@ struct PasscodeSetupView: View {
                                 showingConfirmation = true
                                 setupError = nil
                             } else {
-                                setupError = "Passcode must be 4-6 digits"
+                                setupError = localizationManager.localizedString(for: "passcodeSetup.errorLength")
                             }
                         }) {
-                            Text("Continue")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.continue"))
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -107,7 +108,7 @@ struct PasscodeSetupView: View {
                         .disabled(!isValidPasscode(passcode))
                     } else {
                         Button(action: setupPasscode) {
-                            Text("Set Passcode")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.setPasscode"))
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -122,7 +123,7 @@ struct PasscodeSetupView: View {
                             confirmPasscode = ""
                             setupError = nil
                         }) {
-                            Text("Back")
+                            Text(localizationManager.localizedString(for: "passcodeSetup.back"))
                                 .font(.headline)
                                 .foregroundColor(.blue)
                                 .frame(maxWidth: .infinity)
@@ -136,7 +137,7 @@ struct PasscodeSetupView: View {
 
                 Spacer()
             }
-            .navigationTitle("Security Setup")
+            .navigationTitle(localizationManager.localizedString(for: "passcodeSetup.navigationTitle"))
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarHidden(true)
         }
@@ -148,12 +149,12 @@ struct PasscodeSetupView: View {
 
     private func setupPasscode() {
         guard passcode == confirmPasscode else {
-            setupError = "Passcodes don't match"
+            setupError = localizationManager.localizedString(for: "passcodeSetup.errorMismatch")
             return
         }
 
         guard isValidPasscode(passcode) else {
-            setupError = "Invalid passcode format"
+            setupError = localizationManager.localizedString(for: "passcodeSetup.errorInvalid")
             return
         }
 
@@ -161,7 +162,7 @@ struct PasscodeSetupView: View {
             // Success - the authentication manager will update its state
             setupError = nil
         } else {
-            setupError = authManager.authenticationError ?? "Failed to set passcode"
+            setupError = authManager.authenticationError ?? localizationManager.localizedString(for: "passcodeSetup.errorFailed")
         }
     }
 }
@@ -169,4 +170,5 @@ struct PasscodeSetupView: View {
 #Preview {
     PasscodeSetupView()
         .environmentObject(AuthenticationManager())
+        .environmentObject(LocalizationManager.shared)
 }

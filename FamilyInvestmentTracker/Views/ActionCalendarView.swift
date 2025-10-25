@@ -4,6 +4,7 @@ import CoreData
 struct ActionCalendarView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var selectedDate = ActionCalendarView.startOfToday()
     @State private var currentMonth = ActionCalendarView.startOfCurrentMonth()
     @State private var actionDays: [Date: [ActionDayItem]] = [:]
@@ -128,7 +129,7 @@ struct ActionCalendarView: View {
                     // Action items for selected date
                     if let selectedDateActions = actionDays[normalizedDate(selectedDate)], !selectedDateActions.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Actions for \(formattedDate(selectedDate))")
+                            Text(localizationManager.localizedString(for: "actionCalendar.actionsFor", arguments: formattedDate(selectedDate)))
                                 .font(.headline)
                                 .padding(.horizontal)
 
@@ -140,7 +141,7 @@ struct ActionCalendarView: View {
                             .padding(.horizontal)
                         }
                     } else {
-                        Text("No actions scheduled for \(formattedDate(selectedDate))")
+                        Text(localizationManager.localizedString(for: "actionCalendar.noActionsFor", arguments: formattedDate(selectedDate)))
                             .font(.body)
                             .foregroundColor(.secondary)
                             .padding()
@@ -148,7 +149,7 @@ struct ActionCalendarView: View {
 
                     if !actionsForCurrentMonth.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("This Month")
+                            localizationManager.text("actionCalendar.thisMonth")
                                 .font(.headline)
                                 .padding(.horizontal)
 
@@ -165,7 +166,7 @@ struct ActionCalendarView: View {
 
                     if !upcomingActions.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Upcoming Actions")
+                            localizationManager.text("actionCalendar.upcomingActions")
                                 .font(.headline)
                                 .padding(.horizontal)
 
@@ -182,7 +183,7 @@ struct ActionCalendarView: View {
                 }
                 .padding(.bottom, 24)
             }
-            .navigationTitle("Action Calendar")
+            .navigationTitle(localizationManager.localizedString(for: "actionCalendar.title"))
             .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {
@@ -247,25 +248,25 @@ struct ActionCalendarView: View {
             if let maturityDate = primaryMaturityDate(for: asset, assetType: assetType) {
                 switch assetType {
                 case .some(.deposit) where asset.isFixedDeposit:
-                    appendAction(date: maturityDate, type: .fixedDepositMaturity, title: "Fixed Deposit Maturity", asset: asset)
+                    appendAction(date: maturityDate, type: .fixedDepositMaturity, title: localizationManager.localizedString(for: "actionCalendar.fixedDepositMaturity"), asset: asset)
                 case .some(.bond):
-                    appendAction(date: maturityDate, type: .bondMaturity, title: "Bond Maturity", asset: asset)
+                    appendAction(date: maturityDate, type: .bondMaturity, title: localizationManager.localizedString(for: "actionCalendar.bondMaturity"), asset: asset)
                 case .some(.structuredProduct):
-                    appendAction(date: maturityDate, type: .structuredProductMaturity, title: "Structured Product Maturity", asset: asset)
+                    appendAction(date: maturityDate, type: .structuredProductMaturity, title: localizationManager.localizedString(for: "actionCalendar.structuredProductMaturity"), asset: asset)
                 case .some(.insurance):
-                    appendAction(date: maturityDate, type: .insuranceMaturity, title: "Insurance Maturity", asset: asset)
+                    appendAction(date: maturityDate, type: .insuranceMaturity, title: localizationManager.localizedString(for: "actionCalendar.insuranceMaturity"), asset: asset)
                 default:
-                    appendAction(date: maturityDate, type: .other, title: "Maturity Date", asset: asset)
+                    appendAction(date: maturityDate, type: .other, title: localizationManager.localizedString(for: "actionCalendar.maturityDate"), asset: asset)
                 }
             }
 
             if let insurance = asset.insurance {
                 if let nextPaymentDate = calculateNextPremiumPaymentDate(for: insurance, asset: asset, portfolio: portfolio) {
-                    appendAction(date: nextPaymentDate, type: .premiumPayment, title: "Premium Payment Due", asset: asset)
+                    appendAction(date: nextPaymentDate, type: .premiumPayment, title: localizationManager.localizedString(for: "actionCalendar.premiumPaymentDue"), asset: asset)
                 }
 
                 if let redemptionDate = insurance.value(forKey: "maturityBenefitRedemptionDate") as? Date {
-                    appendAction(date: redemptionDate, type: .insuranceMaturity, title: "Insurance Benefit Redemption", asset: asset)
+                    appendAction(date: redemptionDate, type: .insuranceMaturity, title: localizationManager.localizedString(for: "actionCalendar.insuranceBenefitRedemption"), asset: asset)
                 }
             }
         }

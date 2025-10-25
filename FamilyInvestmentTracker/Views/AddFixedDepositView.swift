@@ -5,6 +5,7 @@ struct AddFixedDepositView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     @State private var depositName = ""
     @State private var symbol = ""
@@ -43,27 +44,27 @@ struct AddFixedDepositView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Institution")) {
+                Section(header: localizationManager.text("addFixedDeposit.institution")) {
                     Button(action: {
                         showingInstitutionPicker = true
                     }) {
                         HStack {
-                            Text("Institution")
+                            localizationManager.text("addFixedDeposit.institution")
                             Spacer()
-                            Text(selectedInstitution?.name ?? "Select Institution")
+                            Text(selectedInstitution?.name ?? localizationManager.localizedString(for: "addFixedDeposit.selectInstitution"))
                                 .foregroundColor(selectedInstitution == nil ? .secondary : .primary)
                         }
                     }
                 }
-                Section(header: Text("Fixed Deposit Details")) {
+                Section(header: localizationManager.text("addFixedDeposit.details")) {
 
-                    Picker("Currency", selection: $selectedCurrency) {
+                    Picker(localizationManager.localizedString(for: "addFixedDeposit.currency"), selection: $selectedCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
                             Text(currency.displayName).tag(currency)
                         }
                     }
                     DatePicker(
-                        "Value Date",
+                        localizationManager.localizedString(for: "addFixedDeposit.valueDate"),
                         selection: Binding(
                             get: { valueDate },
                             set: { newValue in
@@ -75,18 +76,22 @@ struct AddFixedDepositView: View {
 
                     Stepper(value: $termMonths, in: 1...240, step: 1) {
                         HStack {
-                            Text("Term")
+                            localizationManager.text("addFixedDeposit.term")
                             Spacer()
                             if termMonths >= 12 {
-                                Text("\(Int(termYears)) year\(Int(termYears) > 1 ? "s" : "") (\(termMonths) months)")
+                                let years = Int(termYears)
+                                let yearText = years == 1 ? localizationManager.localizedString(for: "addFixedDeposit.year") : localizationManager.localizedString(for: "addFixedDeposit.years")
+                                let monthText = termMonths == 1 ? localizationManager.localizedString(for: "addFixedDeposit.month") : localizationManager.localizedString(for: "addFixedDeposit.months")
+                                Text("\(years) \(yearText) (\(termMonths) \(monthText))")
                             } else {
-                                Text("\(termMonths) month\(termMonths > 1 ? "s" : "")")
+                                let monthText = termMonths == 1 ? localizationManager.localizedString(for: "addFixedDeposit.month") : localizationManager.localizedString(for: "addFixedDeposit.months")
+                                Text("\(termMonths) \(monthText)")
                             }
                         }
                     }
 
                     HStack {
-                        Text("Interest Rate (%)")
+                        localizationManager.text("addFixedDeposit.interestRate")
                         Spacer()
                         TextField("0.00", text: $interestRate)
                             .keyboardType(.decimalPad)
@@ -94,17 +99,17 @@ struct AddFixedDepositView: View {
                     }
 
                     HStack {
-                        Text("Maturity Date")
+                        localizationManager.text("addFixedDeposit.maturityDate")
                         Spacer()
                         Text(maturityDate, style: .date)
                             .foregroundColor(.secondary)
                     }
 
-                    TextField("Deposit Name", text: $depositName)
-                    TextField("Symbol (auto-generated)", text: $symbol)
+                    TextField(localizationManager.localizedString(for: "addFixedDeposit.depositName"), text: $depositName)
+                    TextField(localizationManager.localizedString(for: "addFixedDeposit.symbol"), text: $symbol)
 
                     HStack {
-                        Text("Amount")
+                        localizationManager.text("addFixedDeposit.amount")
                         Spacer()
                         TextField("0.00", text: $amount)
                             .keyboardType(.decimalPad)
@@ -116,8 +121,8 @@ struct AddFixedDepositView: View {
                //}
 
 
-                Section(header: Text("Options")) {
-                    Toggle("Allow Early Withdrawal", isOn: $allowEarlyWithdrawal)
+                Section(header: localizationManager.text("addFixedDeposit.options")) {
+                    Toggle(localizationManager.localizedString(for: "addFixedDeposit.allowEarlyWithdrawal"), isOn: $allowEarlyWithdrawal)
                 }
 
                 if !errorMessage.isEmpty {
@@ -127,17 +132,17 @@ struct AddFixedDepositView: View {
                     }
                 }
             }
-            .navigationTitle("Add Fixed Deposit")
+            .navigationTitle(localizationManager.localizedString(for: "addFixedDeposit.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "common.cancel")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Create") {
+                    Button(localizationManager.localizedString(for: "addFixedDeposit.create")) {
                         createFixedDeposit()
                     }
                     .disabled(!isValidInput)
@@ -165,11 +170,11 @@ struct AddFixedDepositView: View {
             .onChange(of: interestRate) { _, newRate in
                 updateSymbolSuggestion()
             }
-            .alert("Insufficient Cash", isPresented: $showingInsufficientCashAlert) {
-                Button("OK") { }
+            .alert(localizationManager.localizedString(for: "addFixedDeposit.insufficientCash"), isPresented: $showingInsufficientCashAlert) {
+                Button(localizationManager.localizedString(for: "common.ok")) { }
             } message: {
-                let institutionName = selectedInstitution?.name ?? "Selected institution"
-                Text("\(institutionName) available: \(availableCashFormatted)\nRequired: \(requiredCashFormatted)\n\nIf you do not want cash to be deducted when creating a fixed deposit, go to portfolio settings and turn off 'Enforce Cash Discipline'.")
+                let institutionName = selectedInstitution?.name ?? localizationManager.localizedString(for: "addFixedDeposit.selectedInstitution")
+                Text(localizationManager.localizedString(for: "addFixedDeposit.insufficientCashMessage", arguments: institutionName, availableCashFormatted, requiredCashFormatted))
             }
         }
     }
@@ -274,7 +279,7 @@ struct AddFixedDepositView: View {
     private func createFixedDeposit() {
         guard let amountValue = Double(amount),
               let institution = selectedInstitution else {
-            errorMessage = "Invalid input values"
+            errorMessage = localizationManager.localizedString(for: "addFixedDeposit.invalidInput")
             return
         }
 
@@ -381,7 +386,7 @@ struct AddFixedDepositView: View {
             try viewContext.save()
             dismiss()
         } catch {
-            errorMessage = "Failed to create fixed deposit: \(error.localizedDescription) "
+            errorMessage = localizationManager.localizedString(for: "addFixedDeposit.creationFailed", arguments: error.localizedDescription)
         }
     }
 
@@ -444,6 +449,7 @@ struct InstitutionPickerView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     @State private var institutions: [Institution] = []
     @State private var newInstitutionName = ""
@@ -452,14 +458,14 @@ struct InstitutionPickerView: View {
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("Select Institution")) {
+                Section(header: localizationManager.text("institutionPicker.selectInstitution")) {
                     ForEach(institutions, id: \.objectID) { institution in
                         Button(action: {
                             selectedInstitution = institution
                             dismiss()
                         }) {
                             HStack {
-                                Text(institution.name ?? "Unknown Institution")
+                                Text(institution.name ?? localizationManager.localizedString(for: "institutionPicker.unknownInstitution"))
                                     .foregroundColor(.primary)
                                 Spacer()
                                 if selectedInstitution == institution {
@@ -478,26 +484,26 @@ struct InstitutionPickerView: View {
                         HStack {
                             Image(systemName: "plus.circle.fill")
                                 .foregroundColor(.blue)
-                            Text("Add New Institution")
+                            localizationManager.text("institutionPicker.addNew")
                         }
                     }
                 }
             }
-            .navigationTitle("Choose Institution")
+            .navigationTitle(localizationManager.localizedString(for: "institutionPicker.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(localizationManager.localizedString(for: "common.done")) {
                         dismiss()
                     }
                 }
             }
-            .alert("Add Institution", isPresented: $showingAddInstitution) {
-                TextField("Institution Name", text: $newInstitutionName)
-                Button("Add") {
+            .alert(localizationManager.localizedString(for: "institutionPicker.addInstitution"), isPresented: $showingAddInstitution) {
+                TextField(localizationManager.localizedString(for: "institutionPicker.institutionName"), text: $newInstitutionName)
+                Button(localizationManager.localizedString(for: "institutionPicker.add")) {
                     addNewInstitution()
                 }
-                Button("Cancel", role: .cancel) { }
+                Button(localizationManager.localizedString(for: "common.cancel"), role: .cancel) { }
             }
             .onAppear {
                 loadInstitutions()

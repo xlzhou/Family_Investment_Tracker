@@ -77,6 +77,7 @@ struct AddTransactionView: View {
     @State private var cashDisciplineError: String?
     @State private var quantityValidationError: String?
     @State private var sessionCreatedInstitutions: [Institution] = []
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     init(portfolio: Portfolio,
          transactionToEdit: Transaction? = nil,
@@ -417,40 +418,40 @@ struct AddTransactionView: View {
         NavigationView {
             Form {
                 // Transaction Type
-                Section(header: Text("Transaction Type")) {
-                    Picker("Type", selection: $selectedTransactionType) {
+                Section(header: localizationManager.text("addTransaction.transactionType.title")) {
+                    Picker(localizationManager.localizedString(for: "addTransaction.transactionType.label"), selection: $selectedTransactionType) {
                         ForEach(transactionTypeOptions, id: \.self) { type in
                             Text(type.displayName).tag(type)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
                 }
-                
+
                 // Currency Selection
-                Section(header: Text("Currency")) {
-                    Picker("Currency", selection: $selectedCurrency) {
+                Section(header: localizationManager.text("addTransaction.currency.title")) {
+                    Picker(localizationManager.localizedString(for: "addTransaction.currency.label"), selection: $selectedCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
                             Text(currency.displayName).tag(currency)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
                 }
-                
+
                 // Trading Institution
-                Section(header: Text("Trading Institution")) {
+                Section(header: localizationManager.text("addTransaction.institution.title")) {
                     if availableInstitutions.isEmpty || showingCustomInstitution {
                         HStack(spacing: 8) {
-                            TextField("Institution (e.g., Interactive Brokers)", text: $tradingInstitution)
+                            TextField(localizationManager.localizedString(for: "addTransaction.institution.placeholder"), text: $tradingInstitution)
                                 .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                            Button("Add") {
+                            Button(localizationManager.localizedString(for: "addTransaction.institution.add")) {
                                 commitCustomInstitutionEntry()
                             }
                             .font(.caption)
                             .disabled(trimmedTradingInstitutionName.isEmpty)
 
                             if !availableInstitutions.isEmpty {
-                                Button("Select") {
+                                Button(localizationManager.localizedString(for: "addTransaction.institution.select")) {
                                     tradingInstitution = ""
                                     showingCustomInstitution = false
                                 }
@@ -459,15 +460,15 @@ struct AddTransactionView: View {
                         }
                     } else {
                         VStack(spacing: 8) {
-                            Picker("Institution", selection: $selectedInstitution) {
-                                Text("Select Institution").tag(Optional<Institution>.none)
+                            Picker(localizationManager.localizedString(for: "addTransaction.institution.label"), selection: $selectedInstitution) {
+                                Text(localizationManager.localizedString(for: "addTransaction.institution.selectPrompt")).tag(Optional<Institution>.none)
                                 ForEach(availableInstitutions, id: \.objectID) { institution in
-                                    Text(institution.name ?? "Unknown").tag(Optional(institution))
+                                    Text(institution.name ?? localizationManager.localizedString(for: "addTransaction.institution.unknown")).tag(Optional(institution))
                                 }
                             }
                             .pickerStyle(MenuPickerStyle())
 
-                            Button("Type new institution") {
+                            Button(localizationManager.localizedString(for: "addTransaction.institution.typeNew")) {
                                 selectedInstitution = nil
                                 showingCustomInstitution = true
                             }
@@ -478,14 +479,14 @@ struct AddTransactionView: View {
 
                     if selectedTransactionType == .insurance {
                         if availableInstitutions.isEmpty {
-                            Text("Add an institution to enable payment selection.")
+                            Text(localizationManager.localizedString(for: "addTransaction.paymentInstitution.addPrompt"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         } else {
-                            Picker("Payment Institution", selection: $selectedPaymentInstitution) {
-                                Text("Select Payment Institution").tag(Optional<Institution>.none)
+                            Picker(localizationManager.localizedString(for: "addTransaction.paymentInstitution.label"), selection: $selectedPaymentInstitution) {
+                                Text(localizationManager.localizedString(for: "addTransaction.paymentInstitution.selectPrompt")).tag(Optional<Institution>.none)
                                 ForEach(availableInstitutions, id: \.objectID) { institution in
-                                    Text(institution.name ?? "Unknown").tag(Optional(institution))
+                                    Text(institution.name ?? localizationManager.localizedString(for: "addTransaction.institution.unknown")).tag(Optional(institution))
                                 }
                             }
                             .pickerStyle(MenuPickerStyle())
@@ -497,11 +498,12 @@ struct AddTransactionView: View {
                 assetInformationSection
                 // Dividend Source (only for dividends)
                 if selectedTransactionType == .dividend {
-                    Section(header: Text("Dividend Source"), footer: Text("Select the security that generated this dividend.")) {
-                        Picker("Security", selection: $selectedDividendAssetID) {
-                            Text("None").tag(Optional<NSManagedObjectID>.none)
+                    Section(header: localizationManager.text("addTransaction.dividendSource.title"),
+                           footer: localizationManager.text("addTransaction.dividendSource.footer")) {
+                        Picker(localizationManager.localizedString(for: "addTransaction.dividendSource.label"), selection: $selectedDividendAssetID) {
+                            Text(localizationManager.localizedString(for: "addTransaction.dividendSource.none")).tag(Optional<NSManagedObjectID>.none)
                             ForEach(dividendSourceAssets, id: \.objectID) { asset in
-                                Text(asset.symbol ?? asset.name ?? "Unknown")
+                                Text(asset.symbol ?? asset.name ?? localizationManager.localizedString(for: "addTransaction.institution.unknown"))
                                     .tag(Optional(asset.objectID))
                             }
                         }
@@ -510,8 +512,9 @@ struct AddTransactionView: View {
                 }
 
                 if selectedTransactionType == .interest {
-                    Section(header: Text("Interest Source"), footer: Text("Select the account or security that generated this interest.")) {
-                        Picker("Source", selection: $selectedInterestSource) {
+                    Section(header: localizationManager.text("addTransaction.interestSource.title"),
+                           footer: localizationManager.text("addTransaction.interestSource.footer")) {
+                        Picker(localizationManager.localizedString(for: "addTransaction.interestSource.label"), selection: $selectedInterestSource) {
                             ForEach(interestSourceOptions) { option in
                                 Text(option.title)
                                     .tag(option.selection)
@@ -526,33 +529,33 @@ struct AddTransactionView: View {
 
                 // Insurance-specific sections
                 if selectedTransactionType == .insurance {
-                    Section(header: Text("Insurance Details")) {
-                        TextField("Policy Symbol", text: $insuranceSymbol)
+                    Section(header: localizationManager.text("addTransaction.insurance.details.title")) {
+                        TextField(localizationManager.localizedString(for: "addTransaction.insurance.details.policySymbol"), text: $insuranceSymbol)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
 
-                        Picker("Insurance Type", selection: $insuranceType) {
-                            Text("Life Insurance").tag("Life Insurance")
-                            Text("Critical Illness Insurance").tag("Critical Illness Insurance")
-                            Text("Accident Insurance").tag("Accident Insurance")
+                        Picker(localizationManager.localizedString(for: "addTransaction.insurance.details.insuranceType"), selection: $insuranceType) {
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.types.life")).tag("Life Insurance")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.types.criticalIllness")).tag("Critical Illness Insurance")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.types.accident")).tag("Accident Insurance")
                         }
                         .pickerStyle(MenuPickerStyle())
 
-                        TextField("Policyholder", text: $policyholder)
+                        TextField(localizationManager.localizedString(for: "addTransaction.insurance.details.policyholder"), text: $policyholder)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                        TextField("Insured Person", text: $insuredPerson)
+                        TextField(localizationManager.localizedString(for: "addTransaction.insurance.details.insuredPerson"), text: $insuredPerson)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                        TextField("Policy Number", text: $contactNumber)
+                        TextField(localizationManager.localizedString(for: "addTransaction.insurance.details.policyNumber"), text: $contactNumber)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.phonePad)
                     }
 
-                    Section(header: Text("Financial Details")) {
+                    Section(header: localizationManager.text("addTransaction.insurance.financialDetails.title")) {
                         HStack {
-                            Text("Basic Insured Amount")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.financialDetails.basicInsuredAmount"))
                             Spacer()
                             TextField("0.00", value: $basicInsuredAmount, format: .number)
                                 .keyboardType(.decimalPad)
@@ -563,7 +566,7 @@ struct AddTransactionView: View {
                         }
 
                         HStack {
-                            Text("Additional Payment")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.financialDetails.additionalPayment"))
                             Spacer()
                             TextField("0.00", value: $additionalPaymentAmount, format: .number)
                                 .keyboardType(.decimalPad)
@@ -574,7 +577,7 @@ struct AddTransactionView: View {
                         }
 
                         HStack {
-                            Text("Death Benefit")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.financialDetails.deathBenefit"))
                             Spacer()
                             TextField("0.00", value: $deathBenefit, format: .number)
                                 .keyboardType(.decimalPad)
@@ -586,9 +589,9 @@ struct AddTransactionView: View {
 
                     }
 
-                    Section(header: Text("Premium Details")) {
+                    Section(header: localizationManager.text("addTransaction.insurance.premiumDetails.title")) {
                         HStack {
-                            Text("Single Premium")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.singlePremium"))
                             Spacer()
                             TextField("0.00", value: $singlePremium, format: .number)
                                 .keyboardType(.decimalPad)
@@ -602,7 +605,7 @@ struct AddTransactionView: View {
                         }
 
                         HStack {
-                            Text("First Discounted Premium")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.firstDiscountedPremium"))
                             Spacer()
                             TextField("0.00", value: $firstDiscountedPremium, format: .number)
                                 .keyboardType(.decimalPad)
@@ -616,7 +619,7 @@ struct AddTransactionView: View {
                         }
 
                         HStack {
-                            Text("Payment Term")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.paymentTerm"))
                             Spacer()
                             TextField("0", value: $premiumPaymentTerm, format: .number)
                                 .keyboardType(.numberPad)
@@ -628,7 +631,7 @@ struct AddTransactionView: View {
                         }
 
                         HStack {
-                            Text("Total Premium")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.totalPremium"))
                             Spacer()
                             TextField("0.00", value: $totalPremium, format: .number)
                                 .keyboardType(.decimalPad)
@@ -638,27 +641,27 @@ struct AddTransactionView: View {
                                 .foregroundColor(.secondary)
                         }
 
-                        Picker("Payment Status", selection: $premiumPaymentStatus) {
-                            Text("Paid").tag("Paid")
-                            Text("Paying").tag("Paying")
+                        Picker(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.paymentStatus"), selection: $premiumPaymentStatus) {
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.paid")).tag("Paid")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.paying")).tag("Paying")
                         }
                         .pickerStyle(MenuPickerStyle())
 
-                        Picker("Payment Type", selection: $premiumPaymentType) {
-                            Text("Lump Sum").tag("Lump Sum")
-                            Text("Installment").tag("Installment")
+                        Picker(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.paymentType"), selection: $premiumPaymentType) {
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.lumpSum")).tag("Lump Sum")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.premiumDetails.installment")).tag("Installment")
                         }
                         .pickerStyle(MenuPickerStyle())
                     }
 
-                    Section(header: Text("Policy Features")) {
-                        Toggle("Participating Policy", isOn: $isParticipating)
-                        Toggle("Rider", isOn: $hasSupplementaryInsurance)
-                        Toggle("Can Withdraw Premiums", isOn: $canWithdrawPremiums)
+                    Section(header: localizationManager.text("addTransaction.insurance.policyFeatures.title")) {
+                        Toggle(localizationManager.localizedString(for: "addTransaction.insurance.policyFeatures.participatingPolicy"), isOn: $isParticipating)
+                        Toggle(localizationManager.localizedString(for: "addTransaction.insurance.policyFeatures.rider"), isOn: $hasSupplementaryInsurance)
+                        Toggle(localizationManager.localizedString(for: "addTransaction.insurance.policyFeatures.canWithdrawPremiums"), isOn: $canWithdrawPremiums)
 
                         if canWithdrawPremiums {
                             HStack {
-                                Text("Max Withdrawal %")
+                                Text(localizationManager.localizedString(for: "addTransaction.insurance.policyFeatures.maxWithdrawalPercentage"))
                                 Spacer()
                                 TextField("0", value: $maxWithdrawalPercentage, format: .number)
                                     .keyboardType(.decimalPad)
@@ -670,12 +673,12 @@ struct AddTransactionView: View {
                         }
                     }
 
-                    Section(header: Text("Important Dates")) {
-                        DatePicker("Coverage Expiration", selection: $coverageExpirationDate, displayedComponents: .date)
-                        DatePicker("Maturity Benefit Redemption", selection: $maturityBenefitRedemptionDate, displayedComponents: .date)
+                    Section(header: localizationManager.text("addTransaction.insurance.importantDates.title")) {
+                        DatePicker(localizationManager.localizedString(for: "addTransaction.insurance.importantDates.coverageExpiration"), selection: $coverageExpirationDate, displayedComponents: .date)
+                        DatePicker(localizationManager.localizedString(for: "addTransaction.insurance.importantDates.maturityBenefitRedemption"), selection: $maturityBenefitRedemptionDate, displayedComponents: .date)
 
                         HStack {
-                            Text("Estimated Maturity Benefit")
+                            Text(localizationManager.localizedString(for: "addTransaction.insurance.importantDates.estimatedMaturityBenefit"))
                             Spacer()
                             TextField("0.00", value: $estimatedMaturityBenefit, format: .number)
                                 .keyboardType(.decimalPad)
@@ -686,10 +689,10 @@ struct AddTransactionView: View {
                         }
                     }
 
-                    Section(header: Text("Beneficiaries")) {
+                    Section(header: localizationManager.text("addTransaction.insurance.beneficiaries.title")) {
                         ForEach(beneficiaries.indices, id: \.self) { index in
                             HStack {
-                                TextField("Beneficiary Name", text: $beneficiaries[index].name)
+                                TextField(localizationManager.localizedString(for: "addTransaction.insurance.beneficiaries.name"), text: $beneficiaries[index].name)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
 
                                 TextField("0", value: $beneficiaries[index].percentage, format: .number)
@@ -715,14 +718,14 @@ struct AddTransactionView: View {
                             HStack {
                                 Image(systemName: "plus.circle.fill")
                                     .foregroundColor(.green)
-                                Text("Add Beneficiary")
+                                Text(localizationManager.localizedString(for: "addTransaction.insurance.beneficiaries.addBeneficiary"))
                             }
                         }
 
                         if !beneficiaries.isEmpty {
                             let totalPercentage = beneficiaries.reduce(0) { $0 + $1.percentage }
                             HStack {
-                                Text("Total Percentage:")
+                                Text(localizationManager.localizedString(for: "addTransaction.insurance.beneficiaries.totalPercentage"))
                                 Spacer()
                                 Text("\(totalPercentage, specifier: "%.1f")%")
                                     .fontWeight(.medium)
@@ -732,17 +735,17 @@ struct AddTransactionView: View {
                     }
                 }
             }
-            .navigationTitle(isEditing ? "Edit Transaction" : "Add Transaction")
+            .navigationTitle(isEditing ? localizationManager.localizedString(for: "addTransaction.edit.title") : localizationManager.localizedString(for: "addTransaction.add.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "common.cancel")) {
                         cancelTransactionEntry()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button(localizationManager.localizedString(for: "common.save")) {
                         saveTransaction()
                     }
                     .disabled(!isFormValid)
@@ -866,8 +869,8 @@ struct AddTransactionView: View {
             structuredProductLinkedAssets = asset.value(forKey: "linkedAssets") as? String ?? ""
             structuredProductInterestRate = asset.value(forKey: "interestRate") as? Double ?? 0
         }
-        .alert("Validation Error", isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
-            Button("OK", role: .cancel) {
+        .alert(localizationManager.localizedString(for: "addTransaction.alerts.validationError"), isPresented: Binding(get: { cashDisciplineError != nil }, set: { if !$0 { cashDisciplineError = nil } })) {
+            Button(localizationManager.localizedString(for: "common.ok"), role: .cancel) {
                 cashDisciplineError = nil
             }
         } message: {
@@ -1801,16 +1804,17 @@ struct AddTransactionView: View {
     @ViewBuilder
     private var assetInformationSection: some View {
         if selectedTransactionType == .sell {
-            Section(header: Text("Security to Sell"), footer: Text("Select the security you want to sell.")) {
+            Section(header: localizationManager.text("addTransaction.sellSecurity.title"),
+                   footer: localizationManager.text("addTransaction.sellSecurity.footer")) {
                 if sellSourceAssets.isEmpty {
-                    Text("No securities available to sell at this institution.")
+                    Text(localizationManager.localizedString(for: "addTransaction.sellSecurity.noSecurities"))
                         .foregroundColor(.secondary)
                         .italic()
                 } else {
-                    Picker("Security", selection: $selectedSellAssetID) {
-                        Text("Select Security").tag(Optional<NSManagedObjectID>.none)
+                    Picker(localizationManager.localizedString(for: "addTransaction.sellSecurity.label"), selection: $selectedSellAssetID) {
+                        Text(localizationManager.localizedString(for: "addTransaction.sellSecurity.selectPrompt")).tag(Optional<NSManagedObjectID>.none)
                         ForEach(sellSourceAssets, id: \.objectID) { asset in
-                            Text(asset.symbol ?? asset.name ?? "Unknown")
+                            Text(asset.symbol ?? asset.name ?? localizationManager.localizedString(for: "addTransaction.institution.unknown"))
                                 .tag(Optional(asset.objectID))
                         }
                     }
@@ -1818,20 +1822,20 @@ struct AddTransactionView: View {
                 }
             }
         } else if selectedTransactionType != .dividend && selectedTransactionType != .interest && selectedTransactionType != .deposit && selectedTransactionType != .insurance {
-            Section(header: Text("Asset Information")) {
-                Picker("Asset Type", selection: $selectedAssetType) {
+            Section(header: localizationManager.text("addTransaction.assetInfo.title")) {
+                Picker(localizationManager.localizedString(for: "addTransaction.assetInfo.typeLabel"), selection: $selectedAssetType) {
                     ForEach(AssetType.allCases, id: \.self) { type in
                         Text(type.displayName).tag(type)
                     }
                 }
                 .pickerStyle(MenuPickerStyle())
 
-                TextField("Symbol (e.g., AAPL)", text: $assetSymbol)
+                TextField(localizationManager.localizedString(for: "addTransaction.assetInfo.symbolPlaceholder"), text: $assetSymbol)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
 
-                TextField("Name (optional)", text: $assetName)
+                TextField(localizationManager.localizedString(for: "addTransaction.assetInfo.namePlaceholder"), text: $assetName)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
         }
@@ -1839,16 +1843,16 @@ struct AddTransactionView: View {
 
     @ViewBuilder
     private var transactionDetailsSection: some View {
-        Section(header: Text("Transaction Details")) {
-            DatePicker("Date", selection: $transactionDate, displayedComponents: .date)
+        Section(header: localizationManager.text("addTransaction.details.title")) {
+            DatePicker(localizationManager.localizedString(for: "addTransaction.details.date"), selection: $transactionDate, displayedComponents: .date)
 
             if selectedTransactionType == .deposit {
                 if isEditingFixedDepositTransaction {
                     fixedDepositLegacyNotice
                 } else {
-                    Picker("Symbol", selection: $selectedDepositCategory) {
+                    Picker(localizationManager.localizedString(for: "addTransaction.deposit.symbol"), selection: $selectedDepositCategory) {
                         ForEach(depositCategoriesForPicker, id: \.self) { category in
-                            Text(category.displayTitle).tag(category)
+                            Text(localizationManager.localizedString(for: category == .demand ? "addTransaction.deposit.category.demanddeposit" : "addTransaction.deposit.category.fixeddeposit")).tag(category)
                         }
                     }
                     .pickerStyle(MenuPickerStyle())
@@ -1860,7 +1864,7 @@ struct AddTransactionView: View {
                     }
 
                     HStack {
-                        Text("Interest Rate")
+                        Text(localizationManager.localizedString(for: "addTransaction.details.interestRate"))
                         Spacer()
                         TextField("0", value: $depositInterestRate, format: .number)
                             .keyboardType(.decimalPad)
@@ -1890,7 +1894,7 @@ struct AddTransactionView: View {
                                 .font(.caption)
                             }
                         } else {
-                            Text("Quantity")
+                            Text(localizationManager.localizedString(for: "addTransaction.details.quantity"))
                         }
                         Spacer()
                         TextField("0", value: $quantity, format: .number)
@@ -1911,7 +1915,7 @@ struct AddTransactionView: View {
                 }
 
                 HStack {
-                    Text("Price per Share")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.pricePerShare"))
                     Spacer()
                     TextField("0.00", value: $price, format: .number)
                         .keyboardType(.decimalPad)
@@ -1922,7 +1926,7 @@ struct AddTransactionView: View {
                 }
 
                 HStack {
-                    Text("Investment Amount")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.investmentAmount"))
                     Spacer()
                     Text(Formatters.currency(quantity * price, symbol: selectedCurrency.symbol))
                         .fontWeight(.medium)
@@ -1942,10 +1946,10 @@ struct AddTransactionView: View {
 
             // Maturity date only when relevant (e.g. fixed deposits)
             if shouldShowMaturityControls {
-                Toggle("Set Maturity Date", isOn: $hasMaturityDate.animation())
+                Toggle(localizationManager.localizedString(for: "addTransaction.maturity.setMaturityDate"), isOn: $hasMaturityDate.animation())
                     .disabled(isMaturityToggleDisabled)
                 if hasMaturityDate {
-                    DatePicker("Maturity Date", selection: $maturityDate, displayedComponents: .date)
+                    DatePicker(localizationManager.localizedString(for: "addTransaction.maturity.maturityDate"), selection: $maturityDate, displayedComponents: .date)
                 }
             }
 
@@ -1953,7 +1957,7 @@ struct AddTransactionView: View {
                 if selectedTransactionType == .insurance {
                     // Cash Value for insurance transactions
                     HStack {
-                        Text("Cash Value")
+                        Text(localizationManager.localizedString(for: "addTransaction.details.cashValue"))
                         Spacer()
                         TextField("0.00", value: $cashValue, format: .number)
                             .keyboardType(.decimalPad)
@@ -1966,7 +1970,7 @@ struct AddTransactionView: View {
                     // Amount for other transaction types
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text("Amount")
+                            Text(localizationManager.localizedString(for: "addTransaction.details.amount"))
                             Spacer()
                             TextField("0.00", value: $amount, format: .number)
                                 .keyboardType(.decimalPad)
@@ -1977,7 +1981,7 @@ struct AddTransactionView: View {
                         }
 
                         if selectedTransactionType == .deposit {
-                            Text("Tip: Enter negative amount for withdrawals")
+                            Text(localizationManager.localizedString(for: "addTransaction.details.withdrawalTip"))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                                 .padding(.leading, 4)
@@ -1991,7 +1995,7 @@ struct AddTransactionView: View {
                     HStack {
                         if selectedTransactionType == .sell && sellQuantityHint != nil {
                             HStack(spacing: 4) {
-                                Text("Quantity \(sellQuantityHint!)")
+                                Text(localizationManager.localizedString(for: "addTransaction.details.quantityWithHint", arguments: sellQuantityHint!))
                                 Button(">>") {
                                     if let maxQuantity = maxSellQuantity {
                                         quantity = maxQuantity
@@ -2001,7 +2005,7 @@ struct AddTransactionView: View {
                                 .font(.caption)
                             }
                         } else {
-                            Text("Quantity")
+                            Text(localizationManager.localizedString(for: "addTransaction.details.quantity"))
                         }
                         Spacer()
                         TextField("0", value: $quantity, format: .number)
@@ -2022,7 +2026,7 @@ struct AddTransactionView: View {
                 }
 
                 HStack {
-                    Text("Price per Share")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.pricePerShare"))
                     Spacer()
                     TextField("0.00", value: $price, format: .number)
                         .keyboardType(.decimalPad)
@@ -2034,7 +2038,7 @@ struct AddTransactionView: View {
 
                 if selectedTransactionType == .sell {
                     HStack {
-                        Text("Accrued Interest")
+                        Text(localizationManager.localizedString(for: "addTransaction.details.accruedInterest"))
                         Spacer()
                         TextField("0.00", value: $accruedInterest, format: .number)
                             .keyboardType(.decimalPad)
@@ -2046,7 +2050,7 @@ struct AddTransactionView: View {
                 }
 
                 HStack {
-                    Text("Total Value")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.totalValue"))
                     Spacer()
                     Text(Formatters.currency(selectedTransactionType == .sell ? (quantity * price + accruedInterest) : (quantity * price), symbol: selectedCurrency.symbol))
                         .fontWeight(.medium)
@@ -2056,7 +2060,7 @@ struct AddTransactionView: View {
             // Fees only for non-insurance transactions
             if selectedTransactionType != .insurance {
                 HStack {
-                    Text("Fees")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.fees"))
                     Spacer()
                     TextField("0.00", value: $fees, format: .number)
                         .keyboardType(.decimalPad)
@@ -2068,7 +2072,7 @@ struct AddTransactionView: View {
 
                 if selectedTransactionType == .buy {
                     HStack {
-                        Text("Settlement Amount")
+                        Text(localizationManager.localizedString(for: "addTransaction.details.settlementAmount"))
                         Spacer()
                         Text(Formatters.currency(settlementAmountForDisplay, symbol: selectedCurrency.symbol))
                             .fontWeight(.semibold)
@@ -2078,7 +2082,7 @@ struct AddTransactionView: View {
 
             if requiresTax {
                 HStack {
-                    Text("Tax")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.tax"))
                     Spacer()
                     TextField("0.00", value: $tax, format: .number)
                         .keyboardType(.decimalPad)
@@ -2091,23 +2095,23 @@ struct AddTransactionView: View {
 
             if selectedTransactionType == .dividend || selectedTransactionType == .interest {
                 HStack {
-                    Text("Settlement Amount")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.settlementAmount"))
                     Spacer()
                     Text(Formatters.currency(incomeSettlementAmountForDisplay, symbol: selectedCurrency.symbol))
                         .fontWeight(.semibold)
                 }
             }
-            
+
             if selectedTransactionType == .sell {
                 HStack {
-                    Text("Settlement Amount")
+                    Text(localizationManager.localizedString(for: "addTransaction.details.settlementAmount"))
                     Spacer()
                     Text(Formatters.currency(sellSettlementAmountForDisplay, symbol: selectedCurrency.symbol))
                         .fontWeight(.semibold)
                 }
             }
 
-            TextField("Notes (optional)", text: $notes, axis: .vertical)
+            TextField(localizationManager.localizedString(for: "addTransaction.details.notesPlaceholder"), text: $notes, axis: .vertical)
                 .lineLimit(3...6)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
         }
@@ -2117,21 +2121,21 @@ struct AddTransactionView: View {
     private var fixedDepositLegacyNotice: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label {
-                Text("Edit fixed deposits in Cash Management")
+                Text(localizationManager.localizedString(for: "addTransaction.fixedDeposit.editTitle"))
                     .fontWeight(.semibold)
             } icon: {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(.orange)
             }
 
-            Text("This transaction belongs to a fixed deposit. Manage its details from Cash Management to ensure maturity, term, and rate stay in sync.")
+            Text(localizationManager.localizedString(for: "addTransaction.fixedDeposit.editMessage"))
                 .font(.callout)
                 .foregroundColor(.secondary)
 
             Button {
                 showingCashManagement = true
             } label: {
-                Text("Open Cash Management")
+                Text(localizationManager.localizedString(for: "addTransaction.fixedDeposit.openCashManagement"))
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -2146,7 +2150,7 @@ struct AddTransactionView: View {
     private var fixedDepositCreationHint: some View {
         if shouldShowFixedDepositCreationHint {
             VStack(alignment: .leading, spacing: 8) {
-                Label("Looking for fixed deposits?", systemImage: "lightbulb")
+                Label(localizationManager.localizedString(for: "addTransaction.fixedDeposit.hintTitle"), systemImage: "lightbulb")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
@@ -2156,14 +2160,14 @@ struct AddTransactionView: View {
                         .foregroundColor(.secondary)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Create and manage fixed deposits from Cash Management. This ensures value date, term, and maturity stay accurate.")
+                        Text(localizationManager.localizedString(for: "addTransaction.fixedDeposit.hintMessage"))
                             .font(.callout)
                             .foregroundColor(.secondary)
 
                         Button {
                             showingCashManagement = true
                         } label: {
-                            Text("Open Cash Management")
+                            Text(localizationManager.localizedString(for: "addTransaction.fixedDeposit.openCashManagement"))
                                 .font(.subheadline)
                         }
                         .buttonStyle(.bordered)

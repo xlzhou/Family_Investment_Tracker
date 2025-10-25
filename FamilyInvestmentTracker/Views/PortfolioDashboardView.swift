@@ -6,6 +6,7 @@ import Charts
 struct PortfolioDashboardView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
     
     @State private var showingAddTransaction = false
     @State private var showingPortfolioSettings = false
@@ -40,9 +41,9 @@ struct PortfolioDashboardView: View {
 
             // Tab Selection
             Picker("View", selection: $selectedTab) {
-                Text("Holdings").tag(0)
-                Text("Transactions").tag(1)
-                Text("Analytics").tag(2)
+                Text(localizationManager.localizedString(for: "portfolioDashboard.tabs.holdings")).tag(0)
+                Text(localizationManager.localizedString(for: "portfolioDashboard.tabs.transactions")).tag(1)
+                Text(localizationManager.localizedString(for: "portfolioDashboard.tabs.analytics")).tag(2)
             }
             .pickerStyle(SegmentedPickerStyle())
             .padding(.horizontal)
@@ -131,7 +132,8 @@ struct PortfolioDashboardView: View {
             CloudShareView(
                 portfolioID: portfolio.objectID,
                 container: PersistenceController.shared.container,
-                context: viewContext
+                context: viewContext,
+                localizationManager: localizationManager
             )
         }
         .onReceive(NotificationCenter.default.publisher(for: .cloudShareStatusChanged)) { notification in
@@ -343,6 +345,7 @@ private struct ShareSetupSheet: View {
     let errorMessage: String?
     let onCancel: () -> Void
     let onStartSharing: () -> Void
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     var body: some View {
         NavigationView {
@@ -351,11 +354,11 @@ private struct ShareSetupSheet: View {
                     .font(.system(size: 48))
                     .foregroundColor(.blue)
 
-                Text("Share \(portfolioName)")
+                Text(String(format: localizationManager.localizedString(for: "portfolioDashboard.shareDialog.message"), portfolioName))
                     .font(.title2)
                     .fontWeight(.semibold)
 
-                Text("Invite family members to collaborate on this portfolio. You'll be able to choose who has access in the next step.")
+                Text(localizationManager.localizedString(for: "portfolioDashboard.shareDialog.intro"))
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundColor(.secondary)
@@ -375,7 +378,7 @@ private struct ShareSetupSheet: View {
                             .progressViewStyle(CircularProgressViewStyle())
                             .tint(.white)
                     } else {
-                        Text("Start Sharing")
+                        Text(localizationManager.localizedString(for: "portfolioDashboard.shareDialog.title"))
                             .font(.headline)
                     }
                 }
@@ -389,10 +392,10 @@ private struct ShareSetupSheet: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("Share Portfolio")
+            .navigationTitle(localizationManager.localizedString(for: "portfolioDashboard.shareDialog.title"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close", action: onCancel)
+                    Button(localizationManager.localizedString(for: "common.cancel"), action: onCancel)
                         .disabled(isPreparingShare)
                 }
             }
@@ -403,6 +406,7 @@ private struct ShareSetupSheet: View {
 struct PortfolioHeaderView: View {
     @ObservedObject var portfolio: Portfolio
     @StateObject private var currencyService = CurrencyService.shared
+    @EnvironmentObject private var localizationManager: LocalizationManager
     
     private var mainCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -436,26 +440,26 @@ struct PortfolioHeaderView: View {
     
     var body: some View {
         VStack(spacing: 8) {
-            Text("Total Value")
+            Text(localizationManager.localizedString(for: "portfolioDashboard.header.totalValue"))
                 .font(.headline)
                 .foregroundColor(.secondary)
 
             Text(currencyService.formatAmountWithFullCurrency(totalValueInMainCurrency, in: mainCurrency))
                 .font(.title)
                 .fontWeight(.bold)
-            
+
             HStack(spacing: 20) {
                 VStack {
-                    Text("Holdings")
+                    Text(localizationManager.localizedString(for: "portfolioDashboard.header.holdings"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text("\(portfolio.holdings?.count ?? 0)")
                         .font(.title3)
                         .fontWeight(.semibold)
                 }
-                
+
                 VStack {
-                    Text("Transactions")
+                    Text(localizationManager.localizedString(for: "portfolioDashboard.header.transactions"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text("\(portfolio.transactions?.count ?? 0)")
@@ -476,6 +480,7 @@ struct QuickStatsGridView: View {
     let onCashTapped: (CashOverviewView.Tab) -> Void
     @StateObject private var currencyService = CurrencyService.shared
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     private var mainCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -576,7 +581,7 @@ struct QuickStatsGridView: View {
             // Top row
             HStack(spacing: 8) {
                 StatCardView(
-                    title: "Total Holdings Value",
+                    title: localizationManager.localizedString(for: "portfolioDashboard.statCard.totalHoldingsValue"),
                     value: currencyService.formatAmount(totalHoldingsValue, in: mainCurrency),
                     color: totalHoldingsValue >= 0 ? .green : .red,
                     subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesHoldingsValue, in: mainCurrency))"
@@ -586,7 +591,7 @@ struct QuickStatsGridView: View {
                     onCashTapped(.demandCash)
                 }) {
                     StatCardView(
-                        title: "Total Cash",
+                        title: localizationManager.localizedString(for: "portfolioDashboard.statCard.totalCash"),
                         value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
                         color: totalCashFromInstitutions >= 0 ? .blue : .red,
                         subtitle: "Available: \(currencyService.formatAmount(availableCashBalance, in: mainCurrency))\nFixed Deposits: \(currencyService.formatAmount(fixedDepositBalance, in: mainCurrency))"
@@ -598,14 +603,14 @@ struct QuickStatsGridView: View {
             // Bottom row
             HStack(spacing: 8) {
                 StatCardView(
-                    title: "Unrealized P&L",
+                    title: localizationManager.localizedString(for: "portfolioDashboard.statCard.unrealizedPnL"),
                     value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
                     color: totalGainLoss >= 0 ? .green : .red,
                     subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesGainLoss, in: mainCurrency))"
                 )
 
                 StatCardView(
-                    title: "Total Dividends & Interest",
+                    title: localizationManager.localizedString(for: "portfolioDashboard.statCard.totalDividendsInterest"),
                     value: currencyService.formatAmount(totalDividends, in: mainCurrency),
                     color: totalDividends >= 0 ? .green : .red,
                     subtitle: nil
@@ -620,6 +625,7 @@ struct QuickStatsView: View {
     let onCashTapped: (CashOverviewView.Tab) -> Void
     @StateObject private var currencyService = CurrencyService.shared
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
 
     private var mainCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
@@ -718,7 +724,7 @@ struct QuickStatsView: View {
     var body: some View {
         HStack(spacing: 15) {
             StatCardView(
-                title: "Total Holdings Value",
+                title: localizationManager.localizedString(for: "portfolioDashboard.statCard.totalHoldingsValue"),
                 value: currencyService.formatAmount(totalHoldingsValue, in: mainCurrency),
                 color: totalHoldingsValue >= 0 ? .green : .red,
                 subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesHoldingsValue, in: mainCurrency))"
@@ -728,7 +734,7 @@ struct QuickStatsView: View {
                 onCashTapped(.demandCash)
             }) {
                 StatCardView(
-                    title: "Total Cash",
+                    title: localizationManager.localizedString(for: "portfolioDashboard.statCard.totalCash"),
                     value: currencyService.formatAmount(totalCashFromInstitutions, in: mainCurrency),
                     color: totalCashFromInstitutions >= 0 ? .blue : .red,
                     subtitle: "Available: \(currencyService.formatAmount(availableCashBalance, in: mainCurrency))\nFixed Deposits: \(currencyService.formatAmount(fixedDepositBalance, in: mainCurrency))"
@@ -737,14 +743,14 @@ struct QuickStatsView: View {
             .buttonStyle(PlainButtonStyle())
 
             StatCardView(
-                title: "Unrealized P&L",
+                title: localizationManager.localizedString(for: "portfolioDashboard.statCard.unrealizedPnL"),
                 value: currencyService.formatAmount(totalGainLoss, in: mainCurrency),
                 color: totalGainLoss >= 0 ? .green : .red,
                 subtitle: "Securities: \(currencyService.formatAmount(totalSecuritiesGainLoss, in: mainCurrency))"
             )
 
             StatCardView(
-                title: "Total Dividends & Interest",
+                title: localizationManager.localizedString(for: "portfolioDashboard.statCard.totalDividendsInterest"),
                 value: currencyService.formatAmount(totalDividends, in: mainCurrency),
                 color: totalDividends >= 0 ? .green : .red,
                 subtitle: nil

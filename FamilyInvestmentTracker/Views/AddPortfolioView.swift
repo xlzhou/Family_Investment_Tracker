@@ -4,32 +4,33 @@ import CoreData
 struct AddPortfolioView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
-    
+    @EnvironmentObject private var localizationManager: LocalizationManager
+
     @State private var portfolioName = ""
     
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Portfolio Details")) {
-                    TextField("Portfolio Name", text: $portfolioName)
+                Section(header: localizationManager.text("addPortfolio.details")) {
+                    TextField(localizationManager.localizedString(for: "addPortfolio.portfolioName"), text: $portfolioName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 
-                Section(footer: Text("You can create separate portfolios for each family member or investment strategy.")) {
+                Section(footer: localizationManager.text("addPortfolio.description")) {
                     EmptyView()
                 }
             }
-            .navigationTitle("Add Portfolio")
+            .navigationTitle(localizationManager.localizedString(for: "addPortfolio.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "common.cancel")) {
                         dismiss()
                     }
                 }
-                
+
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button(localizationManager.localizedString(for: "common.save")) {
                         savePortfolio()
                     }
                     .disabled(portfolioName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

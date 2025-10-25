@@ -15,6 +15,7 @@ struct FixedDepositRowView: View {
     let onWithdraw: () -> Void
 
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @StateObject private var currencyService = CurrencyService.shared
 
     private var mainCurrency: Currency {
@@ -56,15 +57,15 @@ struct FixedDepositRowView: View {
 
     private var maturityStatus: (text: String, color: Color) {
         if isMatured {
-            return ("Matured", .orange)
+            return (localizationManager.localizedString(for: "fixedDepositManagement.matured"), .orange)
         } else if let days = daysUntilMaturity {
             if days <= 30 {
-                return ("\(days) days left", .orange)
+                return (String(format: localizationManager.localizedString(for: "fixedDepositManagement.daysLeft"), days), .orange)
             } else {
-                return ("\(days) days left", .blue)
+                return (String(format: localizationManager.localizedString(for: "fixedDepositManagement.daysLeft"), days), .blue)
             }
         } else {
-            return ("Active", .green)
+            return (localizationManager.localizedString(for: "fixedDepositManagement.active"), .green)
         }
     }
 
@@ -72,7 +73,7 @@ struct FixedDepositRowView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(deposit.name ?? "Fixed Deposit")
+                    Text(deposit.name ?? localizationManager.localizedString(for: "fixedDepositManagement.fixedDeposit"))
                         .font(.headline)
 
                     if let symbol = deposit.symbol {
@@ -100,7 +101,7 @@ struct FixedDepositRowView: View {
             }
 
             HStack {
-                Label("\(String(format: "%.2f", interestRate))% p.a.", systemImage: "percent")
+                Label("\(String(format: "%.2f", interestRate))% \(localizationManager.localizedString(for: "fixedDepositManagement.perAnnum"))", systemImage: "percent")
                     .font(.caption)
                     .foregroundColor(.secondary)
 
@@ -108,7 +109,7 @@ struct FixedDepositRowView: View {
 
                 if isMatured {
                     Label {
-                        Text("Matured")
+                        Text(localizationManager.localizedString(for: "fixedDepositManagement.matured"))
                     } icon: {
                         Image(systemName: "checkmark.seal.fill")
                     }
@@ -135,7 +136,7 @@ struct FixedDepositRowView: View {
                     Button(action: onWithdraw) {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.up.circle.fill")
-                            Text(isMatured ? "Withdraw" : "Early Withdraw")
+                            Text(isMatured ? localizationManager.localizedString(for: "fixedDepositManagement.withdraw") : localizationManager.localizedString(for: "fixedDepositManagement.earlyWithdraw"))
                         }
                         .font(.caption)
                         .foregroundColor(.white)
@@ -181,6 +182,7 @@ struct FixedDepositWithdrawalView: View {
 
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @StateObject private var currencyService = CurrencyService.shared
 
     @State private var withdrawalAmount = ""
@@ -230,32 +232,32 @@ struct FixedDepositWithdrawalView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Deposit Information")) {
+                Section(header: Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.depositInformation"))) {
                     HStack {
-                        Text("Deposit Name")
+                        Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.depositName"))
                         Spacer()
-                        Text(deposit.name ?? "Fixed Deposit")
+                        Text(deposit.name ?? localizationManager.localizedString(for: "fixedDepositManagement.fixedDeposit"))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Current Value")
+                        Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.currentValue"))
                         Spacer()
                         Text(currencyService.formatAmountWithFullCurrency(maxWithdrawalAmount, in: depositCurrency))
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Status")
+                        Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.status"))
                         Spacer()
-                        Text(isMatured ? "Matured" : "Active")
+                        Text(isMatured ? localizationManager.localizedString(for: "fixedDepositManagement.matured") : localizationManager.localizedString(for: "fixedDepositManagement.active"))
                             .foregroundColor(isMatured ? .orange : .green)
                     }
                 }
 
-                Section(header: Text("Withdrawal Details")) {
+                Section(header: Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.withdrawalDetails"))) {
                     HStack {
-                        Text("Withdrawal Amount")
+                        Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.withdrawalAmount"))
                         Spacer()
                         TextField("0.00", text: $withdrawalAmount)
                             .keyboardType(.decimalPad)
@@ -264,7 +266,7 @@ struct FixedDepositWithdrawalView: View {
 
                     if !isMatured {
                         HStack {
-                            Text("Accrued Interest")
+                            Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.accruedInterest"))
                             Spacer()
                             TextField("0.00", text: $accruedInterest)
                                 .keyboardType(.decimalPad)
@@ -272,7 +274,7 @@ struct FixedDepositWithdrawalView: View {
                         }
 
                         HStack {
-                            Text("Institution Penalty")
+                            Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.institutionPenalty"))
                             Spacer()
                             TextField("0.00", text: $institutionPenalty)
                                 .keyboardType(.decimalPad)
@@ -282,7 +284,7 @@ struct FixedDepositWithdrawalView: View {
                 }
 
                 if !isMatured {
-                    Section(footer: Text("Early withdrawal may incur penalties. Please confirm the accrued interest and penalty amounts with your institution.")) {
+                    Section(footer: Text(localizationManager.localizedString(for: "fixedDepositWithdrawal.earlyWithdrawalWarning"))) {
                         EmptyView()
                     }
                 }
@@ -294,17 +296,17 @@ struct FixedDepositWithdrawalView: View {
                     }
                 }
             }
-            .navigationTitle(isMatured ? "Withdraw" : "Early Withdrawal")
+            .navigationTitle(isMatured ? localizationManager.localizedString(for: "fixedDepositWithdrawal.navigation.withdraw") : localizationManager.localizedString(for: "fixedDepositWithdrawal.navigation.earlyWithdrawal"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "fixedDepositWithdrawal.navigation.cancel")) {
                         dismiss()
                     }
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Withdraw") {
+                    Button(localizationManager.localizedString(for: "fixedDepositWithdrawal.navigation.withdraw")) {
                         processWithdrawal()
                     }
                     .disabled(!isValidInput)
@@ -337,7 +339,7 @@ struct FixedDepositWithdrawalView: View {
     private func processWithdrawal() {
         guard let amount = Double(withdrawalAmount),
               let institution = institution else {
-            errorMessage = "Invalid withdrawal amount"
+            errorMessage = localizationManager.localizedString(for: "fixedDepositWithdrawal.error.invalidAmount")
             return
         }
 
@@ -369,7 +371,7 @@ struct FixedDepositWithdrawalView: View {
             try viewContext.save()
             dismiss()
         } catch {
-            errorMessage = "Failed to process withdrawal: \(error.localizedDescription)"
+            errorMessage = String(format: localizationManager.localizedString(for: "fixedDepositWithdrawal.error.processingFailed"), error.localizedDescription)
         }
     }
 }

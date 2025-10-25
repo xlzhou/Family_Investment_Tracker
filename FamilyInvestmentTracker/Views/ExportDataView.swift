@@ -5,6 +5,7 @@ import Foundation
 struct ExportDataView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @Binding var selectedFormat: ExportFormat
     
     @FetchRequest(
@@ -23,8 +24,8 @@ struct ExportDataView: View {
             VStack(spacing: 0) {
                 Form {
                     // Export Format Section
-                    Section(header: Text("Export Format")) {
-                        Picker("Format", selection: $selectedFormat) {
+                    Section(header: Text(localizationManager.localizedString(for: "exportData.format.sectionHeader"))) {
+                        Picker(localizationManager.localizedString(for: "exportData.format.pickerLabel"), selection: $selectedFormat) {
                             ForEach(ExportFormat.allCases, id: \.self) { format in
                                 Text(format.displayName).tag(format)
                             }
@@ -33,7 +34,7 @@ struct ExportDataView: View {
                     }
                     
                     // Portfolio Selection Section
-                    Section(header: Text("Select Portfolios"), footer: Text("Choose which portfolios to include in the export.")) {
+                    Section(header: Text(localizationManager.localizedString(for: "exportData.portfolios.sectionHeader")), footer: Text(localizationManager.localizedString(for: "exportData.portfolios.sectionFooter"))) {
                         ForEach(portfolios, id: \.id) { portfolio in
                             HStack {
                                 Button(action: {
@@ -44,11 +45,11 @@ struct ExportDataView: View {
                                             .foregroundColor(selectedPortfolios.contains(portfolio) ? .blue : .gray)
                                         
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text(portfolio.name ?? "Unknown Portfolio")
+                                            Text(portfolio.name ?? localizationManager.localizedString(for: "exportData.portfolios.unknownPortfolio"))
                                                 .font(.headline)
                                                 .foregroundColor(.primary)
-                                            
-                                            Text("\(Formatters.currency(portfolio.totalValue)) • \(portfolio.transactions?.count ?? 0) transactions")
+
+                                            Text("\(Formatters.currency(portfolio.totalValue)) • \(portfolio.transactions?.count ?? 0) \(localizationManager.localizedString(for: "exportData.portfolios.transactions"))")
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
                                         }
@@ -62,15 +63,15 @@ struct ExportDataView: View {
                         
                         HStack {
                             Button(action: selectAllPortfolios) {
-                                Text("Select All")
+                                Text(localizationManager.localizedString(for: "exportData.portfolios.selectAll"))
                                     .font(.subheadline)
                                     .foregroundColor(.blue)
                             }
-                            
+
                             Spacer()
-                            
+
                             Button(action: deselectAllPortfolios) {
-                                Text("Deselect All")
+                                Text(localizationManager.localizedString(for: "exportData.portfolios.deselectAll"))
                                     .font(.subheadline)
                                     .foregroundColor(.blue)
                             }
@@ -78,23 +79,23 @@ struct ExportDataView: View {
                     }
                     
                     // Export Information Section
-                    Section(header: Text("Export Information")) {
+                    Section(header: Text(localizationManager.localizedString(for: "exportData.information.sectionHeader"))) {
                         HStack {
-                            Text("Selected Portfolios")
+                            Text(localizationManager.localizedString(for: "exportData.information.selectedPortfolios"))
                             Spacer()
                             Text("\(selectedPortfolios.count)")
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         HStack {
-                            Text("Total Transactions")
+                            Text(localizationManager.localizedString(for: "exportData.information.totalTransactions"))
                             Spacer()
                             Text("\(totalTransactions)")
                                 .foregroundColor(.secondary)
                         }
-                        
+
                         HStack {
-                            Text("File Format")
+                            Text(localizationManager.localizedString(for: "exportData.information.fileFormat"))
                             Spacer()
                             Text(selectedFormat.displayName)
                                 .foregroundColor(.secondary)
@@ -118,10 +119,10 @@ struct ExportDataView: View {
                                 ProgressView()
                                     .scaleEffect(0.8)
                                     .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                Text("Exporting...")
+                                Text(localizationManager.localizedString(for: "exportData.button.exporting"))
                             } else {
                                 Image(systemName: "square.and.arrow.up")
-                                Text("Export Data")
+                                Text(localizationManager.localizedString(for: "exportData.button.exportData"))
                             }
                         }
                         .font(.headline)
@@ -136,11 +137,11 @@ struct ExportDataView: View {
                 }
                 .padding(.bottom)
             }
-            .navigationTitle("Export Data")
+            .navigationTitle(localizationManager.localizedString(for: "exportData.navigation.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "exportData.navigation.cancel")) {
                         dismiss()
                     }
                 }
@@ -199,7 +200,7 @@ struct ExportDataView: View {
                     exportedFileURL = fileURL
                     showingShareSheet = true
                 } else {
-                    exportError = "Failed to export data. Please try again."
+                    exportError = localizationManager.localizedString(for: "exportData.error.exportFailed")
                 }
             }
         }

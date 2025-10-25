@@ -56,29 +56,47 @@ struct CashDisciplineService {
 
         let quantity = transaction.quantity
         if abs(quantity) > 1e-6 {
-            components.append("Qty \(Formatters.decimal(quantity))")
+            let quantityText = String(format: NSLocalizedString("cashDiscipline.qty",
+                                                                comment: "Quantity entry for cash discipline companion note"),
+                                      Formatters.decimal(quantity))
+            components.append(quantityText)
         }
 
         let price = transaction.price
         if abs(price) > 1e-6 {
-            components.append("Price \(Formatters.currency(price, symbol: currency.symbol))")
+            let priceText = String(format: NSLocalizedString("cashDiscipline.price",
+                                                             comment: "Price entry for cash discipline companion note"),
+                                   Formatters.currency(price, symbol: currency.symbol))
+            components.append(priceText)
         }
 
         let fees = transaction.fees
         if abs(fees) > 1e-6 {
-            components.append("Fees \(Formatters.currency(fees, symbol: currency.symbol))")
+            let feesText = String(format: NSLocalizedString("cashDiscipline.fees",
+                                                            comment: "Fees entry for cash discipline companion note"),
+                                  Formatters.currency(fees, symbol: currency.symbol))
+            components.append(feesText)
         }
 
         let tax = transaction.tax
         if abs(tax) > 1e-6 {
-            components.append("Tax \(Formatters.currency(tax, symbol: currency.symbol))")
+            let taxText = String(format: NSLocalizedString("cashDiscipline.tax",
+                                                           comment: "Tax entry for cash discipline companion note"),
+                                 Formatters.currency(tax, symbol: currency.symbol))
+            components.append(taxText)
         }
 
         let settlementDisplay = abs(companionAmount)
-        components.append("Settlement \(Formatters.currency(settlementDisplay, symbol: currency.symbol))")
+        let settlementText = String(format: NSLocalizedString("cashDiscipline.settlement",
+                                                               comment: "Settlement entry for cash discipline companion note"),
+                                     Formatters.currency(settlementDisplay, symbol: currency.symbol))
+        components.append(settlementText)
 
         if let date = transaction.transactionDate {
-            components.append("Date \(noteDateFormatter.string(from: date))")
+            let dateText = String(format: NSLocalizedString("cashDiscipline.date",
+                                                            comment: "Date entry for cash discipline companion note"),
+                                  noteDateFormatter.string(from: date))
+            components.append(dateText)
         }
 
         guard !components.isEmpty else {

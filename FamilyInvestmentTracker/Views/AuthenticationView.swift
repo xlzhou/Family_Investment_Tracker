@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AuthenticationView: View {
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject var localizationManager: LocalizationManager
     @State private var password = ""
     @State private var showingSecurityQuestionsSetup = false
 
@@ -15,12 +16,12 @@ struct AuthenticationView: View {
                     .font(.system(size: 80))
                     .foregroundColor(.blue)
 
-                Text("Family Investment Tracker")
+                localizationManager.text("app.title")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
 
-                Text("Secure access to your family's investment portfolio")
+                localizationManager.text("app.subtitle")
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -41,7 +42,7 @@ struct AuthenticationView: View {
                 case .passwordRecovery:
                     PasswordRecoveryView(authManager: authManager)
                 case .authenticated:
-                    Text("Authenticated")
+                    localizationManager.text("auth.status.authenticated")
                         .foregroundColor(.green)
                 }
             }
@@ -66,11 +67,11 @@ struct AuthenticationView: View {
     @ViewBuilder
     private func PasswordSetupInterface() -> some View {
         VStack(spacing: 20) {
-            Text("Set Up App Password")
+            localizationManager.text("auth.setupTitle")
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
-                SecureField("Create password", text: $password)
+                SecureField(localizationManager.localizedString(for: "auth.createPasswordPlaceholder"), text: $password)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     .textContentType(.newPassword)
                     .autocapitalization(.none)
@@ -78,7 +79,7 @@ struct AuthenticationView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text("Password Strength:")
+                        localizationManager.text("auth.passwordStrength")
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
@@ -101,11 +102,11 @@ struct AuthenticationView: View {
                         }
                     }
 
-                    Text("• Minimum 8 characters")
+                    localizationManager.text("auth.passwordRequirement.length")
                         .font(.caption)
                         .foregroundColor(password.count >= 8 ? .green : .secondary)
 
-                    Text("• Letters, numbers, and special characters")
+                    localizationManager.text("auth.passwordRequirement.complexity")
                         .font(.caption)
                         .foregroundColor(containsRequiredCharacterTypes(password) ? .green : .secondary)
                 }
@@ -118,7 +119,7 @@ struct AuthenticationView: View {
                     showingSecurityQuestionsSetup = true
                 }
             }) {
-                Text("Set Password")
+                localizationManager.text("auth.setPassword")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -140,10 +141,10 @@ struct AuthenticationView: View {
     @ViewBuilder
     private func PasswordEntryInterface() -> some View {
         VStack(spacing: 20) {
-            Text("Enter Password")
+            localizationManager.text("auth.enterPassword")
                 .font(.headline)
 
-            SecureField("Password", text: $password)
+            SecureField(localizationManager.localizedString(for: "auth.passwordPlaceholder"), text: $password)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .textContentType(.password)
                 .autocapitalization(.none)
@@ -163,7 +164,7 @@ struct AuthenticationView: View {
                     password = ""
                 }
             }) {
-                Text("Unlock")
+                localizationManager.text("auth.unlock")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -187,7 +188,7 @@ struct AuthenticationView: View {
                     HStack {
                         Image(systemName: authManager.getBiometricType() == "Face ID" ? "faceid" : "touchid")
                             .font(.title2)
-                        Text("Use \(authManager.getBiometricType())")
+                        Text(localizationManager.localizedString(for: "auth.biometric.use", arguments: authManager.getBiometricType()))
                             .font(.headline)
                     }
                     .foregroundColor(.white)
@@ -201,8 +202,10 @@ struct AuthenticationView: View {
             // Forgot Password Button
             // Always show during development/testing, or when recovery options are available
             if authManager.isBiometricAvailable() || authManager.hasSecurityQuestionsSetup() || true {
-                Button("Forgot Password?") {
+                Button {
                     authManager.startPasswordRecovery()
+                } label: {
+                    localizationManager.text("auth.forgotPassword")
                 }
                 .font(.body)
                 .foregroundColor(.blue)
@@ -219,15 +222,15 @@ struct AuthenticationView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.red)
 
-            Text("Account Locked")
+            localizationManager.text("auth.locked.title")
                 .font(.headline)
                 .foregroundColor(.red)
 
-            Text("Too many failed attempts")
+            localizationManager.text("auth.locked.subtitle")
                 .font(.body)
                 .foregroundColor(.secondary)
 
-            Text("Time remaining: \(authManager.getLockoutTimeRemainingString())")
+            Text(localizationManager.localizedString(for: "auth.locked.remaining", arguments: authManager.getLockoutTimeRemainingString()))
                 .font(.body)
                 .foregroundColor(.orange)
 
@@ -239,7 +242,7 @@ struct AuthenticationView: View {
                     HStack {
                         Image(systemName: authManager.getBiometricType() == "Face ID" ? "faceid" : "touchid")
                             .font(.title2)
-                        Text("Use \(authManager.getBiometricType())")
+                        Text(localizationManager.localizedString(for: "auth.biometric.use", arguments: authManager.getBiometricType()))
                             .font(.headline)
                     }
                     .foregroundColor(.white)
@@ -290,12 +293,12 @@ struct AuthenticationView: View {
 
     private func passwordStrengthText(_ password: String) -> String {
         switch passwordStrengthLevel(password) {
-        case 0: return "Too weak"
-        case 1: return "Weak"
-        case 2: return "Fair"
-        case 3: return "Good"
-        case 4: return "Strong"
-        default: return "Too weak"
+        case 0: return localizationManager.localizedString(for: "auth.passwordStrength.tooWeak")
+        case 1: return localizationManager.localizedString(for: "auth.passwordStrength.weak")
+        case 2: return localizationManager.localizedString(for: "auth.passwordStrength.fair")
+        case 3: return localizationManager.localizedString(for: "auth.passwordStrength.good")
+        case 4: return localizationManager.localizedString(for: "auth.passwordStrength.strong")
+        default: return localizationManager.localizedString(for: "auth.passwordStrength.tooWeak")
         }
     }
 
