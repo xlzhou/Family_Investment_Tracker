@@ -7,6 +7,7 @@ struct PortfolioDashboardView: View {
     @ObservedObject var portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject private var localizationManager: LocalizationManager
+    @Environment(\.dismiss) private var dismiss
     
     @State private var showingAddTransaction = false
     @State private var showingPortfolioSettings = false
@@ -63,14 +64,22 @@ struct PortfolioDashboardView: View {
                 }
             }
         }
-        .navigationTitle(portfolio.name ?? "Portfolio")
+        .navigationTitle(portfolio.name ?? localizationManager.localizedString(for: "portfolio.genericName"))
         .navigationBarTitleDisplayMode(.large)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Button(action: {
-                    showingPortfolioSettings = true
-                }) {
-                    Image(systemName: "gear")
+                HStack(spacing: 12) {
+                    Button(action: { dismiss() }) {
+                        Label(localizationManager.localizedString(for: "common.back"), systemImage: "chevron.backward")
+                            .labelStyle(.titleAndIcon)
+                    }
+
+                    Button(action: {
+                        showingPortfolioSettings = true
+                    }) {
+                        Image(systemName: "gear")
+                    }
                 }
             }
 

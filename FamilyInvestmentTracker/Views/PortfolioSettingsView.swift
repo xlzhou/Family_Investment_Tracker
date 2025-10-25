@@ -5,6 +5,7 @@ struct PortfolioSettingsView: View {
     let portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
     private let currencyService = CurrencyService.shared
     
     @State private var portfolioName: String
@@ -43,12 +44,12 @@ struct PortfolioSettingsView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Portfolio Information")) {
-                    TextField("Portfolio Name", text: $portfolioName)
+                Section(header: localizationManager.text("portfolioSettings.infoSection.title")) {
+                    TextField(localizationManager.localizedString(for: "portfolioSettings.name.placeholder"), text: $portfolioName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                     Toggle(isOn: $enforceCashDiscipline) {
                         HStack(spacing: 8) {
-                            Text("Enforce Cash Discipline")
+                            localizationManager.text("portfolioSettings.cashDiscipline.title")
                             Button {
                                 showingCashDisciplineHelp = true
                             } label: {
@@ -56,19 +57,19 @@ struct PortfolioSettingsView: View {
                                     .foregroundColor(.secondary)
                             }
                             .buttonStyle(.plain)
-                            .accessibilityLabel("Learn more about cash discipline")
+                            .accessibilityLabel(localizationManager.localizedString(for: "portfolioSettings.cashDiscipline.accessibility"))
                         }
                     }
                     .tint(.blue)
-                    Text("Keep this on to require available cash before buying or selling securities, with automatic companion deposits adjusting balances. Turn it off to track trades without touching cash; those transactions remain cash-neutral even if you re-enable the discipline later.")
+                    localizationManager.text("portfolioSettings.cashDiscipline.description")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
 
 
-                Section(header: Text("Currency Settings"),
-                       footer: Text("All asset values will be converted to your main currency for total portfolio calculations.")) {
-                    Picker("Main Currency", selection: $selectedMainCurrency) {
+                Section(header: localizationManager.text("portfolioSettings.currencySection.title"),
+                       footer: localizationManager.text("portfolioSettings.currencySection.footer")) {
+                    Picker(localizationManager.localizedString(for: "portfolioSettings.currencySection.picker"), selection: $selectedMainCurrency) {
                         ForEach(Currency.allCases, id: \.self) { currency in
                             Text(currency.displayName).tag(currency)
                         }
@@ -78,26 +79,26 @@ struct PortfolioSettingsView: View {
                 }
                 
                 Section(
-                    header: Text("Trading Institutions"),
-                    footer: Text("Institution names are shared across all portfolios.")
+                    header: localizationManager.text("portfolioSettings.institutionSection.title"),
+                    footer: localizationManager.text("portfolioSettings.institutionSection.footer")
                 ) {
                     ForEach(institutions, id: \.objectID) { institution in
                         if editingInstitution?.objectID == institution.objectID {
                             HStack {
-                                TextField("Institution name", text: $editingInstitutionName)
+                                TextField(localizationManager.localizedString(for: "portfolioSettings.institution.namePlaceholder"), text: $editingInstitutionName)
                                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                                Button("Save") {
+                                Button(localizationManager.localizedString(for: "common.save")) {
                                     saveInstitutionEdit()
                                 }
                                 .disabled(editingInstitutionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                                Button("Cancel") {
+                                Button(localizationManager.localizedString(for: "common.cancel")) {
                                     cancelInstitutionEdit()
                                 }
                                 .foregroundColor(.red)
                             }
                         } else {
                             HStack {
-                                Text(institution.name ?? "Unknown")
+                                Text(institution.name ?? localizationManager.localizedString(for: "portfolio.name.unknown"))
                                 Spacer()
                             }
                             .contentShape(Rectangle())
@@ -105,7 +106,7 @@ struct PortfolioSettingsView: View {
                                 startEditingInstitution(institution)
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button("Delete", role: .destructive) {
+                                Button(localizationManager.localizedString(for: "common.delete"), role: .destructive) {
                                     institutionPendingDeletion = institution
                                     activeAlert = .deleteInstitution
                                 }
@@ -115,20 +116,20 @@ struct PortfolioSettingsView: View {
                     }
 
                     HStack {
-                        TextField("Add new institution", text: $newInstitutionName)
+                        TextField(localizationManager.localizedString(for: "portfolioSettings.institution.addPlaceholder"), text: $newInstitutionName)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
-                        Button("Add") {
+                        Button(localizationManager.localizedString(for: "portfolioSettings.institution.addButton")) {
                             addInstitution()
                         }
                         .disabled(newInstitutionName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                 }
 
-                Section(header: Text("Danger Zone"), footer: Text("Resetting clears this portfolio's holdings, transactions, cash balance, and analytics calculations. Institutions stay available for other portfolios.")) {
+                Section(header: localizationManager.text("portfolioSettings.dangerSection.title"), footer: localizationManager.text("portfolioSettings.dangerSection.footer")) {
                     Button(role: .destructive) {
                         activeAlert = .resetPortfolio
                     } label: {
-                        Text("Reset Portfolio Data")
+                        localizationManager.text("portfolioSettings.resetButton")
                     }
                     .disabled(isResetDisabled)
 
@@ -136,41 +137,41 @@ struct PortfolioSettingsView: View {
                         Button(role: .destructive) {
                             activeAlert = .deletePortfolio
                         } label: {
-                            Text("Delete Portfolio")
+                            localizationManager.text("portfolioSettings.deleteButton")
                         }
                     }
                 }
 
-                Section(header: Text("Statistics")) {
+                Section(header: localizationManager.text("portfolioSettings.statisticsSection.title")) {
                     HStack {
-                        Text("Portfolio Owner")
+                        localizationManager.text("portfolioSettings.statistics.owner")
                         Spacer()
                         if let ownerName = ownerName {
                             Text(ownerName)
                                 .foregroundColor(.blue)
                                 .fontWeight(.medium)
                         } else {
-                            Text("Loading...")
+                            localizationManager.text("portfolioSettings.statistics.loading")
                                 .foregroundColor(.secondary)
                         }
                     }
 
                     HStack {
-                        Text("Total Holdings")
+                        localizationManager.text("portfolioSettings.statistics.holdings")
                         Spacer()
                         Text("\(portfolio.holdings?.count ?? 0)")
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Total Transactions")
+                        localizationManager.text("portfolioSettings.statistics.transactions")
                         Spacer()
                         Text("\(portfolio.transactions?.count ?? 0)")
                             .foregroundColor(.secondary)
                     }
 
                     HStack {
-                        Text("Created")
+                        localizationManager.text("portfolioSettings.statistics.created")
                         Spacer()
                         if let createdAt = portfolio.createdAt {
                             Text(createdAt, style: .date)
@@ -179,17 +180,17 @@ struct PortfolioSettingsView: View {
                     }
                 }
             }
-            .navigationTitle("Portfolio Settings")
+            .navigationTitle(localizationManager.localizedString(for: "portfolioSettings.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "common.cancel")) {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(localizationManager.localizedString(for: "common.done")) {
                         saveSettings()
                     }
                     .disabled(portfolioName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -199,16 +200,16 @@ struct PortfolioSettingsView: View {
         .sheet(isPresented: $showingCashDisciplineHelp) {
             NavigationView {
                 List {
-                    Section(header: Text("How Cash Discipline Works")) {
-                        Text("- When enabled, buy and sell orders verify that the selected institution has enough cash and automatically create companion deposits to reflect the cash movement.")
-                        Text("- When disabled, trades save without adjusting portfolio or institution cash, letting you reconcile manually later.")
-                        Text("- Re-enabling the toggle only affects new trades; earlier cash-neutral transactions stay that way unless you edit them.")
+                    Section(header: localizationManager.text("portfolioSettings.cashDisciplineHelp.title")) {
+                        localizationManager.text("portfolioSettings.cashDisciplineHelp.point1")
+                        localizationManager.text("portfolioSettings.cashDisciplineHelp.point2")
+                        localizationManager.text("portfolioSettings.cashDisciplineHelp.point3")
                     }
                 }
-                .navigationTitle("Enforce Cash Discipline")
+                .navigationTitle(localizationManager.localizedString(for: "portfolioSettings.cashDiscipline.title"))
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Done") {
+                        Button(localizationManager.localizedString(for: "common.done")) {
                             showingCashDisciplineHelp = false
                         }
                     }
@@ -218,11 +219,11 @@ struct PortfolioSettingsView: View {
         .alert(item: $activeAlert) { alert in
             switch alert {
             case .deleteInstitution:
-                let name = institutionPendingDeletion?.name ?? "this institution"
+                let name = institutionPendingDeletion?.name ?? localizationManager.localizedString(for: "portfolioSettings.alerts.deleteInstitution.unknown")
                 return Alert(
-                    title: Text("Delete Institution"),
-                    message: Text("Are you sure you want to delete \"\(name)\"? This action cannot be undone."),
-                    primaryButton: .destructive(Text("Delete")) {
+                    title: localizationManager.text("portfolioSettings.alerts.deleteInstitution.title"),
+                    message: Text(localizationManager.localizedString(for: "portfolioSettings.alerts.deleteInstitution.message", arguments: name)),
+                    primaryButton: .destructive(localizationManager.text("common.delete")) {
                         if let institution = institutionPendingDeletion {
                             deleteInstitution(institution)
                         }
@@ -234,18 +235,18 @@ struct PortfolioSettingsView: View {
                 )
             case .resetPortfolio:
                 return Alert(
-                    title: Text("Reset Portfolio Data"),
-                    message: Text("This removes all holdings, transactions, cash, and analytics data for this portfolio. Institutions remain untouched. This cannot be undone."),
-                    primaryButton: .destructive(Text("Reset")) {
+                    title: localizationManager.text("portfolioSettings.alerts.resetPortfolio.title"),
+                    message: localizationManager.text("portfolioSettings.alerts.resetPortfolio.message"),
+                    primaryButton: .destructive(localizationManager.text("portfolioSettings.alerts.resetPortfolio.confirm")) {
                         resetPortfolioData()
                     },
                     secondaryButton: .cancel()
                 )
             case .deletePortfolio:
                 return Alert(
-                    title: Text("Delete Portfolio"),
-                    message: Text("This will permanently delete \"\(portfolio.name ?? "this portfolio")\" and all its data. This action cannot be undone."),
-                    primaryButton: .destructive(Text("Delete")) {
+                    title: localizationManager.text("portfolioSettings.alerts.deletePortfolio.title"),
+                    message: Text(localizationManager.localizedString(for: "portfolioSettings.alerts.deletePortfolio.message", arguments: portfolio.name ?? localizationManager.localizedString(for: "portfolio.genericName"))),
+                    primaryButton: .destructive(localizationManager.text("common.delete")) {
                         deletePortfolio()
                     },
                     secondaryButton: .cancel()
@@ -475,4 +476,5 @@ private extension PortfolioSettingsView {
 #Preview {
     PortfolioSettingsView(portfolio: PersistenceController.preview.container.viewContext.registeredObjects.first(where: { $0 is Portfolio }) as! Portfolio)
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        .environmentObject(LocalizationManager.shared)
 }

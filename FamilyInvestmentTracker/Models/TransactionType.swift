@@ -10,11 +10,7 @@ enum TransactionType: String, CaseIterable {
     case depositWithdrawal = "DepositWithdrawal"
 
     var displayName: String {
-        return NSLocalizedString(localizationKey,
-                                 tableName: nil,
-                                 bundle: .main,
-                                 value: rawValue,
-                                 comment: "Transaction type display name")
+        LocalizationManager.shared.localizedString(for: localizationKey, fallback: rawValue)
     }
 
     private var localizationKey: String {
@@ -43,11 +39,7 @@ enum AssetType: String, CaseIterable {
     case other = "Other"
     
     var displayName: String {
-        return NSLocalizedString(localizationKey,
-                                 tableName: nil,
-                                 bundle: .main,
-                                 value: rawValue,
-                                 comment: "Asset type display name")
+        LocalizationManager.shared.localizedString(for: localizationKey, fallback: rawValue)
     }
 
     private var localizationKey: String {

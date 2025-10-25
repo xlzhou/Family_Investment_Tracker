@@ -5,6 +5,7 @@ import CoreData
 struct PortfolioListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var authManager: AuthenticationManager
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @ObservedObject private var dashboardSettings = DashboardSettingsService.shared
     private let currencyService = CurrencyService.shared
     
@@ -22,11 +23,11 @@ struct PortfolioListView: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading) {
-                        Text("Investment Portfolios")
+                        localizationManager.text("portfolioList.title")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         
-                        Text("Total Value: " + CurrencyService.shared.formatAmountWithFullCurrency(totalPortfolioValue, in: dashboardSettings.dashboardCurrency))
+                        Text(localizationManager.localizedString(for: "portfolioList.totalValue", arguments: formattedTotalValueSummary))
                             .font(.headline)
                             .foregroundColor(.secondary)
                     }
@@ -66,7 +67,7 @@ struct PortfolioListView: View {
                                     .font(.largeTitle)
                                     .foregroundColor(.blue)
                                 
-                                Text("Add Portfolio")
+                                localizationManager.text("portfolioList.addPortfolio")
                                     .font(.headline)
                                     .foregroundColor(.blue)
                             }
@@ -109,6 +110,10 @@ struct PortfolioListView: View {
             let converted = currencyService.convertAmount(ownCurrencyValue, from: fromCurrency, to: dashboardSettings.dashboardCurrency)
             return partial + converted
         }
+    }
+
+    private var formattedTotalValueSummary: String {
+        CurrencyService.shared.formatAmountWithFullCurrency(totalPortfolioValue, in: dashboardSettings.dashboardCurrency)
     }
 
     private func portfolioTotalValueInOwnCurrency(_ portfolio: Portfolio) -> Double {
@@ -172,6 +177,7 @@ struct PortfolioListView: View {
 
 struct PortfolioCardView: View {
     @ObservedObject var portfolio: Portfolio
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @StateObject private var ownershipService = PortfolioOwnershipService.shared
     @State private var ownerName: String?
     
@@ -205,7 +211,7 @@ struct PortfolioCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(portfolio.name ?? "Unknown")
+                Text(portfolio.name ?? localizationManager.localizedString(for: "portfolio.name.unknown"))
                     .font(.title2)
                     .fontWeight(.semibold)
 
@@ -216,7 +222,7 @@ struct PortfolioCardView: View {
                 }
 
                 if let ownerName = ownerName {
-                    Text("Owner: \(ownerName)")
+                    Text(localizationManager.localizedString(for: "portfolioCard.owner", arguments: ownerName))
                         .font(.caption)
                         .foregroundColor(.blue)
                         .fontWeight(.medium)
@@ -229,7 +235,7 @@ struct PortfolioCardView: View {
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Total Value")
+                localizationManager.text("portfolioCard.totalValue")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -242,7 +248,7 @@ struct PortfolioCardView: View {
             
             HStack {
                 VStack(alignment: .leading) {
-                    Text("Holdings")
+                    localizationManager.text("portfolioCard.holdings")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
@@ -254,7 +260,7 @@ struct PortfolioCardView: View {
                 Spacer()
 
                 VStack(alignment: .trailing) {
-                    Text("Transactions")
+                    localizationManager.text("portfolioCard.transactions")
                         .font(.caption)
                         .foregroundColor(.secondary)
 
@@ -295,4 +301,5 @@ struct PortfolioCardView: View {
     PortfolioListView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
         .environmentObject(AuthenticationManager())
+        .environmentObject(LocalizationManager.shared)
 }

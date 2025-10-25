@@ -879,6 +879,7 @@ struct PasswordPromptView: View {
 struct ChangePasswordView: View {
     @EnvironmentObject var authManager: AuthenticationManager
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var localizationManager: LocalizationManager
     @State private var currentPassword = ""
     @State private var newPassword = ""
     @State private var confirmPassword = ""
@@ -900,7 +901,7 @@ struct ChangePasswordView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.blue)
 
-                    Text("Change Password")
+                    localizationManager.text("changePassword.title")
                         .font(.largeTitle)
                         .fontWeight(.bold)
 
@@ -916,27 +917,27 @@ struct ChangePasswordView: View {
                     Group {
                         switch step {
                         case .current:
-                            SecureField("Current Password", text: $currentPassword)
+                            SecureField(localizationManager.localizedString(for: "changePassword.placeholder.current"), text: $currentPassword)
                                 .textContentType(.password)
                         case .new:
                             VStack(alignment: .leading, spacing: 8) {
-                                SecureField("New Password", text: $newPassword)
+                                SecureField(localizationManager.localizedString(for: "changePassword.placeholder.new"), text: $newPassword)
                                     .textContentType(.newPassword)
                                     .autocapitalization(.none)
                                     .disableAutocorrection(true)
 
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("• Minimum 8 characters")
+                                    localizationManager.text("changePassword.requirement.length")
                                         .font(.caption)
                                         .foregroundColor(newPassword.count >= 8 ? .green : .secondary)
 
-                                    Text("• Letters, numbers, and special characters")
+                                    localizationManager.text("changePassword.requirement.complexity")
                                         .font(.caption)
                                         .foregroundColor(containsRequiredCharacterTypes(newPassword) ? .green : .secondary)
                                 }
                             }
                         case .confirm:
-                            SecureField("Confirm New Password", text: $confirmPassword)
+                            SecureField(localizationManager.localizedString(for: "changePassword.placeholder.confirm"), text: $confirmPassword)
                                 .textContentType(.newPassword)
                                 .autocapitalization(.none)
                                 .disableAutocorrection(true)
@@ -974,11 +975,11 @@ struct ChangePasswordView: View {
 
                 Spacer()
             }
-            .navigationTitle("Change Password")
+            .navigationTitle(localizationManager.localizedString(for: "changePassword.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "common.cancel")) {
                         dismiss()
                     }
                     .disabled(isChangingPassword)
@@ -989,17 +990,18 @@ struct ChangePasswordView: View {
 
     private var stepDescription: String {
         switch step {
-        case .current: return "Enter your current password to continue"
-        case .new: return "Create a strong new password"
-        case .confirm: return "Confirm your new password"
+        case .current: return localizationManager.localizedString(for: "changePassword.step.current")
+        case .new: return localizationManager.localizedString(for: "changePassword.step.new")
+        case .confirm: return localizationManager.localizedString(for: "changePassword.step.confirm")
         }
     }
 
     private var stepButtonTitle: String {
         switch step {
-        case .current: return "Continue"
-        case .new: return "Continue"
-        case .confirm: return "Change Password"
+        case .current, .new:
+            return localizationManager.localizedString(for: "changePassword.button.continue")
+        case .confirm:
+            return localizationManager.localizedString(for: "changePassword.button.submit")
         }
     }
 

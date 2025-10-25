@@ -54,7 +54,7 @@ class AuthenticationManager: ObservableObject {
     }
 
     private func localized(_ key: String) -> String {
-        NSLocalizedString(key, comment: "")
+        LocalizationManager.shared.localizedString(for: key)
     }
 
     func checkAuthenticationStatus() {

@@ -4,6 +4,7 @@ import CoreData
 struct RealizedPnLView: View {
     let portfolio: Portfolio
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject private var localizationManager: LocalizationManager
     private let currencyService = CurrencyService.shared
 
     @State private var startDate: Date
@@ -27,6 +28,55 @@ struct RealizedPnLView: View {
 
     private var portfolioCurrency: Currency {
         Currency(rawValue: portfolio.mainCurrency ?? "USD") ?? .usd
+    }
+
+    private enum AssetGroup: String, CaseIterable, Comparable {
+        case stocks, etfs, bonds, mutualFunds, cryptocurrency, preciousMetals, insurance, structuredProducts, other, deposits, dividendsAndInterest
+
+        private var sortOrder: Int {
+            switch self {
+            case .stocks: return 0
+            case .etfs: return 1
+            case .bonds: return 2
+            case .mutualFunds: return 3
+            case .cryptocurrency: return 4
+            case .preciousMetals: return 5
+            case .insurance: return 6
+            case .structuredProducts: return 7
+            case .other: return 8
+            case .deposits: return 9
+            case .dividendsAndInterest: return 10
+            }
+        }
+
+        static func < (lhs: AssetGroup, rhs: AssetGroup) -> Bool {
+            lhs.sortOrder < rhs.sortOrder
+        }
+
+        var localizationKey: String {
+            switch self {
+            case .stocks: return "realized.group.stocks"
+            case .etfs: return "realized.group.etfs"
+            case .bonds: return "realized.group.bonds"
+            case .mutualFunds: return "realized.group.mutualFunds"
+            case .cryptocurrency: return "realized.group.cryptocurrency"
+            case .preciousMetals: return "realized.group.preciousMetals"
+            case .insurance: return "realized.group.insurance"
+            case .structuredProducts: return "realized.group.structuredProducts"
+            case .other: return "realized.group.other"
+            case .deposits: return "realized.group.deposits"
+            case .dividendsAndInterest: return "realized.group.dividends"
+            }
+        }
+
+        var showsBreakdown: Bool {
+            switch self {
+            case .stocks, .etfs, .bonds, .mutualFunds, .cryptocurrency, .preciousMetals, .insurance, .structuredProducts, .other:
+                return true
+            case .deposits, .dividendsAndInterest:
+                return false
+            }
+        }
     }
 
 
@@ -68,21 +118,8 @@ struct RealizedPnLView: View {
     }
 
     // Asset type grouping
-    private var groupedByAssetType: [String: [AssetGroupItem]] {
-        var groups: [String: [AssetGroupItem]] = [:]
-
-        // Initialize all groups
-        groups["Stocks"] = []
-        groups["ETFs"] = []
-        groups["Bonds"] = []
-        groups["Mutual Funds"] = []
-        groups["Cryptocurrency"] = []
-        groups["Precious Metals"] = []
-        groups["Insurance"] = []
-        groups["Structured Products"] = []
-        groups["Other"] = []
-        groups["Deposits"] = []
-        groups["Dividends & Interest"] = []
+    private var groupedByAssetType: [AssetGroup: [AssetGroupItem]] {
+        var groups = Dictionary(uniqueKeysWithValues: AssetGroup.allCases.map { ($0, [AssetGroupItem]()) })
 
         // Get unique assets with realized transactions
         let assetsWithRealized = getAssetsWithRealizedTransactions()
@@ -91,8 +128,8 @@ struct RealizedPnLView: View {
             let groupName = getGroupName(for: assetData.asset)
             let item = AssetGroupItem(
                 asset: assetData.asset,
-                symbol: assetData.asset.symbol ?? "Unknown",
-                name: assetData.asset.name ?? "Unknown Asset",
+                symbol: assetData.asset.symbol ?? localizationManager.localizedString(for: "common.unknown"),
+                name: assetData.asset.name ?? localizationManager.localizedString(for: "asset.name.unknown"),
                 realizedPnL: assetData.realizedPnL,
                 incomeAmount: assetData.incomeAmount,
                 incomeIncludedPnL: assetData.incomeIncludedPnL
@@ -103,13 +140,13 @@ struct RealizedPnLView: View {
         // Add deposit interest
         let depositInterest = getDepositInterest()
         for depositItem in depositInterest {
-            groups["Deposits", default: []].append(depositItem)
+            groups[.deposits, default: []].append(depositItem)
         }
 
         // Add pure dividends & interest (not tied to specific holdings)
         let pureIncome = getPureDividendsAndInterest()
         for incomeItem in pureIncome {
-            groups["Dividends & Interest", default: []].append(incomeItem)
+            groups[.dividendsAndInterest, default: []].append(incomeItem)
         }
 
         // Sort items within each group
@@ -123,14 +160,14 @@ struct RealizedPnLView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Date Range")) {
-                    DatePicker("From", selection: $startDate, in: ...Date(), displayedComponents: .date)
-                    DatePicker("To", selection: $endDate, in: startDate...Date(), displayedComponents: .date)
+                Section(header: localizationManager.text("realized.dateRange")) {
+                    DatePicker(localizationManager.localizedString(for: "realized.date.from"), selection: $startDate, in: ...Date(), displayedComponents: .date)
+                    DatePicker(localizationManager.localizedString(for: "realized.date.to"), selection: $endDate, in: startDate...Date(), displayedComponents: .date)
                 }
 
-                Section(header: Text("Summary")) {
+                Section(header: localizationManager.text("realized.summary.header")) {
                     HStack {
-                        Text("Total Realized P&L")
+                        localizationManager.text("realized.summary.total")
                         Spacer()
                         Text(Formatters.signedCurrency(totalRealized, symbol: portfolioCurrency.symbol))
                             .fontWeight(.semibold)
@@ -138,21 +175,23 @@ struct RealizedPnLView: View {
                     }
 
                     if totalRealized == 0 {
-                        Text("No realized gains or deposit interest in this period.")
+                        localizationManager.text("realized.summary.empty")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
-                        Text("Includes: sold assets P&L + all dividends/interest + deposit interest")
+                        localizationManager.text("realized.summary.includes")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
 
                 // Asset Type Groups (only show groups with items)
-                ForEach(["Stocks", "ETFs", "Bonds", "Mutual Funds", "Cryptocurrency", "Precious Metals", "Insurance", "Structured Products", "Other", "Deposits", "Dividends & Interest"], id: \.self) { groupName in
+                ForEach(AssetGroup.allCases, id: \.self) { groupName in
                     if let items = groupedByAssetType[groupName], !items.isEmpty {
                         Section(header: HStack {
-                            Text(groupName == "Dividends & Interest" ? "Dividends & Interest*" : groupName)
+                            let baseTitle = localizationManager.localizedString(for: groupName.localizationKey)
+                            let title = groupName == .dividendsAndInterest ? baseTitle + "*" : baseTitle
+                            Text(title)
                             Spacer()
                             let groupTotal = items.reduce(0) { $0 + $1.incomeIncludedPnL }
                             Text(Formatters.signedCurrency(groupTotal, symbol: portfolioCurrency.symbol))
@@ -173,17 +212,20 @@ struct RealizedPnLView: View {
                                         }
                                         Spacer()
                                         VStack(alignment: .trailing, spacing: 2) {
-                                            if groupName == "Stocks" || groupName == "ETFs" || groupName == "Bonds" || groupName == "Mutual Funds" || groupName == "Cryptocurrency" || groupName == "Precious Metals" || groupName == "Insurance" || groupName == "Structured Products" || groupName == "Other" {
+                                            if groupName.showsBreakdown {
                                                 // For securities: show P&L, Income, Total
-                                                Text("P&L: \(Formatters.signedCurrency(item.realizedPnL, symbol: portfolioCurrency.symbol))")
+                                                let pnlValue = Formatters.signedCurrency(item.realizedPnL, symbol: portfolioCurrency.symbol)
+                                                Text(localizationManager.localizedString(for: "realized.value.pnl", arguments: pnlValue))
                                                     .font(.caption)
                                                     .foregroundColor(item.realizedPnL >= 0 ? .green : .red)
                                                 if item.incomeAmount != 0 {
-                                                    Text("Income: \(Formatters.signedCurrency(item.incomeAmount, symbol: portfolioCurrency.symbol))")
+                                                    let incomeValue = Formatters.signedCurrency(item.incomeAmount, symbol: portfolioCurrency.symbol)
+                                                    Text(localizationManager.localizedString(for: "realized.value.income", arguments: incomeValue))
                                                         .font(.caption)
                                                         .foregroundColor(item.incomeAmount >= 0 ? .green : .red)
                                                 }
-                                                Text("Total: \(Formatters.signedCurrency(item.incomeIncludedPnL, symbol: portfolioCurrency.symbol))")
+                                                let totalValue = Formatters.signedCurrency(item.incomeIncludedPnL, symbol: portfolioCurrency.symbol)
+                                                Text(localizationManager.localizedString(for: "realized.value.total", arguments: totalValue))
                                                     .font(.subheadline)
                                                     .fontWeight(.semibold)
                                                     .foregroundColor(item.incomeIncludedPnL >= 0 ? .green : .red)
@@ -203,16 +245,16 @@ struct RealizedPnLView: View {
                     }
                 }
             // Explanatory note for asterisk
-                if let dividendsItems = groupedByAssetType["Dividends & Interest"], !dividendsItems.isEmpty {
+                if let dividendsItems = groupedByAssetType[.dividendsAndInterest], !dividendsItems.isEmpty {
                     Section {
-                        Text("* Income from active holdings, included in total above")
+                        localizationManager.text("realized.summary.noteActiveIncome")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .italic()
                     }
                 }
                 if !filteredRealizedTransactions.isEmpty {
-                    Section(header: Text("Transactions")) {
+                    Section(header: localizationManager.text("realized.transactions.header")) {
                         ForEach(filteredRealizedTransactions, id: \.objectID) { transaction in
                             VStack(alignment: .leading, spacing: 4) {
                                 HStack {
@@ -246,7 +288,7 @@ struct RealizedPnLView: View {
 
                 
             }
-            .navigationTitle("Realized P&L")
+            .navigationTitle(localizationManager.localizedString(for: "realized.title"))
             .navigationBarTitleDisplayMode(.inline)
         }
         .onChange(of: startDate) { _, newValue in
@@ -274,15 +316,16 @@ struct RealizedPnLView: View {
     }
 
     private func displaySymbol(for transaction: Transaction) -> String {
+        let unknown = localizationManager.localizedString(for: "common.unknown")
         switch TransactionType(rawValue: transaction.type ?? "") {
         case .sell:
-            return transaction.asset?.symbol ?? "Unknown"
+            return transaction.asset?.symbol ?? unknown
         case .dividend:
-            return "Dividend"
+            return localizationManager.localizedString(for: "transaction.type.dividend")
         case .interest:
-            return "Interest"
+            return localizationManager.localizedString(for: "transaction.type.interest")
         default:
-            return transaction.asset?.symbol ?? transaction.type ?? "Unknown"
+            return transaction.asset?.symbol ?? transaction.type ?? unknown
         }
     }
 
@@ -292,32 +335,22 @@ struct RealizedPnLView: View {
     }
 
 
-    private func getGroupName(for asset: Asset) -> String {
+    private func getGroupName(for asset: Asset) -> AssetGroup {
         guard let assetType = AssetType(rawValue: asset.assetType ?? "") else {
-            return "Dividends & Interest"
+            return .dividendsAndInterest
         }
 
         switch assetType {
-        case .stock:
-            return "Stocks"
-        case .etf:
-            return "ETFs"
-        case .bond:
-            return "Bonds"
-        case .mutualFund:
-            return "Mutual Funds"
-        case .cryptocurrency:
-            return "Cryptocurrency"
-        case .preciousMetal:
-            return "Precious Metals"
-        case .insurance:
-            return "Insurance"
-        case .structuredProduct:
-            return "Structured Products"
-        case .other:
-            return "Other"
-        case .deposit:
-            return "Deposits"
+        case .stock: return .stocks
+        case .etf: return .etfs
+        case .bond: return .bonds
+        case .mutualFund: return .mutualFunds
+        case .cryptocurrency: return .cryptocurrency
+        case .preciousMetal: return .preciousMetals
+        case .insurance: return .insurance
+        case .structuredProduct: return .structuredProducts
+        case .other: return .other
+        case .deposit: return .deposits
         }
     }
 
@@ -396,13 +429,13 @@ struct RealizedPnLView: View {
         }
 
         for transaction in interestTransactions {
-            let institutionName = transaction.institution?.name ?? "Unknown Institution"
+            let institutionName = transaction.institution?.name ?? localizationManager.localizedString(for: "institution.unknown")
 
             // Determine if this is from a fixed deposit or demand deposit
             let isFromFixedDeposit = transaction.asset?.assetType == AssetType.deposit.rawValue &&
                                    transaction.asset?.isFixedDeposit == true
-            let depositType = isFromFixedDeposit ? "Fixed Deposits" : "Demand Deposits"
-            let key = "\(institutionName) - \(depositType)"
+            let depositType = localizationManager.localizedString(for: isFromFixedDeposit ? "realized.deposit.type.fixed" : "realized.deposit.type.demand")
+            let key = String(format: localizationManager.localizedString(for: "realized.deposit.symbolFormat"), institutionName, depositType)
 
             let net = transaction.amount - transaction.fees - transaction.tax
             let convertedAmount = convertToPortfolioCurrency(net, currencyCode: transaction.currency)
@@ -413,7 +446,7 @@ struct RealizedPnLView: View {
             AssetGroupItem(
                 asset: nil,
                 symbol: key,
-                name: "Interest Income",
+                name: localizationManager.localizedString(for: "realized.deposit.interestName"),
                 realizedPnL: amount,
                 incomeAmount: 0, // For deposits, the amount IS the income
                 incomeIncludedPnL: amount
@@ -465,8 +498,8 @@ struct RealizedPnLView: View {
         return incomeGroups.map { asset, amount in
             AssetGroupItem(
                 asset: asset,
-                symbol: asset.symbol ?? "Unknown",
-                name: asset.name ?? "Unknown Asset",
+                symbol: asset.symbol ?? localizationManager.localizedString(for: "common.unknown"),
+                name: asset.name ?? localizationManager.localizedString(for: "asset.name.unknown"),
                 realizedPnL: 0, // No sells, so no realized P&L
                 incomeAmount: amount,
                 incomeIncludedPnL: amount

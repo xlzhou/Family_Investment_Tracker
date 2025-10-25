@@ -3,7 +3,7 @@ import Foundation
 enum Formatters {
     private static func makeNumberFormatter(style: NumberFormatter.Style = .decimal,
                                              fractionDigits: Int = 2,
-                                             locale: Locale = .current) -> NumberFormatter {
+                                             locale: Locale = LocalizationManager.shared.locale) -> NumberFormatter {
         let f = NumberFormatter()
         f.locale = locale
         f.numberStyle = style

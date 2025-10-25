@@ -41,56 +41,46 @@ class LocalizationManager: ObservableObject {
     static let shared = LocalizationManager()
 
     @Published var currentLanguage: AppLanguage = .system
-    private var bundle: Bundle = Bundle.main
+    @Published var locale: Locale = .current
+    private var bundle: Bundle = .main
 
     private init() {
-        // Load the saved language preference
         let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? AppLanguage.system.rawValue
         if let language = AppLanguage(rawValue: savedLanguage) {
-            setLanguage(language)
+            setLanguage(language, persistSelection: false)
+        } else {
+            loadBundle(for: .system)
         }
     }
 
-    func setLanguage(_ language: AppLanguage) {
+    func setLanguage(_ language: AppLanguage, persistSelection: Bool = true) {
         currentLanguage = language
 
-        // Save the language preference
-        UserDefaults.standard.set(language.rawValue, forKey: "selectedLanguage")
+        if persistSelection {
+            UserDefaults.standard.set(language.rawValue, forKey: "selectedLanguage")
+        }
 
-        // Load the appropriate bundle for the language
         loadBundle(for: language)
     }
 
     private func loadBundle(for language: AppLanguage) {
-        let languageCode: String
-
         switch language {
         case .system:
-            // Get the first preferred language from system, fallback to "en"
-            languageCode = Locale.preferredLanguages.first?.components(separatedBy: "-").first ?? "en"
-        case .en:
-            languageCode = "en"
-        case .zhHant:
-            languageCode = "zh-Hant"
-        case .ja:
-            languageCode = "ja"
-        case .es:
-            languageCode = "es"
-        }
-
-        // Try to load the specific language bundle
-        if let path = Bundle.main.path(forResource: languageCode, ofType: "lproj"),
-           let languageBundle = Bundle(path: path) {
-            bundle = languageBundle
-        } else {
-            // Fallback to English if the language bundle is not found
-            if let path = Bundle.main.path(forResource: "en", ofType: "lproj"),
-               let fallbackBundle = Bundle(path: path) {
-                bundle = fallbackBundle
-            } else {
-                bundle = Bundle.main
+            bundle = .main
+            locale = .autoupdatingCurrent
+            return
+        default:
+            let identifier = language.rawValue
+            if let path = Bundle.main.path(forResource: identifier, ofType: "lproj"),
+               let languageBundle = Bundle(path: path) {
+                bundle = languageBundle
+                locale = Locale(identifier: identifier)
+                return
             }
         }
+
+        bundle = .main
+        locale = .autoupdatingCurrent
     }
 
     func localizedString(for key: String, fallback: String? = nil) -> String {

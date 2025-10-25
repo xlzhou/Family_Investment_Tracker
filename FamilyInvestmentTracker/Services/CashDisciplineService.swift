@@ -40,6 +40,7 @@ struct CashDisciplineService {
         guard let identifier = companionNoteIdentifier(for: transaction) else { return nil }
 
         var components: [String] = []
+        let localization = LocalizationManager.shared
 
         if let typeRaw = transaction.type,
            let type = TransactionType(rawValue: typeRaw) {
@@ -56,46 +57,40 @@ struct CashDisciplineService {
 
         let quantity = transaction.quantity
         if abs(quantity) > 1e-6 {
-            let quantityText = String(format: NSLocalizedString("cashDiscipline.qty",
-                                                                comment: "Quantity entry for cash discipline companion note"),
-                                      Formatters.decimal(quantity))
+            let format = localization.localizedString(for: "cashDiscipline.qty")
+            let quantityText = String(format: format, Formatters.decimal(quantity))
             components.append(quantityText)
         }
 
         let price = transaction.price
         if abs(price) > 1e-6 {
-            let priceText = String(format: NSLocalizedString("cashDiscipline.price",
-                                                             comment: "Price entry for cash discipline companion note"),
-                                   Formatters.currency(price, symbol: currency.symbol))
+            let format = localization.localizedString(for: "cashDiscipline.price")
+            let priceText = String(format: format, Formatters.currency(price, symbol: currency.symbol))
             components.append(priceText)
         }
 
         let fees = transaction.fees
         if abs(fees) > 1e-6 {
-            let feesText = String(format: NSLocalizedString("cashDiscipline.fees",
-                                                            comment: "Fees entry for cash discipline companion note"),
-                                  Formatters.currency(fees, symbol: currency.symbol))
+            let format = localization.localizedString(for: "cashDiscipline.fees")
+            let feesText = String(format: format, Formatters.currency(fees, symbol: currency.symbol))
             components.append(feesText)
         }
 
         let tax = transaction.tax
         if abs(tax) > 1e-6 {
-            let taxText = String(format: NSLocalizedString("cashDiscipline.tax",
-                                                           comment: "Tax entry for cash discipline companion note"),
-                                 Formatters.currency(tax, symbol: currency.symbol))
+            let format = localization.localizedString(for: "cashDiscipline.tax")
+            let taxText = String(format: format, Formatters.currency(tax, symbol: currency.symbol))
             components.append(taxText)
         }
 
         let settlementDisplay = abs(companionAmount)
-        let settlementText = String(format: NSLocalizedString("cashDiscipline.settlement",
-                                                               comment: "Settlement entry for cash discipline companion note"),
-                                     Formatters.currency(settlementDisplay, symbol: currency.symbol))
+        let settlementFormat = localization.localizedString(for: "cashDiscipline.settlement")
+        let settlementText = String(format: settlementFormat, Formatters.currency(settlementDisplay, symbol: currency.symbol))
         components.append(settlementText)
 
         if let date = transaction.transactionDate {
-            let dateText = String(format: NSLocalizedString("cashDiscipline.date",
-                                                            comment: "Date entry for cash discipline companion note"),
-                                  noteDateFormatter.string(from: date))
+            let dateFormat = localization.localizedString(for: "cashDiscipline.date")
+            let dateText = String(format: dateFormat, noteDateFormatter.string(from: date))
             components.append(dateText)
         }
 

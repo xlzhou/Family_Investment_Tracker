@@ -31,13 +31,13 @@ struct SecurityQuestionsSetupView: View {
                         .font(.system(size: 32))
                         .foregroundColor(.blue)
 
-                    Text(isUpdating ? "Update Security Questions" : "Security Questions")
+                    localizationManager.text(isUpdating ? "securityQuestionsSetup.title.update" : "securityQuestionsSetup.title.new")
                         .font(.title3)
                         .fontWeight(.bold)
 
-                    Text(isUpdating ?
-                         "Update your security questions. These will replace your current questions." :
-                         "Set up security questions to help recover your passcode if you forget it")
+                    localizationManager.text(isUpdating ?
+                         "securityQuestionsSetup.subtitle.update" :
+                         "securityQuestionsSetup.subtitle.new")
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -46,7 +46,9 @@ struct SecurityQuestionsSetupView: View {
 
                 // Progress Indicator (Compact)
                 HStack {
-                    Text("Progress: \(completedQuestions) of \(requiredQuestions)")
+                    Text(localizationManager.localizedString(for: "securityQuestionsSetup.progress",
+                                                             arguments: completedQuestions,
+                                                             requiredQuestions))
                         .font(.caption2)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
@@ -120,8 +122,8 @@ struct SecurityQuestionsSetupView: View {
                                     .tint(.white)
                             }
                             Text(isSettingUp ?
-                                 (isUpdating ? "Updating..." : "Setting up...") :
-                                 (isUpdating ? "Update Security Questions" : "Set Up Security Questions"))
+                                 localizationManager.localizedString(for: isUpdating ? "securityQuestionsSetup.button.updating" : "securityQuestionsSetup.button.settingUp") :
+                                 localizationManager.localizedString(for: isUpdating ? "securityQuestionsSetup.button.update" : "securityQuestionsSetup.button.setup"))
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
@@ -134,7 +136,7 @@ struct SecurityQuestionsSetupView: View {
 
                     // Skip Button (only show during initial setup)
                     if !isUpdating {
-                        Button("Skip for Now") {
+                        Button(localizationManager.localizedString(for: "securityQuestionsSetup.button.skip")) {
                             showingSkipAlert = true
                         }
                         .font(.body)
@@ -145,23 +147,23 @@ struct SecurityQuestionsSetupView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle(isUpdating ? "Update Questions" : "Security Setup")
+            .navigationTitle(localizationManager.localizedString(for: isUpdating ? "securityQuestionsSetup.nav.update" : "securityQuestionsSetup.nav.new"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Cancel") {
+                    Button(localizationManager.localizedString(for: "common.cancel")) {
                         isPresented = false
                     }
                 }
             }
         }
-        .alert("Skip Security Questions?", isPresented: $showingSkipAlert) {
-            Button("Skip", role: .destructive) {
+        .alert(localizationManager.localizedString(for: "securityQuestionsSetup.alert.skip.title"), isPresented: $showingSkipAlert) {
+            Button(localizationManager.localizedString(for: "securityQuestionsSetup.alert.skip.confirm"), role: .destructive) {
                 isPresented = false
                 onComplete()
             }
-            Button("Cancel", role: .cancel) { }
+            Button(localizationManager.localizedString(for: "common.cancel"), role: .cancel) { }
         } message: {
-            Text("You won't be able to recover your passcode if you forget it. You can set up security questions later in Settings.")
+            Text(localizationManager.localizedString(for: "securityQuestionsSetup.alert.skip.message"))
         }
     }
 
@@ -205,7 +207,7 @@ struct SecurityQuestionsSetupView: View {
                 onComplete()
             } else {
                 isSettingUp = false
-                authManager.authenticationError = "Failed to set up security questions"
+                authManager.authenticationError = localizationManager.localizedString(for: "securityQuestionsSetup.error.generic")
             }
         }
     }
@@ -222,7 +224,7 @@ struct SecurityQuestionSetupField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Security Question \(questionNumber)")
+                Text(localizationManager.localizedString(for: "securityQuestionsSetup.question.title", arguments: questionNumber))
                     .font(.headline)
                     .fontWeight(.semibold)
 
@@ -237,7 +239,7 @@ struct SecurityQuestionSetupField: View {
 
             // Question Picker
             VStack(alignment: .leading, spacing: 8) {
-                Text("Question")
+                localizationManager.text("securityQuestionsSetup.question.label")
                     .font(.body)
                     .fontWeight(.medium)
 
@@ -249,7 +251,7 @@ struct SecurityQuestionSetupField: View {
                     }
                 } label: {
                     HStack {
-                        Text(selectedQuestion.isEmpty ? "Select a question..." : selectedQuestion)
+                        Text(selectedQuestion.isEmpty ? localizationManager.localizedString(for: "securityQuestionsSetup.question.placeholder") : selectedQuestion)
                             .foregroundColor(selectedQuestion.isEmpty ? .secondary : .primary)
                             .multilineTextAlignment(.leading)
                         Spacer()
@@ -265,12 +267,12 @@ struct SecurityQuestionSetupField: View {
 
             // Answer Field
             VStack(alignment: .leading, spacing: 8) {
-                Text("Answer")
+                localizationManager.text("securityQuestionsSetup.answer.label")
                     .font(.body)
                     .fontWeight(.medium)
 
                 HStack(spacing: 8) {
-                    TextField("Your answer", text: $answer)
+                    TextField(localizationManager.localizedString(for: "securityQuestionsSetup.answer.placeholder"), text: $answer)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .textInputAutocapitalization(.never)
                         .disableAutocorrection(true)
@@ -285,7 +287,7 @@ struct SecurityQuestionSetupField: View {
                                 Image(systemName: "arrow.down.circle.fill")
                                     .font(.title2)
                                     .foregroundColor(.blue)
-                                Text("Next")
+                                Text(localizationManager.localizedString(for: "common.next"))
                                     .font(.caption2)
                                     .fontWeight(.medium)
                                     .foregroundColor(.blue)
@@ -296,7 +298,7 @@ struct SecurityQuestionSetupField: View {
                     }
                 }
 
-                Text("Remember: answers are case-insensitive")
+                localizationManager.text("securityQuestionsSetup.answer.note")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
